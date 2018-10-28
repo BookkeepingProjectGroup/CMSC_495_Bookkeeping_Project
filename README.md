@@ -9,11 +9,11 @@ Notes: Feel free to edit this page as desired, expanding or retracting where nec
 #### Participants ####
 
 * Matthew Dobson
-* Kevin Kurt Ramirez [(@kramirez21)](https://github.com/kramirez21)
+* Kevin Kurt Ramirez ([@kramirez21](https://github.com/kramirez21))
 * Christian Rondon
 * Jennifer Brady
-* Andrew Eissen [(@andreweissen)](https://github.com/andreweissen)
-* Steven Wu
+* Andrew Eissen ([@andreweissen](https://github.com/andreweissen))
+* Steven Wu ([@stevenwu95](https://github.com/stevenwu95))
 
 #### Resources ####
 
