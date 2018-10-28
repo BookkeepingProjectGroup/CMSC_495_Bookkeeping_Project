@@ -8,7 +8,7 @@ Notes: Feel free to edit this page as desired, expanding or retracting where nec
 
 #### Participants ####
 
-* Matthew Dobson
+* Matthew Dobson ([@dobs93](https://github.com/dobs93))
 * Kevin Kurt Ramirez ([@kramirez21](https://github.com/kramirez21))
 * Christian Rondon
 * Jennifer Brady
