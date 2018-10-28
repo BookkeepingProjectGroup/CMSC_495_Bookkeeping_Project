@@ -47,6 +47,7 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.main = function () {
     console.log('Testing');
+    console.warn('Warning');
   };
 
   /**
