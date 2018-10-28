@@ -7,7 +7,7 @@ This project, the central focus of the UMUC capstone class CMSC 495 Current Tren
 #### Participants ####
 
 * Matthew Dobson
-* Kevin Kurt Ramirez
+* Kevin Kurt Ramirez [(@kramirez21)](https://github.com/kramirez21)
 * Christian Rondon
 * Jennifer Brady
 * Andrew Eissen [(@andreweissen)](https://github.com/andreweissen)
