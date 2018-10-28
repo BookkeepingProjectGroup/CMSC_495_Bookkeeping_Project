@@ -11,7 +11,7 @@ Notes: Feel free to edit this page as desired, expanding or retracting where nec
 * Matthew Dobson ([@dobs93](https://github.com/dobs93))
 * Kevin Kurt Ramirez ([@kramirez21](https://github.com/kramirez21))
 * Christian Rondon
-* Jennifer Brady
+* Jennifer Brady ([@twbird18](https://github.com/twbird18))
 * Andrew Eissen ([@andreweissen](https://github.com/andreweissen))
 * Steven Wu ([@stevenwu95](https://github.com/stevenwu95))
 
