@@ -37,6 +37,22 @@ const BookkeepingProjectModule = (function () {
   const DEBUG = false;
 
   /**
+   * @description Enum for assorted utility constants. Herein are set assorted
+   * default values of helper constants required in various contexts. These
+   * values are included in an object-global private enum to assist in ease of
+   * adjustment if a value needs to be changed universally for all elements or
+   * functions making use of that value. Object is made immutable via
+   * <code>Object.freeze</code>.
+   *
+   * @readonly
+   * @enum {number}
+   */
+  inaccessible.Utility = Object.freeze({
+    FADE_IN_INTERVAL: 10,
+    OPACITY_INCREASE_AMOUNT: 0.015,
+  });
+
+  /**
    * @description This function serves as the main initialization function,
    * called on the completion of the DOM load by the externally-facing function
    * <code>accessible.init</code>. Ideally, it will dynamically generate HTML
