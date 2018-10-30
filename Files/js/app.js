@@ -52,6 +52,48 @@ const BookkeepingProjectModule = (function () {
     OPACITY_INCREASE_AMOUNT: 0.015,
   });
 
+  // Utility functions
+
+  /**
+   * @description This function is based on the similarly-named fading function
+   * available by default in jQuery. As the page will be set to an opacity style
+   * value of 0 from the start (namely in the proposed bulk assembly function
+   * <code>inaccessible.assembleBodyFramework</code>), this function simply
+   * increases the element's opacity until it reaches a value of 1, thus giving
+   * the impression of the scene fading in from the start. This helps hide the
+   * often jerky page and interface assembly sequence from view for a few
+   * milliseconds. (May not be necessary depending on implementation method)
+   *
+   * @param {string} paramElementId Container/wrapper id
+   * @returns {void}
+   */
+  inaccessible.fadeIn = function (paramElementId) {
+
+    // Declarations
+    let that, container, interval;
+
+    // Preserve scope context
+    that = this;
+
+    // Grab DOM element from id
+    container = document.getElementById(paramElementId);
+
+    // Define fade-in interval
+    interval = setInterval(function () {
+      if (container.style.opacity < 1) {
+        container.style.opacity = (parseFloat(container.style.opacity) +
+            that.Utility.OPACITY_INCREASE_AMOUNT);
+      } else {
+        if (DEBUG) {
+          console.log('Scene fade-in complete');
+        }
+
+        clearInterval(interval);
+        return;
+      }
+    }, this.Utility.FADE_IN_INTERVAL);
+  };
+
   /**
    * @description This function serves as the main initialization function,
    * called on the completion of the DOM load by the externally-facing function
