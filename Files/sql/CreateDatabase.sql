@@ -1,3 +1,22 @@
+CREATE TABLE Documents(
+    documentID INT          UNSIGNED NOT NULL,
+    vendorID   INT          UNSIGNED,
+    customerID INT          UNSIGNED,
+    name       VARCHAR(16),
+    type       TINYINT(1)   UNSIGNED NOT NULL,
+    PRIMARY KEY (documentID),
+    FOREIGN KEY (vendorID)   REFERENCES Vendors(vendorID),
+    FOREIGN KEY (CustomerID) REFERENCES Customers(customerID),
+    CHECK (vendorID IS NULL) OR (customerID IS NULL)
+);
+
+CREATE TABLE Accounts(
+    accountID SMALLINT(4) UNSIGNED NOT NULL,
+    name      VARCHAR(32),
+    type      TINYINT(1)  UNSIGNED NOT NULL,
+    PRIMARY KEY (accountID)
+);
+
 CREATE TABLE GeneralLedger(
     lineID      INT            UNSIGNED NOT NULL,
     documentID  INT            UNSIGNED NOT NULL,
@@ -13,4 +32,3 @@ CREATE TABLE GeneralLedger(
         ((debit IS NULL) AND (credit IS NOT NULL))
         OR ((credit IS NULL) AND (debit IS NOT NULL))
 );
-
