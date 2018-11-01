@@ -1,7 +1,7 @@
 CREATE TABLE Users(
     ID     INT         UNSIGNED NOT NULL,
     name   VARCHAR(64),
-    PRIMARY KEY (userID)
+    PRIMARY KEY (ID)
 );
 
 CREATE TABLE Documents(
