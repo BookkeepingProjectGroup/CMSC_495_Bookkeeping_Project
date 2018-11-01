@@ -9,6 +9,19 @@
 
 /**
  * @description The primary JavaScript module.
+ * <br />
+ * <br />
+ * <pre>
+ * Table of contents
+ * - Enums
+ *   - Utility                Line 063
+ * - Function groups
+ *   - Utility functions      Line 068
+ *   - Assembly functions     Line xxx
+ *   - Handler functions      Line xxx
+ *   - Main functions         Line 152
+ *   - Public functions       Line 167
+ * </pre>
  *
  * @see {@link //google.github.io/styleguide/jsguide.html|Styleguide #1}
  * @see {@link //google.github.io/styleguide/javascriptguide.xml|Styleguide #2}
@@ -55,6 +68,48 @@ const BookkeepingProjectModule = (function () {
   // Utility functions
 
   /**
+   * @description Like <code>inaccessible.prepend</code>, this function is based
+   * on jQuery's <code>$.append()</code> function used to add a DOM element
+   * to another based on a <code>String</code> representation of the container's
+   * id or class name.
+   *
+   * @param {string} paramTarget Element to which child is to be appended
+   * @param {string} paramSubject Child node to be added
+   * @returns {void}
+   */
+  inaccessible.append = function (paramTarget, paramSubject) {
+    document.getElementById(paramTarget).appendChild(paramSubject);
+  };
+
+  /**
+   * @description Like <code>inaccessible.append</code>, this function is based
+   * on jQuery's <code>$.prepend()</code> function used to add a DOM element
+   * to another based on a <code>String</code> representation of the container's
+   * id or class name.
+   *
+   * @param {string} paramTarget Element to which child is to be prepended
+   * @param {string} paramSubject Child node to be added
+   * @returns {void}
+   */
+  inaccessible.prepend = function (paramTarget, paramSubject) {
+    document.getElementById(paramTarget).insertBefore(paramSubject,
+        paramTarget.firstChild);
+  };
+
+  /**
+   * @description This function returns a <code>boolean</code> value based on
+   * whether or not the inputted object is an array. It will be used by
+   * <code>inaccessible.assembleElement</code> to determine if inputted
+   * parameters need to be formatted as arrays.
+   *
+   * @param {object} paramTarget Object to be checked
+   * @returns {boolean} Returns <code>true</code> if object is an Array
+   */
+  inaccessible.isArray = function (paramTarget) {
+    return Object.prototype.toString.call(paramTarget) === '[object Array]';
+  };
+
+  /**
    * @description This function is based on the similarly-named fading function
    * available by default in jQuery. As the page will be set to an opacity style
    * value of 0 from the start (namely in the proposed bulk assembly function
@@ -94,6 +149,8 @@ const BookkeepingProjectModule = (function () {
     }, this.Utility.FADE_IN_INTERVAL);
   };
 
+  // Main functions
+
   /**
    * @description This function serves as the main initialization function,
    * called on the completion of the DOM load by the externally-facing function
@@ -106,6 +163,8 @@ const BookkeepingProjectModule = (function () {
   inaccessible.main = function () {
     console.log('Testing');
   };
+
+  // Public functions
 
   /**
    * @description The central function of the <code>accessible</code> access
