@@ -4,6 +4,15 @@ CREATE TABLE Users(
     PRIMARY KEY (ID)
 );
 
+CREATE TABLE Vendors(
+    ID      INT          UNSIGNED NOT NULL,
+    userID  INT          UNSIGNED NOT NULL,
+    name    VARCHAR(32)           NOT NULL,
+    address VARCHAR(128),
+    PRIMARY KEY (ID),
+    FOREIGN KEY (userID) REFERENCES Users(ID)
+);
+
 CREATE TABLE Documents(
     ID         INT                                UNSIGNED NOT NULL,
     userID     INT                                UNSIGNED NOT NULL,
