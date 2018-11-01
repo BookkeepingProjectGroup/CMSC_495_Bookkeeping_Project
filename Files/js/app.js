@@ -14,13 +14,14 @@
  * <pre>
  * Table of contents
  * - Enums
- *   - Utility                Line 063
+ *   - Utility                Line 064
+ *   - Identifiers            Line 085
  * - Function groups
- *   - Utility functions      Line 068
- *   - Assembly functions     Line xxx
+ *   - Utility functions      Line 089
+ *   - Assembly functions     Line 173
  *   - Handler functions      Line xxx
- *   - Main functions         Line 152
- *   - Public functions       Line 167
+ *   - Main functions         Line 236
+ *   - Public functions       Line 251
  * </pre>
  *
  * @see {@link //google.github.io/styleguide/jsguide.html|Styleguide #1}
@@ -63,6 +64,28 @@ const BookkeepingProjectModule = (function () {
   inaccessible.Utility = Object.freeze({
     FADE_IN_INTERVAL: 10,
     OPACITY_INCREASE_AMOUNT: 0.015,
+  });
+
+  /**
+   * @description This enum is used to store the <code>String</code>
+   * representations of the various DOM element ids and class names present in
+   * the interface. This enum is useful in assisting the process of grabbing
+   * elements in the DOM via <code>document.getElementById</code> in multiple
+   * places, allowing the user to adjust these names as needed without having to
+   * sift through all the application logic functions below for each appearance.
+   * <br />
+   * <br />
+   * Additionally, it aids in the dynamic element assembly method via the
+   * assembly function <code>inaccessible.assembleElement</code>, the likes of
+   * which will be doing the heavy lifting and will be supplied with the ids and
+   * class names in this enum for the building of the <code>HTMLElement</code>
+   * instances. Object is made immutable via <code>Object.freeze</code>.
+   *
+   * @readonly
+   * @enum {string}
+   */
+  inaccessible.Identifiers = Object.freeze({
+    CONTAINER_ID: 'container',
   });
 
   // Utility functions
@@ -147,6 +170,69 @@ const BookkeepingProjectModule = (function () {
         return;
       }
     }, this.Utility.FADE_IN_INTERVAL);
+  };
+
+  // Assembly functions
+
+  /**
+   * @description As its name implies, this function is used to construct an
+   * individual instance of an element or object; in this case, it builds a
+   * single HTML element that will be returned from the function and appended to
+   * the DOM dynamically. It accepts an array of strings denoting the type of
+   * element to create and also handles potentially nested element arrays for
+   * elements that are to exist inside the outer element tags as inner HTML.
+   *
+   * @param {!Array<string>} paramArray Well-formed array representing DOM node
+   * @returns {HTMLElement} element Assembled element for addition to DOM
+   */
+  inaccessible.assembleElement = function (paramArray) {
+
+    // Declarations
+    let element, name, attributes, counter, content;
+
+    // Make sure input argument is a well-formatted array
+    if (!this.isArray(paramArray)) {
+      return this.assembleElement.call(this,
+          Array.prototype.slice.call(arguments));
+    }
+
+    // Definitions
+    name = paramArray[0];
+    attributes = paramArray[1];
+    element = document.createElement(name);
+    counter = 1;
+
+    /**
+     * Note: We use <code>!=</code> here to check for both undefined and null
+     * behavior since <code>attributes != null</code> is equivalent to
+     * <code>attributes === undefined || attributes === null</code>.
+     */
+    if (typeof attributes === 'object' && attributes != null &&
+        !this.isArray(attributes)) {
+
+      for (let attribute in attributes) {
+        element.setAttribute(attribute, attributes[attribute]);
+      }
+
+      counter = 2;
+    }
+
+    for (let i = counter; i < paramArray.length; i++) {
+
+      // If there's inner HTML to hand, recursively call self
+      if (this.isArray(paramArray[i])) {
+        content = this.assembleElement(paramArray[i]);
+
+      // Otherwise, treat any remaining array elements as text content
+      } else {
+        content = document.createTextNode(paramArray[i]);
+      }
+
+      // Add to outer parent element
+      element.appendChild(content);
+    }
+
+    return element;
   };
 
   // Main functions
