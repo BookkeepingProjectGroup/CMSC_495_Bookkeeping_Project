@@ -1,9 +1,26 @@
+/*
+ * File: CreateDatabase.sql
+ * Author(s): Matthew Dobson
+ * Date modified: 2018-11-3
+ *
+ * Description: A SQL script to setup the MariaDB database for the Bookkeepper
+ * application. Run this script as user php@localhost.
+ */
+
+/*
+ * A table which associates the username of each user of the system with an ID.
+ */
 CREATE TABLE Users(
     ID     INT         UNSIGNED NOT NULL,
-    name   VARCHAR(64),
+    username   VARCHAR(64),
     PRIMARY KEY (ID)
 );
 
+/*
+ * A table which associates the information of each vendor (name, address) with
+ * an ID and a user of the system. IMPORTANT: Different users must not be able
+ * to view other users' vendors!
+ */
 CREATE TABLE Vendors(
     ID      INT          UNSIGNED NOT NULL,
     userID  INT          UNSIGNED NOT NULL,
