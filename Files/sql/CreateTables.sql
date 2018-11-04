@@ -3,8 +3,8 @@
  * Author(s): Matthew Dobson
  * Date modified: 2018-11-3
  *
- * Description: A SQL script to setup the MariaDB database for the Bookkeepper
- * application. Run this script as user php@localhost.
+ * Description: A SQL script to setup the database tables. Run this script as
+ * user php@localhost after CreateDatabase.sql has been run.
  */
 
 /*
