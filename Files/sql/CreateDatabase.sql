@@ -13,7 +13,7 @@
  * IMPORTANT: Users must not be able to view other users' usernames!
  */
 CREATE TABLE Users(
-    ID     INT         UNSIGNED NOT NULL,
+    ID         INT         UNSIGNED NOT NULL,
     username   VARCHAR(64),
     PRIMARY KEY (ID)
 );
@@ -80,8 +80,23 @@ CREATE TABLE Accounts(
     FOREIGN KEY (userID) REFERENCES Users(ID)
 );
 
+/*
+ * A table which associates the information of each general ledger line
+ * (account, date, debit amount or credit amount, description) with a user and a
+ * document.
+ *
+ * IMPORTANT: Users must not be able to see other users' general ledger entries!
+ *
+ * (A userID field is not necessary here to determine with which user a row is
+ * associated, as each line already contains a documentID and accountID, and
+ * each document and account is associated with a user. Nonetheless, I figured
+ * this would help to enforce the requirement that users be unable to see other
+ * users' information, since a check can be in every query that userID refers to
+ * the desired user.)
+ */
 CREATE TABLE GeneralLedger(
     ID          INT           UNSIGNED NOT NULL,
+    userID      INT           UNSIGNED NOT NULL,
     documentID  INT           UNSIGNED NOT NULL,
     accountID   INT           UNSIGNED NOT NULL,
     lineDate    DATE                   NOT NULL,
@@ -89,6 +104,7 @@ CREATE TABLE GeneralLedger(
     credit      DECIMAL(10,2),
     description VARCHAR(64),
     PRIMARY KEY (ID),
+    FOREIGN KEY (userID)     REFERENCES Users(ID),
     FOREIGN KEY (documentID) REFERENCES Documents(ID),
     FOREIGN KEY (accountID)  REFERENCES Accounts(ID),
     CHECK
