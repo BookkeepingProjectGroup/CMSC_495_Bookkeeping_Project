@@ -9,6 +9,8 @@
 
 /*
  * A table which associates the username of each user of the system with an ID.
+ *
+ * IMPORTANT: Users must not be able to view other users' usernames!
  */
 CREATE TABLE Users(
     ID     INT         UNSIGNED NOT NULL,
@@ -18,8 +20,9 @@ CREATE TABLE Users(
 
 /*
  * A table which associates the information of each vendor (name, address) with
- * an ID and a user of the system. IMPORTANT: Different users must not be able
- * to view other users' vendors!
+ * an ID and a user of the system.
+ *
+ * IMPORTANT: Users must not be able to view other users' vendors!
  */
 CREATE TABLE Vendors(
     ID      INT          UNSIGNED NOT NULL,
@@ -30,6 +33,15 @@ CREATE TABLE Vendors(
     FOREIGN KEY (userID) REFERENCES Users(ID)
 );
 
+/*
+ * A table which associates the information of each document (vendor or customer
+ * or neither, name, type [JE for journal entry, API for accounts payable
+ * invoice, APD for accounts payable disbursement, ARI for accounts receivable
+ * invoice or ARR for accounts receivable receipt], whether or not the document
+ * has been posted) with an ID and a system user.
+ *
+ * IMPORTANT: Users must not be able to view other users' documents!
+ */
 CREATE TABLE Documents(
     ID         INT                                UNSIGNED NOT NULL,
     userID     INT                                UNSIGNED NOT NULL,
@@ -46,6 +58,13 @@ CREATE TABLE Documents(
     CHECK (isPosted = 0) OR (isPosted = 1)
 );
 
+/*
+ * A table which associates the information of an account (code [a four digit
+ * number used by a user to refer to an account], name, type (ASSET, LIABILITY,
+ * EQUITY, REVENUE or EXPENSE) with an ID and a user.
+ *
+ * IMPORTANT: Users must not be able to view other users' accounts!
+ */
 CREATE TABLE Accounts(
     ID        INT             UNSIGNED NOT NULL,
     userID    INT             UNSIGNED NOT NULL,
