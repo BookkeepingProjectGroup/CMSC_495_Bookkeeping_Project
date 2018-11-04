@@ -1,5 +1,5 @@
 /*
- * File: CreateDatabase.sql
+ * File: CreateTables.sql
  * Author(s): Matthew Dobson
  * Date modified: 2018-11-3
  *
