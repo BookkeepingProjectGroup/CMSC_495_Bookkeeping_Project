@@ -97,11 +97,11 @@ CREATE TABLE BooksDB.Documents(
     type       ENUM('JE','API','APD','ARI','ARR')          NOT NULL,
     isPosted   TINYINT(1)                         UNSIGNED NOT NULL,
     PRIMARY KEY (ID),
-    FOREIGN KEY (userID)     REFERENCES UsersID.Users(ID),
+    FOREIGN KEY (userID)     REFERENCES UsersDB.Users(ID),
     FOREIGN KEY (vendorID)   REFERENCES BooksDB.Vendors(ID),
-    FOREIGN KEY (CustomerID) REFERENCES BooksDB.Customers(ID),
-    CHECK (vendorID IS NULL) OR (customerID IS NULL),
-    CHECK (isPosted = 0) OR (isPosted = 1)
+    FOREIGN KEY (customerID) REFERENCES BooksDB.Customers(ID),
+    CHECK ((vendorID IS NULL) OR (customerID IS NULL)),
+    CHECK ((isPosted = 0) OR (isPosted = 1))
 );
 
 /*
@@ -121,7 +121,7 @@ CREATE TABLE BooksDB.Accounts(
                   'LIABILITY',
                   'EQUITY',
                   'REVENUE',
-                  'EXPENSE')  UNSIGNED NOT NULL,
+                  'EXPENSE')           NOT NULL,
     PRIMARY KEY (ID),
     FOREIGN KEY (userID) REFERENCES UsersDB.Users(ID)
 );
@@ -153,9 +153,9 @@ CREATE TABLE BooksDB.GeneralLedger(
     FOREIGN KEY (userID)     REFERENCES UsersDB.Users(ID),
     FOREIGN KEY (documentID) REFERENCES BooksDB.Documents(ID),
     FOREIGN KEY (accountID)  REFERENCES BooksDB.Accounts(ID),
-    CHECK
+    CHECK (
         ((debit IS NULL) AND (credit IS NOT NULL))
-        OR ((credit IS NULL) AND (debit IS NOT NULL))
+        OR ((credit IS NULL) AND (debit IS NOT NULL)))
 );
 
 /*
@@ -172,8 +172,8 @@ GRANT ALL ON UsersDB.* TO 'admin'@'localhost';
  * access to UsersDB.
  */
 CREATE USER 'passwords'@'localhost' IDENTIFIED BY '***INSERT PASSWORD HERE***';
-GRANT ALL ON PasswordsDB TO 'passwords'@'localhost';
-GRANT SELECT ON UsersDB TO 'passwords'@'localhost';
+GRANT ALL ON PasswordsDB.* TO 'passwords'@'localhost';
+GRANT SELECT ON UsersDB.* TO 'passwords'@'localhost';
 
 /*
  * The account the password system will use to authenticate passwords; has read-
