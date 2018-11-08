@@ -19,13 +19,13 @@ abstract class DatabaseConnection {
     protected $SQLDatabase;
 
     /**
-     * The sole constructor.
+     * The sole constructor; to be used only by subclasses of this class.
      *
      * @param $username the username with which to login.
      * @param $JSONDatabaseCredentialsFilename the filename, including path, of
      * the database credentials file.
      */
-    public function __construct(
+    protected function __construct(
         string $username, string $JSONDatabaseCredentialsFilename) {
         // Parse the contents of the JSON database credentials file.
         $databaseCredentials =
