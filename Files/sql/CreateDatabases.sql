@@ -189,7 +189,7 @@ GRANT SELECT ON UsersDB.* to 'authentication'@'localhost';
  * BooksDB; has complete access to BooksDB and read-only access to UsersDB.
  *
  * The password for this account must be stored in
- * /Files/config/DatabaseConfig.json for PHP to get in.
+ * /Files/config/phpLogon.json for PHP to get in.
  */
 CREATE USER 'php'@'localhost' IDENTIFIED BY '***INSERT PASSWORD HERE***';
 GRANT ALL ON BooksDB.* TO 'php'@'localhost';

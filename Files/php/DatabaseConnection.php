@@ -34,8 +34,7 @@ class DatabaseConnection {
             new mysqli(
                 $databaseConfigInfo->host,
                 $databaseConfigInfo->username,
-                $databaseConfigInfo->password,
-                $databaseConfigInfo->database);
+                $databaseConfigInfo->password);
     }
 
     /** The destructor; it ensures this connection has been closed. */
