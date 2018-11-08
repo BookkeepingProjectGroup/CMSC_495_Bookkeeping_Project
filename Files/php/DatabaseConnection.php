@@ -3,18 +3,20 @@
 /*
  * File: DatabaseConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-6-2018
- * Description: Defines a PHP class to represent, manipulate and transmit a
- * connection to the bookkeeper application's MariaDB SQL database.
+ * Date modified: 11-8-2018
+ * Description: Defines an abstract PHP class to represent, manipulate and
+ * transmit a connection to the bookkeeper application's MariaDB SQL database.
+ * Concrete classes extending this class will handle connections to the database
+ * as specific users (authentication, passwords, php).
  */
 
 /**
  * A class representing a connection MariaDB SQL database containing the schema
  * for bookkeeping.
  */
-class DatabaseConnection {
+abstract class DatabaseConnection {
     /** The mysqli connection object used by this class. */
-    private $SQLDatabase;
+    protected $SQLDatabase;
 
     /**
      * The sole constructor.
