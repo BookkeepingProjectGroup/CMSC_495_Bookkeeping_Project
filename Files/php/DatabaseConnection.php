@@ -64,4 +64,14 @@ abstract class DatabaseConnection {
                 . $this->SQLDatabase->connect_error);
         }
     }
-    
+
+    /** The destructor; it ensures this connection has been closed. */
+    public function __destruct() {
+        $this->close();
+    }
+
+    /** A method to close this connection. */
+    public function close() {
+        $this->SQLDatabase->close();
+    }
+}
