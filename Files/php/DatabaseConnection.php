@@ -3,7 +3,7 @@
 /*
  * File: DatabaseConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-9-2018
+ * Date modified: 11-10-2018
  * Description: Defines an abstract PHP class to represent, manipulate and
  * transmit a connection to the bookkeeper application's MariaDB SQL database.
  * Concrete classes extending this class will handle connections to the database
@@ -87,14 +87,18 @@ abstract class DatabaseConnection {
      * for a string, "b" for a blob).
      * @param ...$parameters the parameters.
      *
-     * @return a mysqli_result object.
+     * @return an array of arrays containing the result of the query.
      */
     protected function runQuery(
         string $SQLStatement,
         string $parameterTypes,
         ...$parameters) {
-        // This needs to be visible in both the try and finally blocks below.
+        // These need to be visible in both the try and finally blocks below.
         $statement = NULL;
+        $result = NULL;
+
+        // This needs to be visible throughout this method.
+        $resultArray = NULL;
 
         try {
             // Have mysqli prepare the statement.
@@ -130,14 +134,15 @@ abstract class DatabaseConnection {
                     'mysqli_stmt::get_result(void) failed.');
             }
 
-            // Close the statment.
-            $statement->close();
-
-            // Return the result.
-            return $result;
+            // Extract an array of arrays from the result.
+            $resultArray = $result->fetch_all();
         } finally {
-            // Make sure the statement is closed if any exceptions are thrown.
+            // Make sure the statement and result are closed and freed.
             $statement->close();
+            $result->free();
         }
+
+        // Return the array of arrays.
+        return $resultArray;
     }
 }
