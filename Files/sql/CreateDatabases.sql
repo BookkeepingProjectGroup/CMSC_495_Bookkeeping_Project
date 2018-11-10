@@ -1,7 +1,7 @@
 /*
  * File: CreateDatabases.sql
  * Author(s): Matthew Dobson
- * Date modified: 2018-11-6
+ * Date modified: 11-9-2018
  *
  * Description: A SQL script to setup the MariaDB SQL databases.
  *
