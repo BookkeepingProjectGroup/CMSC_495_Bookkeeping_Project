@@ -19,24 +19,50 @@ abstract class DatabaseConnection {
     protected $SQLDatabase;
 
     /**
-     * The sole constructor.
+     * The sole constructor; to be used only by subclasses of this class.
      *
-     * @param $JSONDatabaseConfigFilename the filename, including path, of the
-     * database config file.
+     * @param $username the username with which to login.
+     * @param $JSONDatabaseCredentialsFilename the filename, including path, of
+     * the database credentials file.
      */
-    public function __construct(string $JSONDatabaseConfigFilename) {
-        // Parse the contents of the JSON database config file.
-        $databaseConfigInfo =
+    protected function __construct(
+        string $username, string $JSONDatabaseCredentialsFilename) {
+        // Parse the contents of the JSON database credentials file.
+        $databaseCredentials =
             json_decode(
                 file_get_contents(
-                    $JSONDatabaseConfigFilename, FALSE, NULL, 0, 256));
+                    $JSONDatabaseCredentialsFilename, FALSE, NULL, 0, 256));
+
+        // Make sure the json decode worked; if not, throw an exception
+        if(
+            ($databaseCredentials === NULL)
+            || ($databaseCredentials->host === NULL)
+            || ($databaseCredentials->username === NULL)
+            || ($databaseCredentials->password === NULL)) {
+            throw new Exception(
+                'An error occurred with the database credentials file.');
+        }
+
+        // Make sure the username in the credentials file matches the username
+        // provided; if not, throw an exception
+        if($username !== $databaseCredentials->username) {
+            throw new Exception('Wrong database credentials filename given.');
+        }
 
         // Create a mysqli connection.
         $this->SQLDatabase =
             new mysqli(
-                $databaseConfigInfo->host,
-                $databaseConfigInfo->username,
-                $databaseConfigInfo->password);
+                $databaseCredentials->host,
+                $username,
+                $databaseCredentials->password);
+
+        // Make sure there was no connect_error; if there was, throw an
+        // exception.
+        if($this->SQLDatabase->connect_error) {
+            throw new Exception(
+                'There was an error connecting to MariaDB: '
+                . $this->SQLDatabase->connect_error);
+        }
     }
 
     /** The destructor; it ensures this connection has been closed. */
