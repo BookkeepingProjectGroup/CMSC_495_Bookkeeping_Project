@@ -3,12 +3,14 @@
 /*
  * File: DatabaseConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-8-2018
+ * Date modified: 11-9-2018
  * Description: Defines an abstract PHP class to represent, manipulate and
  * transmit a connection to the bookkeeper application's MariaDB SQL database.
  * Concrete classes extending this class will handle connections to the database
  * as specific users (authentication, passwords, php).
  */
+
+include 'DatabaseException.php';
 
 /**
  * A class representing a connection MariaDB SQL database containing the schema
@@ -73,5 +75,69 @@ abstract class DatabaseConnection {
     /** A method to close this connection. */
     public function close() {
         $this->SQLDatabase->close();
+    }
+
+    /**
+     * A method to run a prepared SQL statement.
+     *
+     * @param $SQLStatement the SQL statement to run, with "?" in place of
+     * parameters.
+     * @param $parameterTypes a string containing the types of the parameters in
+     * the order in which they appear ("i" for an integer, "d" for a double, "s"
+     * for a string, "b" for a blob).
+     * @param ...$parameters the parameters.
+     *
+     * @return a mysqli_result object.
+     */
+    protected function runQuery(
+        string $SQLStatement,
+        string $parameterTypes,
+        ...$parameters) {
+        // This needs to be visible in both the try and finally blocks below.
+        $statement = NULL;
+
+        try {
+            // Have mysqli prepare the statement.
+            $statement = $this->SQLDatabase->prepare($SQLStatement);
+
+            // If the above returned FALSE, an error occurred; throw an
+            // exception if that is the case.
+            if(!$statement) {
+                throw new DatabaseException('mysqli::prepare(string) failed.');
+            }
+
+            // Bind the parameters to the statement; if that returns FALSE, an
+            // error occurred; throw an exception if that is the case.
+            if(!$statement->bind_param($parameterTypes, ...$parameters)) {
+                throw new DatabaseException(
+                    'mysqli_stmt::bind_param(string,mixed...) failed.');
+            }
+
+            // Execute the statement; if that returns FALSE, an error occurred;
+            // throw an exception if that is the case.
+            if(!$statement->execute()) {
+                throw new DatabaseException(
+                    'mysqli_stmt::execute(void) failed.');
+            }
+
+            // Get the result of the statment.
+            $result = $statement->get_result();
+
+            // If the above returned FALSE, an error occurred; throw an
+            // exception if that is the case.
+            if(!$result) {
+                throw new DatabaseException(
+                    'mysqli_stmt::get_result(void) failed.');
+            }
+
+            // Close the statment.
+            $statement->close();
+
+            // Return the result.
+            return $result;
+        } finally {
+            // Make sure the statement is closed if any exceptions are thrown.
+            $statement->close();
+        }
     }
 }
