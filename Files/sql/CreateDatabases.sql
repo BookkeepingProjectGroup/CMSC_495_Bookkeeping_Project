@@ -32,14 +32,13 @@ CREATE TABLE UsersDB.Users(
 CREATE DATABASE PasswordsDB;
 
 /*
- * A table which associates the salted and hashed password of each user and the
- * corresponding user's ID with a password ID.
+ * A table which associates the salted and hashed password of each user with the
+ * corresponding user's ID.
  */
 CREATE TABLE PasswordsDB.Passwords(
-    ID                      INT          UNSIGNED NOT NULL,
     userID                  INT          UNSIGNED NOT NULL,
     saltedAndHashedPassword VARCHAR(256)          NOT NULL,
-    PRIMARY KEY (ID),
+    PRIMARY KEY (userID),
     FOREIGN KEY (userID) REFERENCES UsersDB.Users(ID)
 );
 
