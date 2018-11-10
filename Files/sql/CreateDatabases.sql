@@ -21,7 +21,7 @@ CREATE DATABASE UsersDB;
  */
 CREATE TABLE UsersDB.Users(
     ID         INT         UNSIGNED NOT NULL,
-    username   VARCHAR(64),
+    username   VARCHAR(64)          UNIQUE,
     PRIMARY KEY (ID)
 );
 
