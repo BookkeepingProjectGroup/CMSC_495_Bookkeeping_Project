@@ -1,7 +1,7 @@
 /*
  * File: CreateDatabases.sql
  * Author(s): Matthew Dobson
- * Date modified: 11-9-2018
+ * Date modified: 11-10-2018
  *
  * Description: A SQL script to setup the MariaDB SQL databases.
  *
@@ -20,7 +20,7 @@ CREATE DATABASE UsersDB;
  * IMPORTANT: Users must not be able to view other users' usernames!
  */
 CREATE TABLE UsersDB.Users(
-    ID         INT         UNSIGNED NOT NULL,
+    ID         INT         UNSIGNED NOT NULL AUTO_INCREMENT,
     username   VARCHAR(64)          UNIQUE,
     PRIMARY KEY (ID)
 );
@@ -55,7 +55,7 @@ CREATE DATABASE BooksDB;
  * IMPORTANT: Users must not be able to view other users' vendors!
  */
 CREATE TABLE BooksDB.Vendors(
-    ID      INT          UNSIGNED NOT NULL,
+    ID      INT          UNSIGNED NOT NULL AUTO_INCREMENT,
     userID  INT          UNSIGNED NOT NULL,
     name    VARCHAR(32)           NOT NULL,
     address VARCHAR(128),
@@ -70,7 +70,7 @@ CREATE TABLE BooksDB.Vendors(
  * IMPORTANT: Users must not be able to view other users' customers!
  */
 CREATE TABLE BooksDB.Customers(
-    ID      INT          UNSIGNED NOT NULL,
+    ID      INT          UNSIGNED NOT NULL AUTO_INCREMENT,
     userID  INT          UNSIGNED NOT NULL,
     name    VARCHAR(32)           NOT NULL,
     address VARCHAR(128),
@@ -88,7 +88,7 @@ CREATE TABLE BooksDB.Customers(
  * IMPORTANT: Users must not be able to view other users' documents!
  */
 CREATE TABLE BooksDB.Documents(
-    ID         INT                                UNSIGNED NOT NULL,
+    ID         INT                                UNSIGNED NOT NULL AUTO_INCREMENT,
     userID     INT                                UNSIGNED NOT NULL,
     vendorID   INT                                UNSIGNED,
     customerID INT                                UNSIGNED,
@@ -111,7 +111,7 @@ CREATE TABLE BooksDB.Documents(
  * IMPORTANT: Users must not be able to view other users' accounts!
  */
 CREATE TABLE BooksDB.Accounts(
-    ID        INT             UNSIGNED NOT NULL,
+    ID        INT             UNSIGNED NOT NULL AUTO_INCREMENT,
     userID    INT             UNSIGNED NOT NULL,
     code      SMALLINT(4)     UNSIGNED NOT NULL,
     name      VARCHAR(32),
@@ -140,7 +140,7 @@ CREATE TABLE BooksDB.Accounts(
  * the desired user.)
  */
 CREATE TABLE BooksDB.GeneralLedger(
-    ID          INT           UNSIGNED NOT NULL,
+    ID          INT           UNSIGNED NOT NULL AUTO_INCREMENT,
     userID      INT           UNSIGNED NOT NULL,
     documentID  INT           UNSIGNED NOT NULL,
     accountID   INT           UNSIGNED NOT NULL,
