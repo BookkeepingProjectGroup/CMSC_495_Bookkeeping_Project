@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "number": 1000,
+      "account": "Land",
+      "debit": 0,
+      "credit": 1000,
+      "memo": "Purchase",
+      "name": "Andrew",
+      "date": "11/08/18"
+    },
+    {
+      "number": 1500,
+      "account": "Cash",
+      "debit": 1000,
+      "credit": 0,
+      "memo": "Purchase",
+      "name": "Andrew",
+      "date": "11/08/18"
+    }
+  ]
+}
