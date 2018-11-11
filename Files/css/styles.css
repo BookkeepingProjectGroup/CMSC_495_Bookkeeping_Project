@@ -3,3 +3,229 @@
  * Date       : 10/28/2018
  * Author     : Andrew Eissen
  */
+
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,300,700");
+@import url("https://fonts.googleapis.com/css?family=Montserrat");
+
+:root {
+  --bpg-gold: #e9d787;
+  --bpg-offwhite: #f6f6f6;
+  --bpg-lightgray: #cccccc;
+  --bpg-darkgray: #999999;
+  --bpg-charcoal: #3a3a3a;
+  --bpg-cb-even: #f0f0f0;
+  --bpg-cb-odd: #f9f9f9;
+}
+
+#application-body {
+  background-color: var(--bpg-offwhite, #f6f6f6);
+  position: relative;
+}
+
+/* General scene rules */
+
+.general-container {
+  margin-top: 15px;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 15px;
+  border: 2px solid;
+  border-color: var(--bpg-gold, #e9d787);
+  background-color: white;
+}
+
+.general-montserrat {
+  font-family: "Montserrat";
+  letter-spacing: 0.4px;
+}
+
+.general-opensans {
+  font-family: "Open Sans";
+  letter-spacing: -0.6px;
+}
+
+.general-action-button {
+  text-align: center;
+  border: none;
+  background-color: var(--bpg-charcoal, #3a3a3a);
+  font-size: 10pt;
+  padding: 3px 5px;
+  line-height: 1;
+  color: white;
+  margin-bottom: 5px;
+  border-radius: 5px;
+}
+
+.general-action-button:hover {
+  outline: none;
+  background-color: var(--bpg-gold, #e9d787);
+  color: var(--bpg-charcoal, #3a3a3a);
+}
+
+.general-big-button {
+  padding: 10px;
+  width: 45%;
+}
+
+.general-big-button:hover {
+  color: black;
+  border-radius: 0;
+  border-color: var(--bpg-gold, #e9d787);
+  background-color: var(--bpg-offwhite, #f6f6f6);
+
+  /* Included for testing purposes */
+  background-image: linear-gradient(top, #736c7c, #ece9e9);
+  background-image: -o-linear-gradient(top,#736c7c, #ece9e9);
+  background-image: -moz-linear-gradient(top,#736c7c, #ece9e9);
+  background-image: -webkit-linear-gradient(top,#736c7c, #ece9e9);
+}
+
+.general-link-button {
+  background: none;
+  border: none;
+  color: blue;
+}
+
+.general-link-button:focus,
+.general-link-button:active {
+  outline: none;
+  background: none;
+  text-decoration: underline;
+  color: darkblue;
+}
+
+#general-topbar-meta {
+  float: left;
+}
+
+#general-topbar-meta-title {
+  font-size: 12pt;
+  text-transform: uppercase;
+}
+
+#general-topbar-meta-subtitle {
+  font-size: 10pt;
+}
+
+.general-topbar-div {
+  float: left;
+  width: 50%;
+}
+
+.general-major-section {
+  overflow: hidden; /* New block formatting context */
+}
+
+.general-flex-justify {
+  display: flex;
+  justify-content: space-around;
+}
+
+/* Dashboard scene */
+
+/* Illustration of @media query for break points */
+@media (min-width: 768px) {
+  #dashboard-container {
+    width: 750px;
+  }
+}
+
+@media (min-width: 992px) {
+  #dashboard-container {
+    width: 970px;
+  }
+}
+
+@media (min-width: 1200px) {
+  #dashboard-container {
+    width: 1170px;
+  }
+}
+
+#dashboard-topbar {
+  border-bottom: 1px solid;
+  border-color: var(--bpg-lightgray, #cccccc);
+  padding-bottom: 10px;
+}
+
+#dashboard-topbar-navlinks-holder {
+  float: right;
+}
+
+#dashboard-section {
+  margin-top: 25px;
+}
+
+#dashboard-sidebar {
+  width: 20%;
+  float: left;
+  border-right: 1px solid;
+  border-color: var(--bpg-lightgray, #cccccc);
+  margin-top: 10px;
+  padding-right: 20px;
+}
+
+.dashboard-sidebar-buttons-item {
+  width: 100%;
+}
+
+#dashboard-ledger {
+  width: 100%;
+  margin-top: 10px;
+  float: left;
+  margin-left: 20px;
+}
+
+#dashboard-ledger-table {
+  width: 100%;
+}
+
+#dashboard-ledger-table:nth-child(even) {
+  background-color: var(--bpg-cb-even, #f0f0f0);
+}
+
+#dashboard-ledger-table:nth-child(odd) {
+  background-color: var(--bpg-cb-odd, #f9f9f9);
+}
+
+.dashboard-ledger-table-header {
+  color: var(--bpg-charcoal, #3a3a3a);
+}
+
+/* Login scene */
+
+#login-container {
+  width: 405px;
+  padding: 0;
+  margin-top: 35px;
+}
+
+#login-topbar {
+  border-bottom: 1px solid;
+  border-color: var(--bpg-darkgray, #999999);
+}
+
+#login-main-header {
+  text-align: center;
+}
+
+#login-main-input-holder {
+  text-align: center;
+  margin-bottom: 15px;
+  margin-right: 15px;
+  margin-left: 15px;
+}
+
+.login-main-input-textbox {
+  width: 90%;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.login-general-title-extra-padding {
+  padding: 25px 35px 25px 35px;
+}
+
+#login-footer-buttons-holder {
+  margin-bottom: 15px;
+}
