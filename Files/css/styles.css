@@ -180,11 +180,11 @@
   width: 100%;
 }
 
-#dashboard-ledger-table:nth-child(even) {
+#dashboard-ledger-table tr:nth-child(even) {
   background-color: var(--bpg-cb-even, #f0f0f0);
 }
 
-#dashboard-ledger-table:nth-child(odd) {
+#dashboard-ledger-table tr:nth-child(odd) {
   background-color: var(--bpg-cb-odd, #f9f9f9);
 }
 
