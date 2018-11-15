@@ -37,6 +37,7 @@
  *   - Utility                  Line xxx
  *   - Identifiers              Line xxx
  *   - Text                     Line xxx
+ *   - Operations               Line xxx
  * - Data arrays
  *   - ledgerHeaders            Line xxx
  *   - sidebarButtonData        Line xxx
@@ -211,6 +212,67 @@ const BookkeepingProjectModule = (function () {
     ERROR_NETWORK: 'A network error has been encountered',
   });
 
+  /**
+   * @description This enum contains a listing of commonly used algebraic
+   * functions primarily for use in the body of the jQuery-esque fading function
+   * <code>inaccessible.fade</code>. The use of this enum, the contents of which
+   * are not expected to change or require redefinition and are thus sealed via
+   * <code>Object.freeze()</code>, removes the need for separate fade in and
+   * fade out functions. Instead, depending on the type of fade being performed,
+   * the appropriate algebraic function can be called from here instead, with
+   * the value returned for use. Basically simulates the passing of an operation
+   * type as an argument.
+   *
+   * @readonly
+   * @enum {function}
+   */
+  inaccessible.Operations = Object.freeze({
+
+    /**
+     * @description A simple addition operation involving two arguments.
+     *
+     * @param {number} paramOperand1
+     * @param {number} paramOperand2
+     * @returns {number}
+     */
+    ADDITION: function (paramOperand1, paramOperand2) {
+      return paramOperand1 + paramOperand2;
+    },
+
+    /**
+     * @description A simple subtraction operation involving two arguments.
+     *
+     * @param {number} paramOperand1
+     * @param {number} paramOperand2
+     * @returns {number}
+     */
+    SUBTRACTION: function (paramOperand1, paramOperand2) {
+      return paramOperand1 - paramOperand2;
+    },
+
+    /**
+     * @description A simple comparison operation involving a pair of arguments.
+     *
+     * @param {number} paramOperand1
+     * @param {number} paramOperand2
+     * @returns {boolean}
+     */
+    GREATER_THAN: function (paramOperand1, paramOperand2) {
+      return paramOperand1 > paramOperand2;
+    },
+
+    /**
+     * @description A simple comparison operation involving a pair of arguments.
+     *
+     * @param {number} paramOperand1
+     * @param {number} paramOperand2
+     * @returns {boolean}
+     */
+    LESS_THAN: function (paramOperand1, paramOperand2) {
+      return paramOperand1 < paramOperand2;
+    },
+  });
+
   // Data arrays
 
   /**
@@ -225,7 +287,7 @@ const BookkeepingProjectModule = (function () {
     "number",     // Account number
     "account",    // Account name
     "debit",      // Debit
-    "credit",     // Credir
+    "credit",     // Credit
     "memo",       // Description of transaction
     "name",       // Individual in question
     "date",       // Recorded date
@@ -437,6 +499,23 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
+   * @description This utility function is used to consolidate the contents of
+   * an inputted array of numbers through the performing of an inputted common
+   * algebraic operation. The associated value is then returned from the
+   * function. This function is only used with the
+   * <code>inaccessible.Operations.ADDITION</code> and
+   * <code>inaccessible.Operations.SUBTRACTION</code> operations; the
+   * comparison operations in the enum require a different invocation method.
+   *
+   * @param {!Array<number>} paramList Array of number values
+   * @param {string} paramOperation The <code>Operations</code> enum operation
+   * @returns {number}
+   */
+  inaccessible.performCommonOperation = function (paramList, paramOperation) {
+    return paramList.reduce(this.Operations[paramOperation]);
+  };
+
+  /**
    * @description This function returns a <code>boolean</code> value based on
    * whether or not the inputted object is an array. It will be used by
    * <code>inaccessible.assembleElement</code> to determine if inputted
@@ -525,17 +604,16 @@ const BookkeepingProjectModule = (function () {
    * Additionally, as of the beginning of November, this function has been
    * refactored and slightly expanded to allow for fading in or out depending on
    * the value of an included <code>String</code> parameter, allowing for
-   * seemless transitions between interface scenes as needed. Presently, the
-   * two inner functions needt to be consolidated and the copy/paste removed.
+   * seemless transitions between interface scenes as needed.
    *
    * @param {string} paramFadeType <code>String</code> indicating type of fade
    * @param {string} paramElementId Container/wrapper id
-   * @return {boolean}
+   * @return {void}
    */
   inaccessible.fade = function (paramFadeType, paramElementId) {
 
     // Declarations
-    let that, container, interval;
+    let that, container, interval, fadeTypeObject, fadeTypeParameters;
 
     // Preserve scope context
     that = this;
@@ -543,38 +621,50 @@ const BookkeepingProjectModule = (function () {
     // Grab DOM element from id
     container = document.getElementById(paramElementId);
 
-    function handleFadeIn () {
-      if (container.style.opacity < 1) {
-        container.style.opacity = (parseFloat(container.style.opacity) +
-            that.Utility.OPACITY_INCREASE_AMOUNT);
+    // Removes need for separate functions
+    fadeTypeParameters = Object.freeze({
+      'in': {
+        comparison: 'LESS_THAN',
+        operator: 'ADDITION',
+        comparisonValue: 1,
+      },
+      'out': {
+        comparison: 'GREATER_THAN',
+        operator: 'SUBTRACTION',
+        comparisonValue: 0,
+      },
+    });
+
+    // Based on fade type, select and use object with appropriate properties
+    fadeTypeObject = fadeTypeParameters[paramFadeType];
+
+    // Define interval handler
+    interval = setInterval(function () {
+
+      if ( // If either opacity < 1 or opacity > 0...
+        that.Operations[fadeTypeObject.comparison](
+          container.style.opacity,
+          fadeTypeObject.comparisonValue
+        )
+      ) {
+
+        // Either opacity + const_value or opacity - const_value
+        container.style.opacity = that.performCommonOperation(
+          [
+            Number.parseFloat(container.style.opacity),
+            that.Utility.OPACITY_INCREASE_AMOUNT
+          ],
+          fadeTypeObject.operator
+        );
       } else {
         if (DEBUG) {
-          console.log('Scene fade-in complete');
+          console.log('Fading complete');
         }
 
         clearInterval(interval);
-        return true;
+        return;
       }
-    }
-
-    function handleFadeOut () {
-      if (container.style.opacity > 0) {
-        container.style.opacity = (parseFloat(container.style.opacity) -
-            that.Utility.OPACITY_INCREASE_AMOUNT);
-      } else {
-        if (DEBUG) {
-          console.log('Scene fade-out complete');
-        }
-
-        clearInterval(interval);
-        return true;
-      }
-    }
-
-    interval = setInterval(
-      (paramFadeType === 'in') ?  handleFadeIn : handleFadeOut,
-      this.Utility.FADE_IN_INTERVAL
-    );
+    }, this.Utility.FADE_IN_INTERVAL);
   };
 
   /**
@@ -979,7 +1069,7 @@ const BookkeepingProjectModule = (function () {
           ['div', configMainHeader,
             this.Text.DIV_LOGIN_MAIN_HEADER,
           ],
-          ['div', configMainLoginHolder,
+          ['form', configMainLoginHolder,
             ['input', configMainLoginUsername],
             ['input', configMainLoginPassword],
           ]
@@ -1317,7 +1407,6 @@ const BookkeepingProjectModule = (function () {
     configCheckbox = {
       type: 'checkbox',
       class: this.Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_CHECKBOX,
-      checked: false,
     };
 
     for (let i = 0; i < this.ledgerHeaders.length; i++) {
@@ -1414,6 +1503,15 @@ const BookkeepingProjectModule = (function () {
    */
   accessible.getText = function () {
     return inaccessible.Text;
+  };
+
+  /**
+   * @description External getter for immutable <code>Operations</code>
+   *
+   * @returns {enum} inaccessible.Operations
+   */
+  accessible.getOperations = function () {
+    return inaccessible.Operations;
   };
 
   /**
