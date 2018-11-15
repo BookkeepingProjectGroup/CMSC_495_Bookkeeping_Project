@@ -3,14 +3,14 @@
 /*
  * File: DatabaseConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-10-2018
+ * Date modified: 11-15-2018
  * Description: Defines an abstract PHP class to represent, manipulate and
  * transmit a connection to the bookkeeper application's MariaDB SQL database.
  * Concrete classes extending this class will handle connections to the database
  * as specific users (authentication, passwords, php).
  */
 
-include 'DatabaseException.php';
+include_once 'DatabaseException.php';
 
 /**
  * A class representing a connection MariaDB SQL database containing the schema
@@ -78,6 +78,49 @@ abstract class DatabaseConnection {
     }
 
     /**
+     * A method to get the userID associated with a username; it works from any
+     * database user which has access to UsersDB, which at this time includes
+     * all of the ones to which this class is meant to facilitate access
+     * (authentication, passwords and php).
+     *
+     * @param $username the username of the user.
+     *
+     * @return the userID, or FALSE if no user exists with username $username.
+     */
+    protected function getUserID(string $username) {
+        // Query UsersDB.Users to get the ID associated with $username.
+        $getUserIDResult =
+            $this->runQuery(
+                'SELECT ID FROM UsersDB.Users WHERE username = ?',
+                's',
+                $username);
+
+        // If the above returns FALSE, an error occurred; throw an exception.
+        if($getUserIDResult === FALSE) {
+            throw new DatabaseException(
+                'DatabaseConnection::runQuery(string,string,...mixed) failed.');
+        }
+
+        // If the array returned above has no members, the user does not exist,
+        // so return FALSE.
+        if(count($getUserIDResult) == 0) {
+            return FALSE;
+        }
+
+        // If the array returned above has more than one member, multiple users
+        // exist with the provided username, which should be illegal; throw an
+        // exception.
+        if(count($getUserIDResult) != 1) {
+            throw new DatabaseException(
+                'It appears that multiple users exist with the username '
+                    . 'provided.');
+        }
+
+        // Return just the userID.
+        return $getUserIDResult[0][0];
+    }
+
+    /**
      * A method to run a prepared SQL statement.
      *
      * @param $SQLStatement the SQL statement to run, with "?" in place of
@@ -87,7 +130,9 @@ abstract class DatabaseConnection {
      * for a string, "b" for a blob).
      * @param ...$parameters the parameters.
      *
-     * @return an array of arrays containing the result of the query.
+     * @return an array of arrays containing the result of the query; FALSE if
+     * a non-SELECT statement was issued or a SELECT statement was issued and
+     * the result could not be obtained.
      */
     protected function runQuery(
         string $SQLStatement,
@@ -98,7 +143,7 @@ abstract class DatabaseConnection {
         $result = NULL;
 
         // This needs to be visible throughout this method.
-        $resultArray = NULL;
+        $resultArrayOrFalse = FALSE;
 
         try {
             // Have mysqli prepare the statement.
@@ -124,25 +169,27 @@ abstract class DatabaseConnection {
                     'mysqli_stmt::execute(void) failed.');
             }
 
-            // Get the result of the statment.
+            // Get the result of the statement.
             $result = $statement->get_result();
 
-            // If the above returned FALSE, an error occurred; throw an
-            // exception if that is the case.
-            if(!$result) {
-                throw new DatabaseException(
-                    'mysqli_stmt::get_result(void) failed.');
+            // The above returns FALSE if there is an error in a SELECT
+            // statement or if any other type of statement is used; only extract
+            // an array of arrays from the result if it is not FALSE.
+            if($result) {
+                $resultArrayOrFalse = $result->fetch_all();
             }
-
-            // Extract an array of arrays from the result.
-            $resultArray = $result->fetch_all();
         } finally {
             // Make sure the statement and result are closed and freed.
-            $statement->close();
-            $result->free();
+            if($statement) {
+                $statement->close();
+            }
+
+            if($result) {
+                $result->free();
+            }
         }
 
         // Return the array of arrays.
-        return $resultArray;
+        return $resultArrayOrFalse;
     }
 }
