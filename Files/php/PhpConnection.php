@@ -3,14 +3,14 @@
 /*
  * File: PhpConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-8-2018
+ * Date modified: 11-15-2018
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
  * MariaDB SQL database through user php.
  */
 
-include 'DatabaseConnection.php';
+include_once 'DatabaseConnection.php';
 
 /** A class representing a connection MariaDB SQL database as user php. */
 class PhpConnection extends DatabaseConnection {
