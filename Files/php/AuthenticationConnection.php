@@ -3,14 +3,14 @@
 /*
  * File: AuthenticationConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-10-2018
+ * Date modified: 11-15-2018
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
  * MariaDB SQL database through user authentication.
  */
 
-include 'DatabaseConnection.php';
+include_once 'DatabaseConnection.php';
 
 /**
  * A class representing a connection MariaDB SQL database as user
@@ -43,25 +43,12 @@ class AuthenticationConnection extends DatabaseConnection {
      */
     public function getSaltedAndHashedPassword(string $username) {
         // Query UsersDB.Users to get the ID associated with $username.
-        $getUserIDResult =
-            $this->runQuery(
-                'SELECT ID FROM UsersDB.Users WHERE username = ?',
-                's',
-                $username);
+        $userID = $this->getUserID($username);
 
-        // If the array returned above has no members, the user does not exist,
+        // If the above returned FALSE, no user with username $username exists,
         // so return FALSE.
-        if(count($getUserIDResult) == 0) {
+        if(!$userID) {
             return FALSE;
-        }
-
-        // If the array returned above has more than one member, multiple users
-        // exist with the provided username, which should be illegal; throw an
-        // exception.
-        if(count($getUserIDResult) != 1) {
-            throw new DatabaseException(
-                'It appears that multiple users exist with the username '
-                    . 'provided.');
         }
 
         // Query PasswordsDB.Passwords for the salted and hashed password of the
@@ -70,9 +57,15 @@ class AuthenticationConnection extends DatabaseConnection {
             $this->runQuery(
                 'SELECT saltedAndHashedPassword '
                     . 'FROM PasswordsDB.Passwords '
-                    .'WHERE userID = ?',
+                    . 'WHERE userID = ?',
                 's',
-                $getUserIDResult[0][0]);
+                $userID);
+
+        // If the above returns FALSE, an error occurred; throw an exception.
+        if($getPasswordResult === FALSE) {
+            throw new DatabaseException(
+                'DatabaseConnection::runQuery(string,string,...mixed) failed.');
+        }
 
         // If the array returned above has no members, the user has no password,
         // so return NULL.
