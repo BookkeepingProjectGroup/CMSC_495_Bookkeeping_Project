@@ -1262,7 +1262,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleLedgerEntryAddition = function () {
 
     // Declaration
-    let entry
+    let entry;
 
     // Definition
     entry = {
