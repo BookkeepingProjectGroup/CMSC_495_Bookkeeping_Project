@@ -43,7 +43,6 @@
  *   - sidebarButtonData        Line xxx
  *   - navlinksButtonData       Line xxx
  * - Function groups
- *   - Api object functions     Line xxx
  *   - Utility functions        Line xxx
  *   - Assembly functions       Line xxx
  *   - Builder functions        Line xxx
@@ -68,9 +67,6 @@ const BookkeepingProjectModule = (function () {
   // Define access object namespaces
   accessible = accessible || {};
   inaccessible = inaccessible || {};
-
-  // Define inaccessible api object
-  inaccessible.api = inaccessible.api || {};
 
   /**
    * @description This constant is used to test the program and display messages
@@ -425,29 +421,46 @@ const BookkeepingProjectModule = (function () {
     },
   ];
 
-  // Api object functions
+  // Utility functions
 
   /**
-   * @description This function is one of two planned functions to be contained
-   * within the <code>inaccessible.api</code> object. This particular function
-   * is used to handle GET requests querying the database for data related to
-   * specific users, accounts, documents, etc. It makes use of default JS ES6
-   * <code>Promise</code>s in conjunction with the standard
-   * <code>XMLHttpRequest</code> to either return data in <code>JSON</code> form
-   * or alert the user as to an error in the retrieval process.
+   * @description This one-size-fits-all handler is used in place of the former
+   * <code>api</code> object containing individual 'GET' and 'POST' handlers as
+   * properties due to the fact that those handlers ended up sharing 99% of the
+   * same code. Rather than indulge in copy/pasta, I just consolidated them and
+   * made use of an optional default parameter for the data to be passed in the
+   * 'POST' handler case. Depending on the other request types we end up needing
+   * I may revert to the previous method, but I don't really expect we'll need
+   * anything else other than 'GET' and 'POST'. I've tested this in both cases
+   * and so far it seems to be working, with post requests passing along the
+   * appropriate request headers and data as expected as seen in the browser
+   * "Network" tab.
+   * <br />
+   * <br />
+   * As per the Google styleguide, the use of default parameters in function
+   * declarations is permitted in most cases and particularly encouraged for
+   * optional parameters that may not actually be defined in certain invocation
+   * cases in which the function might be called.
    *
-   * @param {string} paramUrl
+   * @param {string} paramType 'GET' or 'POST'
+   * @param {string} paramUrl The name of the PHP endpoint i.e. "server.php"
+   * @param {!object=} paramData The data in object form to be stringified
    * @returns {Promise}
    */
-  inaccessible.api.get = function (paramUrl) {
-    return new Promise(function(resolve, reject) {
+  inaccessible.sendRequest = function (paramType, paramUrl, paramData = null) {
+    return new Promise(function (resolve, reject) {
 
       // Declaration
       let request;
 
       // Definitions
       request = new XMLHttpRequest();
-      request.open('GET', paramUrl);
+      request.open(paramType, paramUrl);
+
+      if (paramType === 'POST' && paramData != null) {
+        request.setRequestHeader('Content-Type', 'application/json');
+        paramData = JSON.stringify(paramData);
+      }
 
       request.onload = function () {
         if (request.status == 200) {
@@ -462,12 +475,10 @@ const BookkeepingProjectModule = (function () {
         reject(Error(inaccessible.Text.ERROR_NETWORK));
       };
 
-      // Make request
-      request.send();
+      // Make request (data will be either null or a stringified object)
+      request.send(paramData);
     });
   };
-
-  // Utility functions
 
   /**
    * @description Like <code>inaccessible.prepend</code>, this function is based
@@ -1249,6 +1260,26 @@ const BookkeepingProjectModule = (function () {
    * @returns {void}
    */
   inaccessible.handleLedgerEntryAddition = function () {
+
+    // Declaration
+    let entry;
+
+    // Definition
+    entry = {
+      "number": 1700,
+      "account": "Widgets",
+      "debit": 0,
+      "credit": 15000,
+      "memo": "Testing POST request",
+      "name": "Andrew E",
+      "date": "11/21/18"
+    };
+
+    // Check in Network tab
+    if (DEBUG) {
+      this.sendRequest('POST', 'json/testData.json', entry);
+    }
+
     window.alert('Add a new entry');
   };
 
@@ -1268,7 +1299,7 @@ const BookkeepingProjectModule = (function () {
     // Preserve scope
     that = this;
 
-    this.api.get('json/testData.json').then(function (response) {
+    this.sendRequest('GET', 'json/testData.json').then(function (response) {
 
       // Parse JSON for use in loop
       returnedData = JSON.parse(response);
