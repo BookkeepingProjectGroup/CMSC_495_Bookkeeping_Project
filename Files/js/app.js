@@ -95,6 +95,7 @@ const BookkeepingProjectModule = (function () {
     OPACITY_INCREASE_AMOUNT: 0.015,
     SWIPE_PIXEL_VALUE: 1,
     SWIPE_DISTANCE_VALUE: 250,
+    SWIPE_INTERVAL_TIME: 2000,
     CHECK_OPACITY_RATE: 500,
   });
 
@@ -682,43 +683,51 @@ const BookkeepingProjectModule = (function () {
    * @description This function is used to move the element specified via the
    * <code>String</code> identifier parameter to the right. It is to be used in
    * conjunction with <code>inaccessible.fade</code> to allow for a seamless
-   * transition between scenes (i.e. login screen and the dashboard, etc.)
+   * transition between scenes (i.e. login screen and the dashboard, etc.).
+   * <br />
+   * <br />
+   * Originally, the initial implementation of this function involved some janky
+   * coding that resulted in the container flickering to the left before
+   * starting the animation. The current rewritten implementation should handle
+   * such cases and require no CSS-based fixing.
    *
    * @see {@link https://stackoverflow.com/a/29490865|SO Thread}
    * @param {string} paramElementId
-   * @return {boolean}
+   * @return {void}
    */
   inaccessible.swipeRight = function (paramElementId) {
 
     // Declarations
-    let that, container, interval, position, bounds;
+    let that, container, interval, startTime, timePassed;
 
     // Preserve scope
     that = this;
 
-    // Grab DOM element from id
+    // Cache start time
+    startTime = Date.now();
+
+    // Set container placement to relative
     container = document.getElementById(paramElementId);
+    container.style.position= 'relative';
 
-    // Remove need to hardcode absolute positioning (rework)
-    bounds = container.getBoundingClientRect();
-    container.style.position= 'absolute';
-
-    // Set initial origin
-    position = 0;
-
-    // Define operation and handler
+    // Define interval
     interval = setInterval(function () {
-      if (position == that.Utility.SWIPE_DISTANCE_VALUE) {
+
+      // Check time since start
+      timePassed = Date.now() - startTime;
+
+      if (timePassed >= that.Utility.SWIPE_INTERVAL_TIME) {
         if (DEBUG) {
           console.log('Swiping complete');
         }
 
         clearInterval(interval);
-        return true;
-      } else {
-        position += that.Utility.SWIPE_PIXEL_VALUE;
-        container.style.left = bounds.left + position + 'px';
+        return;
       }
+
+      // Draw animation at the moment of timePassed
+      container.style.left = timePassed / 5 + 'px';
+
     }, this.Utility.FADE_IN_INTERVAL);
   };
 
