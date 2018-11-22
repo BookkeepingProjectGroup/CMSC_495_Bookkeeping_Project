@@ -15,12 +15,24 @@
   --bpg-charcoal: #3a3a3a;
   --bpg-cb-even: #f0f0f0;
   --bpg-cb-odd: #f9f9f9;
+
 }
 
 #application-body {
-  background-color: var(--bpg-offwhite, #f6f6f6);
-  position: relative;
+  background-color: black;
+  position:relative;
+
+/* to add gradient color background*/
+
+  height: 100%;
+  margin:0;
+  background-image: linear-gradient(135deg,
+      white, black);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
 }
+
 
 /* General scene rules */
 
@@ -29,8 +41,10 @@
   margin-right: auto;
   margin-left: auto;
   padding: 15px;
-  border: 2px solid;
-  border-color: var(--bpg-gold, #e9d787);
+  border: 3px solid;
+  border-radius: 5px;
+  /*add multi-colored shadow effect to container*/
+  box-shadow: 5px 5px 5px #39086D, -5px 5px 5px #504FAF, 5px -5px 5px #A393BF;
   background-color: white;
 }
 
@@ -46,44 +60,39 @@
 
 .general-action-button {
   text-align: center;
-  border: none;
-  background-color: var(--bpg-charcoal, #3a3a3a);
+  background-color: #39086D;
   font-size: 10pt;
-  padding: 3px 5px;
-  line-height: 1;
+  padding: 5px 5px;
   color: white;
-  margin-bottom: 5px;
-  border-radius: 5px;
+  margin-bottom: 12px;
+  border-radius: 25px;
 }
 
 .general-action-button:hover {
-  outline: none;
-  background-color: var(--bpg-gold, #e9d787);
-  color: var(--bpg-charcoal, #3a3a3a);
+  border-radius: 25px;
+  background-color: #504FAF;
+  color: BLACK;
 }
 
 .general-big-button {
   padding: 10px;
   width: 45%;
+  border-radius: 25px;
+  background-color: #39086D;
+  color: white;
+
 }
 
 .general-big-button:hover {
   color: black;
-  border-radius: 0;
-  border-color: var(--bpg-gold, #e9d787);
-  background-color: var(--bpg-offwhite, #f6f6f6);
-
-  /* Included for testing purposes */
-  background-image: linear-gradient(top, #736c7c, #ece9e9);
-  background-image: -o-linear-gradient(top,#736c7c, #ece9e9);
-  background-image: -moz-linear-gradient(top,#736c7c, #ece9e9);
-  background-image: -webkit-linear-gradient(top,#736c7c, #ece9e9);
+  border-radius: 25px;
+  background-color:#504faf;
 }
 
 .general-link-button {
   background: none;
   border: none;
-  color: blue;
+  color: #39086D;
 }
 
 .general-link-button:focus,
@@ -91,12 +100,13 @@
   outline: none;
   background: none;
   text-decoration: underline;
-  color: darkblue;
+  color: #A393BF;
 }
 
 #general-topbar-meta {
   float: left;
 }
+
 
 #general-topbar-meta-title {
   font-size: 12pt;
@@ -124,10 +134,26 @@
 /* Dashboard scene */
 
 /* Illustration of @media query for break points */
-@media (min-width: 768px) {
-  #dashboard-container {
-    width: 750px;
+
+/*small mobile screen size*/
+@media only screen and (max-width: 480px) and (orientation:portrait){
+
+/*resize login container & center/stack buttons*/
+  #login-container{
+    width:100%;
+
   }
+
+  #login-footer-buttons-holder{
+    display:block;
+  }
+
+  .general-big-button{
+    display:block;
+    margin: auto;
+    margin-bottom: 10px;
+  }
+
 }
 
 @media (min-width: 992px) {
@@ -139,9 +165,10 @@
 @media (min-width: 1200px) {
   #dashboard-container {
     width: 1170px;
-  }
+    }
 }
 
+/*main container for records*/
 #dashboard-topbar {
   border-bottom: 1px solid;
   border-color: var(--bpg-lightgray, #cccccc);
@@ -154,6 +181,7 @@
 
 #dashboard-section {
   margin-top: 25px;
+
 }
 
 #dashboard-sidebar {
@@ -161,43 +189,55 @@
   float: left;
   border-right: 1px solid;
   border-color: var(--bpg-lightgray, #cccccc);
-  margin-top: 10px;
   padding-right: 20px;
+  margin-top: 10px;
+
 }
 
 .dashboard-sidebar-buttons-item {
   width: 100%;
+
+
 }
 
 #dashboard-ledger {
   width: 100%;
+  height: 550px;
   margin-top: 10px;
   float: left;
   margin-left: 20px;
+  overflow: auto;
+
 }
 
 #dashboard-ledger-table {
   width: 100%;
+
 }
 
 #dashboard-ledger-table tr:nth-child(even) {
-  background-color: var(--bpg-cb-even, #f0f0f0);
+  background-color:#FFFFFF;
 }
 
 #dashboard-ledger-table tr:nth-child(odd) {
-  background-color: var(--bpg-cb-odd, #f9f9f9);
+  background-color: #EFF5FF;
 }
 
 .dashboard-ledger-table-header {
-  color: var(--bpg-charcoal, #3a3a3a);
+  color: black;
 }
 
 /* Login scene */
 
 #login-container {
-  width: 405px;
-  padding: 0;
-  margin-top: 35px;
+  padding: 5px 5px;
+  margin: 10px 10px;
+  border-radius: 15px;
+  /*center login container*/
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 #login-topbar {
@@ -218,7 +258,7 @@
 
 .login-main-input-textbox {
   width: 90%;
-  margin-bottom: 10px;
+  margin: 10px 10px;
   padding: 10px;
 }
 
