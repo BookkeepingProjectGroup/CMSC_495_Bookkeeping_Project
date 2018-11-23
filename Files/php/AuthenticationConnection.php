@@ -3,7 +3,7 @@
 /*
  * File: AuthenticationConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-15-2018
+ * Date modified: 11-21-2018
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
@@ -83,6 +83,6 @@ class AuthenticationConnection extends DatabaseConnection {
         }
 
         // Return the salted and hashed password.
-        return $getPasswordResult[0][0];
+        return $getPasswordResult[0]['saltedAndHashedPassword'];
     }
 }

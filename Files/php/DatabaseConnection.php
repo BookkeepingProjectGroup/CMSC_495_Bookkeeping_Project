@@ -3,7 +3,7 @@
 /*
  * File: DatabaseConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-15-2018
+ * Date modified: 11-21-2018
  * Description: Defines an abstract PHP class to represent, manipulate and
  * transmit a connection to the bookkeeper application's MariaDB SQL database.
  * Concrete classes extending this class will handle connections to the database
@@ -87,7 +87,7 @@ abstract class DatabaseConnection {
      *
      * @return the userID, or FALSE if no user exists with username $username.
      */
-    protected function getUserID(string $username) {
+    public function getUserID(string $username) {
         // Query UsersDB.Users to get the ID associated with $username.
         $getUserIDResult =
             $this->runQuery(
@@ -117,7 +117,7 @@ abstract class DatabaseConnection {
         }
 
         // Return just the userID.
-        return $getUserIDResult[0][0];
+        return $getUserIDResult[0]['ID'];
     }
 
     /**
@@ -130,9 +130,9 @@ abstract class DatabaseConnection {
      * for a string, "b" for a blob).
      * @param ...$parameters the parameters.
      *
-     * @return an array of arrays containing the result of the query; FALSE if
-     * a non-SELECT statement was issued or a SELECT statement was issued and
-     * the result could not be obtained.
+     * @return an array of associative arrays containing the result of the
+     * query; FALSE if a non-SELECT statement was issued or a SELECT statement
+     * was issued and the result could not be obtained.
      */
     protected function runQuery(
         string $SQLStatement,
@@ -176,7 +176,7 @@ abstract class DatabaseConnection {
             // statement or if any other type of statement is used; only extract
             // an array of arrays from the result if it is not FALSE.
             if($result) {
-                $resultArrayOrFalse = $result->fetch_all();
+                $resultArrayOrFalse = $result->fetch_all(MYSQLI_ASSOC);
             }
         } finally {
             // Make sure the statement and result are closed and freed.

@@ -3,7 +3,7 @@
 /*
  * File: PasswordsConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-15-2018
+ * Date modified: 11-21-2018
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
@@ -115,7 +115,9 @@ class PasswordsConnection extends DatabaseConnection {
         }
 
         // If the queried password does not equal what it should, return 0.
-        if($getUpdatedPasswordResult[0][0] != $saltedAndHashedPassword) {
+        if(
+            $getUpdatedPasswordResult[0]['saltedAndHashedPassword'] !=
+                $saltedAndHashedPassword) {
             return 0;
         }
 
