@@ -73,11 +73,14 @@ try {
     // ... unset all session variables, ...
     session_unset();
 
-    // ... destroy any existing session ...
+    // ... destroy any existing session, ...
     session_destroy();
 
-    // ... and exit yielding the JSON object for an unsuccessful logon attempt.
-    exit(LOGON_UNSUCCESSFUL_JSON);
+    // ... yield the JSON object for an unsuccessful logon attempt ...
+    echo LOGON_UNSUCCESSFUL_JSON;
+
+    // ... and exit the script.
+    exit();
 } finally {
     // Make sure to close $authenticationConnection, if it exists.
     if($authenticationConnection) {
@@ -85,7 +88,7 @@ try {
     }
 }
 
-// If we make it here, the logon was successful, so exit yielding the JSON
-// object for a successful logon attempt.
-exit(LOGON_SUCCESSFUL_JSON);
+// If we make it here, the logon was successful, so yield the JSON object for a
+// successful logon.
+echo LOGON_SUCCESSFUL_JSON;
 
