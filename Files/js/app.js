@@ -459,8 +459,16 @@ const BookkeepingProjectModule = (function () {
       request.open(paramType, paramUrl);
 
       if (paramType === 'POST' && paramData != null) {
-        request.setRequestHeader('Content-Type', 'application/json');
-        paramData = JSON.stringify(paramData);
+
+        /* JSON implementation
+         * request.setRequestHeader('Content-Type', 'application/json');
+         * paramData = JSON.stringify(paramData);
+         */
+
+        // Query string implementation
+        request.setRequestHeader('Content-Type',
+          'application/x-www-form-urlencoded');
+        paramData = inaccessible.serialize(paramData);
       }
 
       request.onload = function () {
@@ -479,6 +487,19 @@ const BookkeepingProjectModule = (function () {
       // Make request (data will be either null or a stringified object)
       request.send(paramData);
     });
+  };
+
+  /**
+   * @description This function handles the translation of an inputted JS/JSON
+   * object into a query string like that present in vanilla jQuery builders,
+   * namely <code>$.params</code>. This is primarily for use with sending POST
+   * requests in passing argument parameters as the data.
+   *
+   * @param {object} paramObject The JS/JSON object to be serialized
+   * @returns {string} String formatted as <code>username=foo&password=X</code>
+   */
+  inaccessible.serialize = function (paramObject) {
+     return Object.entries(paramObject).map((pair) => pair.join('=')).join('&');
   };
 
   /**
