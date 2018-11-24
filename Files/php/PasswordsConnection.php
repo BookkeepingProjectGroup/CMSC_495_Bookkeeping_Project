@@ -3,7 +3,7 @@
 /*
  * File: PasswordsConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-21-2018
+ * Date modified: 11-24-2018
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
@@ -34,23 +34,13 @@ class PasswordsConnection extends DatabaseConnection {
      * hashed using PHP's password_hash() method. If the user already has a
      * password in the database, the user's password will be changed.
      *
-     * @param $username the username of the user whose password is to be set or
-     * changed.
+     * @param $userID the ID of the user whose password is to be set or changed.
      * @param $password the new password.
      *
-     * @return TRUE if everything went correctly; FALSE if no user with username
-     * $username exists; 0 if the password was not changed.
+     * @return TRUE if everything went correctly; FALSE if the password was not
+     * changed.
      */
-    public function setUserPassword(string $username, string $password) {
-        // Query UsersDB.Users to get the ID associated with $username.
-        $userID = $this->getUserID($username);
-
-        // If the above returned FALSE, no user with username $username exists,
-        // so return FALSE.
-        if(!$userID) {
-            return FALSE;
-        }
-
+    public function setUserPassword(string $userID, string $password) {
         // Salt and has the password.
         $saltedAndHashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
