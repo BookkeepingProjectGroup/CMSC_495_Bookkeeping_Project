@@ -449,18 +449,30 @@ const BookkeepingProjectModule = (function () {
    * @returns {Promise}
    */
   inaccessible.sendRequest = function (paramType, paramUrl, paramData = null) {
-    return new Promise(function (resolve, reject) {
 
-      // Declaration
-      let request;
+    // Declarations
+    let that, request;
+
+    // Preserve scope context
+    that = this;
+
+    return new Promise(function (resolve, reject) {
 
       // Definitions
       request = new XMLHttpRequest();
       request.open(paramType, paramUrl);
 
       if (paramType === 'POST' && paramData != null) {
-        request.setRequestHeader('Content-Type', 'application/json');
-        paramData = JSON.stringify(paramData);
+
+        /* JSON implementation
+         * request.setRequestHeader('Content-Type', 'application/json');
+         * paramData = JSON.stringify(paramData);
+         */
+
+        // Query string implementation
+        request.setRequestHeader('Content-Type',
+          'application/x-www-form-urlencoded');
+        paramData = that.serialize(paramData);
       }
 
       request.onload = function () {
@@ -479,6 +491,19 @@ const BookkeepingProjectModule = (function () {
       // Make request (data will be either null or a stringified object)
       request.send(paramData);
     });
+  };
+
+  /**
+   * @description This function handles the translation of an inputted JS/JSON
+   * object into a query string like that present in vanilla jQuery builders,
+   * namely <code>$.params</code>. This is primarily for use with sending POST
+   * requests in passing argument parameters as the data.
+   *
+   * @param {object} paramObject The JS/JSON object to be serialized
+   * @returns {string} String formatted as <code>username=foo&password=X</code>
+   */
+  inaccessible.serialize = function (paramObject) {
+     return Object.entries(paramObject).map((pair) => pair.join('=')).join('&');
   };
 
   /**
@@ -1365,7 +1390,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleLogin = function () {
 
     // Declarations
-    let username, password, aliasIds;
+    let username, password, aliasIds, params;
 
     // Can alias enums only
     aliasIds = this.Identifiers;
@@ -1381,6 +1406,18 @@ const BookkeepingProjectModule = (function () {
       window.alert("Illegitimate input");
       return;
     }
+
+    // Convert to JSON
+    params = {
+      "username": username,
+      "password": password,
+    };
+
+    this.sendRequest('POST', 'php/login.php', params).then(function (response) {
+      console.log(response);
+    }, function (error) {
+      console.error(error);
+    });
 
     // Fade out and remove content prior to rebuilding of main interface
     this.tinderize(this.Identifiers.ID_LOGIN_CONTAINER, 'buildUserInterface',
