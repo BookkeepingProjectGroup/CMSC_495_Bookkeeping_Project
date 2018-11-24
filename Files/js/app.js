@@ -1383,10 +1383,10 @@ const BookkeepingProjectModule = (function () {
     }
 
     // Convert to JSON
-    params = JSON.stringify({
+    params = {
       "username": username,
       "password": password,
-    });
+    };
 
     this.sendRequest('POST', 'php/login.php', params).then(function (response) {
       console.log(response);
