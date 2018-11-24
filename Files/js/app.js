@@ -449,10 +449,14 @@ const BookkeepingProjectModule = (function () {
    * @returns {Promise}
    */
   inaccessible.sendRequest = function (paramType, paramUrl, paramData = null) {
-    return new Promise(function (resolve, reject) {
 
-      // Declaration
-      let request;
+    // Declarations
+    let that, request;
+
+    // Preserve scope context
+    that = this;
+
+    return new Promise(function (resolve, reject) {
 
       // Definitions
       request = new XMLHttpRequest();
@@ -468,7 +472,7 @@ const BookkeepingProjectModule = (function () {
         // Query string implementation
         request.setRequestHeader('Content-Type',
           'application/x-www-form-urlencoded');
-        paramData = inaccessible.serialize(paramData);
+        paramData = that.serialize(paramData);
       }
 
       request.onload = function () {
