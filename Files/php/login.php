@@ -67,7 +67,7 @@ try {
     // If we make it here, the logon was successful; set the session userID
     // variable to $userID.
     $_SESSION['userID'] = $userID;
-} catch($e) {
+} catch(Throwable $e) {
     // If any exceptions or errors were thrown above ...
 
     // ... unset all session variables, ...
