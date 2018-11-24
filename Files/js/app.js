@@ -1365,7 +1365,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleLogin = function () {
 
     // Declarations
-    let username, password, aliasIds;
+    let username, password, aliasIds, params;
 
     // Can alias enums only
     aliasIds = this.Identifiers;
@@ -1381,6 +1381,18 @@ const BookkeepingProjectModule = (function () {
       window.alert("Illegitimate input");
       return;
     }
+
+    // Convert to JSON
+    params = JSON.stringify({
+      "username": username,
+      "password": password,
+    });
+
+    this.sendRequest('POST', 'php/login.php', params).then(function (response) {
+      console.log(response);
+    }, function (error) {
+      console.error(error);
+    });
 
     // Fade out and remove content prior to rebuilding of main interface
     this.tinderize(this.Identifiers.ID_LOGIN_CONTAINER, 'buildUserInterface',
