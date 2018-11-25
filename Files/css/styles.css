@@ -1,8 +1,11 @@
+
 /*
  * Name:      : styles.css
  * Date       : 10/28/2018
  * Author     : Andrew Eissen
  */
+
+
 
 :root {
   --bpg-gold: #e9d787;
@@ -129,41 +132,6 @@
 }
 
 /* Dashboard scene */
-
-/* Illustration of @media query for break points */
-
-/*small mobile screen size*/
-@media only screen and (max-width: 480px) and (orientation:portrait){
-
-/*resize login container & center/stack buttons*/
-  #login-container{
-    width:100%;
-
-  }
-
-  #login-footer-buttons-holder{
-    display:block;
-  }
-
-  .general-big-button{
-    display:block;
-    margin: auto;
-    margin-bottom: 10px;
-  }
-
-}
-
-@media (min-width: 992px) {
-  #dashboard-container {
-    width: 970px;
-  }
-}
-
-@media (min-width: 1200px) {
-  #dashboard-container {
-    width: 1170px;
-    }
-}
 
 /*main container for records*/
 #dashboard-topbar {

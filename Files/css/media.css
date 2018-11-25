@@ -1,0 +1,122 @@
+/*
+ * Name: media.css
+ * Date:November 24, 2018
+ * Author: Jennifer Brady
+ * /
+
+
+
+/* Illustration of @media query for break points */
+
+/*small mobile screen size*/
+@media only screen and (max-width: 480px) and (orientation:portrait){
+
+  #dashboard-container{
+    display:flex;
+    flex-direction: column;
+    margin: auto;
+    padding: unset;
+    border: unset;
+    box-shadow: unset;
+}
+
+
+  #dashboard-container > #dashboard-topbar.general-major-section {
+     order:1;
+   }
+  #dashboard-container > #dashboard-section.general-flex-justify {
+     order:2;
+    }
+
+  #dashboard-section.general-flex-justify{
+    display:flex;
+    flex-direction: column;
+  }
+
+  #dashboard-section.general-flex-justify > #dashboard-sidebar.general-major-section{
+    order:1;
+    display: inline;
+    columns: 4;
+    width: auto;
+  }
+
+  #dashboard-section.general-flex-justify > #dashboard-ledger {
+    order:2;
+  }
+
+
+
+table, thead, tbody, th, td, tr {
+  display:block;
+}
+
+tr { border: 1px solid #ccc; }
+
+td {
+  /* Behave  like a "row" */
+  border: none;
+  border-bottom: 1px solid #eee;
+  position: relative;
+  padding-left: 50%;
+}
+
+/*remove 1st table row*/
+tr:first-child{
+  display:none;
+}
+
+table{
+  empty-cells: hide;
+}
+
+
+
+td:before {
+  /* Now like a table header */
+  position: absolute;
+  /* Top/left values mimic padding */
+  top: 6px;
+  left: 6px;
+  width: 45%;
+  padding-right: 10px;
+  white-space: nowrap;
+}
+
+td:nth-of-type(1):before { content: "Delete"; }
+td:nth-of-type(2):before { content: "Number"; }
+td:nth-of-type(3):before { content: "Account"; }
+td:nth-of-type(4):before { content: "Debit"; }
+td:nth-of-type(5):before { content: "Credit"; }
+td:nth-of-type(6):before { content: "Memo"; }
+td:nth-of-type(7):before { content: "Name"; }
+td:nth-of-type(8):before { content: "Date"; }
+
+
+/*resize login container & center/stack buttons*/
+  #login-container{
+    width:100%;
+  }
+
+  #login-footer-buttons-holder{
+    display:block;
+  }
+
+  .general-big-button{
+    display:block;
+    margin: auto;
+    margin-bottom: 10px;
+  }
+
+}
+
+@media (min-width: 992px) {
+  #dashboard-container {
+    width: 970px;
+  }
+}
+
+@media (min-width: 1200px) {
+  #dashboard-container {
+    width: 1170px;
+    }
+}
