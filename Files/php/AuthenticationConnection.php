@@ -3,7 +3,7 @@
 /*
  * File: AuthenticationConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-21-2018
+ * Date modified: 11-23-2018
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
@@ -36,21 +36,12 @@ class AuthenticationConnection extends DatabaseConnection {
     /**
      * A method for getting the salted and hashed password of a user.
      *
-     * @param $username the username of the desired user.
+     * @param $userID the userID of the desired user.
      *
-     * @return the salted and hashed password of the user; NULL if the user
-     * exists but has no password set; FALSE if the user does not exist.
+     * @return the salted and hashed password of the user; NULL if no password
+     * associated with userID exists or no user with userID exists.
      */
-    public function getSaltedAndHashedPassword(string $username) {
-        // Query UsersDB.Users to get the ID associated with $username.
-        $userID = $this->getUserID($username);
-
-        // If the above returned FALSE, no user with username $username exists,
-        // so return FALSE.
-        if(!$userID) {
-            return FALSE;
-        }
-
+    public function getSaltedAndHashedPassword(string $userID) {
         // Query PasswordsDB.Passwords for the salted and hashed password of the
         // user.
         $getPasswordResult =
