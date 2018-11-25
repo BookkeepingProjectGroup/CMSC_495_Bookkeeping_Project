@@ -1,122 +1,141 @@
-/*
- * Name: media.css
- * Date:November 24, 2018
- * Author: Jennifer Brady
- * /
-
-
-
+/* * Name: media.css * Date:November 24, 2018 * Author: Jennifer Brady * /
 /* Illustration of @media query for break points */
-
 /*small mobile screen size*/
-@media only screen and (max-width: 480px) and (orientation:portrait){
-
-  #dashboard-container{
-    display:flex;
-    flex-direction: column;
-    margin: auto;
-    padding: unset;
-    border: unset;
-    box-shadow: unset;
-}
-
-
-  #dashboard-container > #dashboard-topbar.general-major-section {
-     order:1;
-   }
-  #dashboard-container > #dashboard-section.general-flex-justify {
-     order:2;
+ @media only screen and (max-width: 480px) and (orientation:portrait){
+    /* remove formatting & set container as flex table */
+     #dashboard-container{
+         display:flex;
+         flex-direction: column;
+         margin: auto;
+         padding: unset;
+         border: unset;
+         box-shadow: unset;
+    }
+    /* Remove Title*/
+     #dashboard-topbar-meta{
+         display:none;
+    }
+    /* Reorder page with links on bottom & button selections on top*/
+     #dashboard-container > #dashboard-section{
+         order:1;
+    }
+     #dashboard-container > #dashboard-topbar {
+         order:2;
+         text-align: center;
     }
 
-  #dashboard-section.general-flex-justify{
-    display:flex;
-    flex-direction: column;
-  }
+    #dashboard-topbar-navlinks-holder{
+      float:none;
+    }
+    /* Set ledger container to flex & move buttons to top*/
+     #dashboard-section.general-flex-justify{
+         display:flex;
+         flex-direction: column;
+         margin:unset;
+    }
+     #dashboard-section.general-flex-justify > #dashboard-sidebar{
+         order:1;
+         display: inline;
+         columns: 4;
+         width: auto;
+         padding-right: 0;
 
-  #dashboard-section.general-flex-justify > #dashboard-sidebar.general-major-section{
-    order:1;
-    display: inline;
-    columns: 4;
-    width: auto;
-  }
+    }
+     #dashboard-section.general-flex-justify > #dashboard-ledger {
+         order:2;
+         margin:unset;
 
-  #dashboard-section.general-flex-justify > #dashboard-ledger {
-    order:2;
-  }
+    }
 
+    .general-action-button{
+      font-size: 8pt;
+      border-radius: 0;
+    }
+/* Convert Ledger table to columns with Headers as labels */
+     table, thead, tbody, th, td, tr {
+         display:block;
+    }
+     tr {
+         border: 1px solid #ccc;
+    }
+     td {
+        /* Behave like a "row" */
+         border: none;
+         border-bottom: 1px solid #eee;
+         position: relative;
+         padding-left: 50%;
+    }
+    /*remove 1st table row*/
+     tr:first-child{
+         display:none;
+    }
+     table{
+         empty-cells: hide;
+    }
+     td:before {
+        /* Now like a table header */
+         position: absolute;
+        /* Top/left values mimic padding */
+         top: 6px;
+         left: 6px;
+         width: 45%;
+         padding-right: 10px;
+         white-space: nowrap;
+    }
+     td:nth-of-type(1):before {
+         content: "Delete";
+    }
+     td:nth-of-type(2):before {
+         content: "Number";
+    }
+     td:nth-of-type(3):before {
+         content: "Account";
+    }
+     td:nth-of-type(4):before {
+         content: "Debit";
+    }
+     td:nth-of-type(5):before {
+         content: "Credit";
+    }
+     td:nth-of-type(6):before {
+         content: "Memo";
+    }
+     td:nth-of-type(7):before {
+         content: "Name";
+    }
+     td:nth-of-type(8):before {
+         content: "Date";
+    }
 
+    /*Change Table Colors*/
+    #dashboard-ledger-table tr:nth-child(even) {
+      background-color:#ffffff;
+    }
 
-table, thead, tbody, th, td, tr {
-  display:block;
+    #dashboard-ledger-table tr:nth-child(odd) {
+      background-color: #lightgray;
+    }
+    /*resize login container & center/stack buttons*/
+     #login-container{
+         width:95%;
+         margin:unset;
+    }
+     #login-footer-buttons-holder{
+         display:block;
+    }
+     .general-big-button{
+         display:block;
+         margin: auto;
+         margin-bottom: 10px;
+    }
 }
-
-tr { border: 1px solid #ccc; }
-
-td {
-  /* Behave  like a "row" */
-  border: none;
-  border-bottom: 1px solid #eee;
-  position: relative;
-  padding-left: 50%;
+ @media (min-width: 992px) {
+     #dashboard-container {
+         width: 970px;
+    }
 }
-
-/*remove 1st table row*/
-tr:first-child{
-  display:none;
-}
-
-table{
-  empty-cells: hide;
-}
-
-
-
-td:before {
-  /* Now like a table header */
-  position: absolute;
-  /* Top/left values mimic padding */
-  top: 6px;
-  left: 6px;
-  width: 45%;
-  padding-right: 10px;
-  white-space: nowrap;
-}
-
-td:nth-of-type(1):before { content: "Delete"; }
-td:nth-of-type(2):before { content: "Number"; }
-td:nth-of-type(3):before { content: "Account"; }
-td:nth-of-type(4):before { content: "Debit"; }
-td:nth-of-type(5):before { content: "Credit"; }
-td:nth-of-type(6):before { content: "Memo"; }
-td:nth-of-type(7):before { content: "Name"; }
-td:nth-of-type(8):before { content: "Date"; }
-
-
-/*resize login container & center/stack buttons*/
-  #login-container{
-    width:100%;
-  }
-
-  #login-footer-buttons-holder{
-    display:block;
-  }
-
-  .general-big-button{
-    display:block;
-    margin: auto;
-    margin-bottom: 10px;
-  }
-
-}
-
-@media (min-width: 992px) {
-  #dashboard-container {
-    width: 970px;
-  }
-}
-
-@media (min-width: 1200px) {
-  #dashboard-container {
-    width: 1170px;
+ @media (min-width: 1200px) {
+     #dashboard-container {
+         width: 1170px;
     }
 }
