@@ -10,6 +10,10 @@
          padding: unset;
          border: unset;
          box-shadow: unset;
+         height: auto;
+    }
+     .general-topbar-div {
+         width:100%;
     }
     /* Remove Title*/
      #dashboard-topbar-meta{
@@ -23,9 +27,8 @@
          order:2;
          text-align: center;
     }
-
-    #dashboard-topbar-navlinks-holder{
-      float:none;
+     #dashboard-topbar-navlinks-holder{
+         float:none;
     }
     /* Set ledger container to flex & move buttons to top*/
      #dashboard-section.general-flex-justify{
@@ -39,28 +42,23 @@
          columns: 4;
          width: auto;
          padding-right: 0;
-
     }
      #dashboard-section.general-flex-justify > #dashboard-ledger {
          order:2;
          margin:unset;
-
     }
-
-    .general-container{
-      margin-top: 0px;
+     .general-container{
+         margin-top: 0px;
     }
-    .general-action-button{
-      font-size: 8pt;
-      border-radius: 0;
+     .general-action-button{
+         font-size: 8pt;
+         border-radius: 0;
     }
-
-    .general-action-button:hover{
-      font-size: 8pt;
-      border-radius: 0;
+     .general-action-button:hover{
+         font-size: 8pt;
+         border-radius: 0;
     }
-
-/* Convert Ledger table to columns with Headers as labels */
+    /* Convert Ledger table to columns with Headers as labels */
      table, thead, tbody, th, td, tr {
          display:block;
     }
@@ -115,14 +113,12 @@
      td:nth-of-type(8):before {
          content: "Date";
     }
-
     /*Change Table Colors*/
-    #dashboard-ledger-table tr:nth-child(even) {
-      background-color:#ffffff;
+     #dashboard-ledger-table tr:nth-child(even) {
+         background-color:#ffffff;
     }
-
-    #dashboard-ledger-table tr:nth-child(odd) {
-      background-color: #lightgray;
+     #dashboard-ledger-table tr:nth-child(odd) {
+         background-color: #lightgray;
     }
     /*resize login container & center/stack buttons*/
      #login-container{
@@ -138,81 +134,94 @@
          margin-bottom: 10px;
     }
 }
-
  @media only screen and (max-width: 575px) and (orientation:landscape){
-
-   #dashboard-container{
-       display:flex;
-       flex-direction: column;
-       margin: auto;
-       padding: unset;
-       border: unset;
-       box-shadow: unset;
-  }
-  /* Remove Title*/
-   #dashboard-topbar-meta{
-       display:none;
-  }
-  /* Reorder page with links on bottom & button selections on top*/
-   #dashboard-container > #dashboard-section{
-       order:1;
-  }
-   #dashboard-container > #dashboard-topbar {
-       order:2;
-       text-align: center;
-  }
-
-  #dashboard-topbar-navlinks-holder{
-    float:none;
-  }
-  /* Set ledger container to flex & move buttons to top*/
-   #dashboard-section.general-flex-justify{
-       display:flex;
-       flex-direction: column;
-       margin:unset;
-  }
-   #dashboard-section.general-flex-justify > #dashboard-sidebar{
-       order:1;
-       display: inline;
-       columns: 4;
-       width: auto;
-       padding-right: 0;
-
-  }
-   #dashboard-section.general-flex-justify > #dashboard-ledger {
-       order:2;
-       margin:unset;
-
-  }
-
-  .general-container{
-    margin-top: 0px;
-  }
-  .general-action-button{
-    font-size: 8pt;
-    border-radius: 0;
-  }
-
-  .general-action-button:hover{
-    font-size: 8pt;
-    border-radius: 0;
-  }
-}
-
-
-
-
-@media (min-width: 768px) {
-    #dashboard-container {
-        width: 1170px;
-   }
-}
- @media (min-width: 991px) {
-     #dashboard-container {
-         width: 970px;
+     #dashboard-container{
+         display:flex;
+         flex-direction: column;
+         margin: auto;
+         padding: unset;
+         border: unset;
+         box-shadow: unset;
+         height:auto;
+    }
+    /* Remove Title*/
+     #dashboard-topbar-meta{
+         display:none;
+    }
+    /* Reorder page with links on bottom & button selections on top*/
+     #dashboard-container > #dashboard-section{
+         order:1;
+    }
+     #dashboard-container > #dashboard-topbar {
+         order:2;
+         text-align: center;
+    }
+     #dashboard-topbar-navlinks-holder{
+         float:none;
+    }
+    /* Set ledger container to flex & move buttons to top*/
+     #dashboard-section.general-flex-justify{
+         display:flex;
+         flex-direction: column;
+         margin:unset;
+    }
+     #dashboard-section.general-flex-justify > #dashboard-sidebar{
+         order:1;
+         display: inline;
+         columns: 4;
+         width: auto;
+         padding-right: 0;
+    }
+     #dashboard-section.general-flex-justify > #dashboard-ledger {
+         order:2;
+         margin:unset;
+    }
+     .general-container{
+         margin-top: 0px;
+    }
+     .general-action-button{
+         font-size: 8pt;
+         border-radius: 0;
+    }
+     .general-action-button:hover{
+         font-size: 8pt;
+         border-radius: 0;
+    }
+     #login-container{
+         margin-top:auto;
+    }
+     .login-general-title-extra-padding{
+         padding:5px;
     }
 }
- @media (min-width: 1199px) {
+ @media only screen and (min-width: 576px) and (max-width:767px) {
+     #dashboard-container {
+         width: 750px;
+    }
+     #login-container{
+         margin-top:auto;
+    }
+     .login-general-title-extra-padding{
+         padding:10px;
+    }
+}
+ @media only screen and (min-width: 768px) and (max-width: 990px) {
+     #dashboard-container {
+         width: 750px;
+    }
+     #login-container{
+         margin-top:auto;
+    }
+     .login-general-title-extra-padding{
+         padding:10px;
+    }
+}
+ @media only screen and (min-width: 991px) and (max-width: 1198px) {
+     #dashboard-container {
+         width: 950px;
+    }
+}
+ @media only screen and (min-width: 1199px) {
      #dashboard-container {
          width: 1170px;
     }

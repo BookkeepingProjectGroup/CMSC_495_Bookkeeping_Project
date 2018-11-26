@@ -1,239 +1,180 @@
-/*
- * Name:      : styles.css
- * Date       : 10/28/2018
- * Author     : Andrew Eissen
- */
-
-
-:root {
-  --bpg-gold: #e9d787;
-  --bpg-offwhite: #f6f6f6;
-  --bpg-lightgray: #cccccc;
-  --bpg-darkgray: #999999;
-  --bpg-charcoal: #3a3a3a;
-  --bpg-cb-even: #f0f0f0;
-  --bpg-cb-odd: #f9f9f9;
-
+/* * Name: : styles.css * Date : 10/28/2018 * Author : Andrew Eissen */
+ :root {
+     --bpg-gold: #e9d787;
+     --bpg-offwhite: #f6f6f6;
+     --bpg-lightgray: #cccccc;
+     --bpg-darkgray: #999999;
+     --bpg-charcoal: #3a3a3a;
+     --bpg-cb-even: #f0f0f0;
+     --bpg-cb-odd: #f9f9f9;
 }
-
-#application-body {
-  background-color: black;
-  position:relative;
-  height: 100%;
-  margin:0;
-/* to add gradient color background*/
-  background-image: linear-gradient(135deg,
-      #c5d6d4, black);
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
+ #application-body {
+     background-color: black;
+     position:relative;
+     margin:15px 15px;
+    /* to add gradient color background*/
+     background-image: linear-gradient(135deg, #c5d6d4, black);
+     background-repeat: no-repeat;
+     background-size: cover;
+     background-attachment: fixed;
 }
-
-
 /* General scene rules */
-
-.general-container {
-  margin-top: 15px;
-  margin-right: auto;
-  margin-left: auto;
-  padding: 15px;
-  border: 3px solid;
-  border-radius: 5px;
-
-  /*add multi-colored shadow effect to container*/
-  box-shadow: 3px 3px 3px #424874, -3px 3px 3px #DCD6F7, 3px -3px 3px #A393BF;
-  background-color: white;
+ .general-container {
+     margin-top: 15px;
+     margin-right: auto;
+     margin-left: auto;
+     padding: 15px;
+     border: 3px solid;
+     border-radius: 5px;
+    /*add multi-colored shadow effect to container*/
+     box-shadow: 3px 3px 3px #424874, -3px 3px 3px #DCD6F7, 3px -3px 3px #A393BF;
+     background-color: white;
 }
-
-.general-montserrat {
-  font-family: "Montserrat";
-  letter-spacing: 0.4px;
+ .general-montserrat {
+     font-family: "Montserrat";
+     letter-spacing: 0.4px;
 }
-
-.general-opensans {
-  font-family: "Open Sans";
-  letter-spacing: -0.6px;
+ .general-opensans {
+     font-family: "Open Sans";
+     letter-spacing: -0.6px;
 }
-
-.general-action-button {
-  text-align: center;
-  background-color: #424874;
-  font-size: 10pt;
-  padding: 5px 5px;
-  color: white;
-  margin-bottom: 12px;
-  border-radius: 25px;
+ .general-action-button {
+     text-align: center;
+     background-color: #424874;
+     font-size: 10pt;
+     padding: 5px 5px;
+     color: white;
+     margin-bottom: 12px;
+     border-radius: 25px;
 }
-
-.general-action-button:hover {
-  border-radius: 25px;
-  background-color: #9792af;
-  color: BLACK;
+ .general-action-button:hover {
+     border-radius: 25px;
+     background-color: #9792af;
+     color: BLACK;
 }
-
-.general-big-button {
-  padding: 10px;
-  width: 45%;
-  border-radius: 25px;
-  background-color: #424874;
-  color: white;
-
+ .general-big-button {
+     padding: 10px;
+     width: 45%;
+     border-radius: 25px;
+     background-color: #424874;
+     color: white;
 }
-
-.general-big-button:hover {
-  color: black;
-  border-radius: 25px;
-  background-color:#9792af;
+ .general-big-button:hover {
+     color: black;
+     border-radius: 25px;
+     background-color:#9792af;
 }
-
-.general-link-button {
-  background: none;
-  border: none;
-  color: #424874;
-  font-weight: bold;
+ .general-link-button {
+     background: none;
+     border: none;
+     color: #424874;
+     font-weight: bold;
 }
-
-.general-link-button:hover{
-  color:#9792af;
-  font-weight:bold;
-
+ .general-link-button:hover{
+     color:#9792af;
+     font-weight:bold;
 }
-
-.general-link-button:focus,
-.general-link-button:active {
-  outline: none;
-  background: none;
-  text-decoration: underline;
-  color: #424874;
+ .general-link-button:focus, .general-link-button:active {
+     outline: none;
+     background: none;
+     text-decoration: underline;
+     color: #424874;
 }
-
-#general-topbar-meta {
-  float: left;
+ #general-topbar-meta {
+     float: left;
 }
-
-
-#general-topbar-meta-title {
-  font-size: 12pt;
-  text-transform: uppercase;
+ #general-topbar-meta-title {
+     font-size: 12pt;
+     text-transform: uppercase;
 }
-
-#general-topbar-meta-subtitle {
-  font-size: 10pt;
+ #general-topbar-meta-subtitle {
+     font-size: 10pt;
 }
-
-.general-topbar-div {
-  float: left;
-  width:100%;
+ .general-topbar-div {
+     float: left;
+     width:50%;
 }
-
-.general-major-section {
-  overflow: hidden;
+ .general-major-section {
+     overflow: hidden;
 }
-
-.general-flex-justify {
-  display: flex;
-  justify-content: space-around;
+ .general-flex-justify {
+     display: flex;
+     justify-content: space-around;
 }
-
 /* Dashboard scene */
-
 /*main container for records*/
-#dashboard-topbar {
-  border-bottom: 1px solid;
-  border-color: var(--bpg-lightgray, #cccccc);
-  padding-bottom: 10px;
+ #dashboard-topbar {
+     border-bottom: 1px solid;
+     border-color: var(--bpg-lightgray, #cccccc);
+     padding-bottom: 10px;
 }
-
-#dashboard-topbar-navlinks-holder {
-  float: right;
+ #dashboard-topbar-navlinks-holder {
+     float: right;
 }
-
-#dashboard-section {
-  margin-top: 25px;
-
+ #dashboard-section {
+     margin-top: 25px;
 }
-
-#dashboard-sidebar {
-  width: 20%;
-  float: left;
-  border-right: 1px solid;
-  border-color: var(--bpg-lightgray, #cccccc);
-  padding-right: 20px;
-  margin-top: 10px;
-
+ #dashboard-sidebar {
+     width: 20%;
+     float: left;
+     border-right: 1px solid;
+     border-color: var(--bpg-lightgray, #cccccc);
+     padding-right: 20px;
+     margin-top: 10px;
 }
-
-.dashboard-sidebar-buttons-item {
-  width: 100%;
-
-
+ .dashboard-sidebar-buttons-item {
+     width: 100%;
 }
-
-#dashboard-ledger {
-  width: 100%;
-  height: 550px;
-  margin-top: 10px;
-  float: left;
-  margin-left: 20px;
-  overflow: auto;
-
+ #dashboard-ledger {
+     width: 100%;
+     height: 450px;
+     margin-top: 10px;
+     float: left;
+     margin-left: 20px;
+     overflow: auto;
 }
-
-#dashboard-ledger-table {
-  width: 100%;
-
+ #dashboard-ledger-table {
+     width: 100%;
 }
-
-#dashboard-ledger-table tr:nth-child(even) {
-  background-color:#c5d6d4;
+ #dashboard-ledger-table tr:nth-child(even) {
+     background-color:#c5d6d4;
 }
-
-#dashboard-ledger-table tr:nth-child(odd) {
-  background-color: #e1e8f2;
+ #dashboard-ledger-table tr:nth-child(odd) {
+     background-color: #e1e8f2;
 }
-
-.dashboard-ledger-table-header {
-  color: black;
+ .dashboard-ledger-table-header {
+     color: black;
 }
-
 /* Login scene */
-
-#login-container {
-  padding: 5px 5px;
-  margin: 10px 10px;
-  border-radius: 15px;
-  /*center login container*/
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+ #login-container {
+     width:405px;
+     padding: 5px 5px;
+     margin:0 auto;
+     border-radius: 15px;
+    /*center login container*/
+     margin-top: 20%;
 }
-
-#login-topbar {
-  border-bottom: 1px solid;
-  border-color: var(--bpg-darkgray, #999999);
+ #login-topbar {
+     border-bottom: 1px solid;
+     border-color: var(--bpg-darkgray, #999999);
 }
-
-#login-main-header {
-  text-align: center;
+ #login-main-header {
+     text-align: center;
 }
-
-#login-main-input-holder {
-  text-align: center;
-  margin: 15px 15px 15px;
+ #login-main-input-holder {
+     text-align: center;
+     margin: 15px 15px 15px;
 }
-
-.login-main-input-textbox {
-  width: 90%;
-  margin: 10px 10px;
-  padding: 10px;
-  border:groove;
+ .login-main-input-textbox {
+     width: 90%;
+     margin: 10px 10px;
+     padding: 10px;
+     border:groove;
 }
-
-.login-general-title-extra-padding {
-  padding: 25px 35px 25px 35px;
+ .login-general-title-extra-padding {
+     padding: 25px 35px 25px 35px;
 }
-
-#login-footer-buttons-holder {
-  margin-bottom: 15px;
+ #login-footer-buttons-holder {
+     margin-bottom: 15px;
 }
+ 
