@@ -4,6 +4,7 @@
  * Author     : Andrew Eissen
  */
 
+
 :root {
   --bpg-gold: #e9d787;
   --bpg-offwhite: #f6f6f6;
@@ -18,13 +19,11 @@
 #application-body {
   background-color: black;
   position:relative;
-
-/* to add gradient color background*/
-
   height: 100%;
   margin:0;
+/* to add gradient color background*/
   background-image: linear-gradient(135deg,
-      white, black);
+      #c5d6d4, black);
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: fixed;
@@ -40,8 +39,9 @@
   padding: 15px;
   border: 3px solid;
   border-radius: 5px;
+
   /*add multi-colored shadow effect to container*/
-  box-shadow: 5px 5px 5px #39086D, -5px 5px 5px #504FAF, 5px -5px 5px #A393BF;
+  box-shadow: 3px 3px 3px #424874, -3px 3px 3px #DCD6F7, 3px -3px 3px #A393BF;
   background-color: white;
 }
 
@@ -57,7 +57,7 @@
 
 .general-action-button {
   text-align: center;
-  background-color: #39086D;
+  background-color: #424874;
   font-size: 10pt;
   padding: 5px 5px;
   color: white;
@@ -67,7 +67,7 @@
 
 .general-action-button:hover {
   border-radius: 25px;
-  background-color: #504FAF;
+  background-color: #9792af;
   color: BLACK;
 }
 
@@ -75,7 +75,7 @@
   padding: 10px;
   width: 45%;
   border-radius: 25px;
-  background-color: #39086D;
+  background-color: #424874;
   color: white;
 
 }
@@ -83,13 +83,20 @@
 .general-big-button:hover {
   color: black;
   border-radius: 25px;
-  background-color:#504faf;
+  background-color:#9792af;
 }
 
 .general-link-button {
   background: none;
   border: none;
-  color: #39086D;
+  color: #424874;
+  font-weight: bold;
+}
+
+.general-link-button:hover{
+  color:#9792af;
+  font-weight:bold;
+
 }
 
 .general-link-button:focus,
@@ -97,7 +104,7 @@
   outline: none;
   background: none;
   text-decoration: underline;
-  color: #A393BF;
+  color: #424874;
 }
 
 #general-topbar-meta {
@@ -116,11 +123,11 @@
 
 .general-topbar-div {
   float: left;
-  width: 50%;
+  width:100%;
 }
 
 .general-major-section {
-  overflow: hidden; /* New block formatting context */
+  overflow: hidden;
 }
 
 .general-flex-justify {
@@ -129,41 +136,6 @@
 }
 
 /* Dashboard scene */
-
-/* Illustration of @media query for break points */
-
-/*small mobile screen size*/
-@media only screen and (max-width: 480px) and (orientation:portrait){
-
-/*resize login container & center/stack buttons*/
-  #login-container{
-    width:100%;
-
-  }
-
-  #login-footer-buttons-holder{
-    display:block;
-  }
-
-  .general-big-button{
-    display:block;
-    margin: auto;
-    margin-bottom: 10px;
-  }
-
-}
-
-@media (min-width: 992px) {
-  #dashboard-container {
-    width: 970px;
-  }
-}
-
-@media (min-width: 1200px) {
-  #dashboard-container {
-    width: 1170px;
-    }
-}
 
 /*main container for records*/
 #dashboard-topbar {
@@ -213,11 +185,11 @@
 }
 
 #dashboard-ledger-table tr:nth-child(even) {
-  background-color:#FFFFFF;
+  background-color:#c5d6d4;
 }
 
 #dashboard-ledger-table tr:nth-child(odd) {
-  background-color: #EFF5FF;
+  background-color: #e1e8f2;
 }
 
 .dashboard-ledger-table-header {
@@ -248,15 +220,14 @@
 
 #login-main-input-holder {
   text-align: center;
-  margin-bottom: 15px;
-  margin-right: 15px;
-  margin-left: 15px;
+  margin: 15px 15px 15px;
 }
 
 .login-main-input-textbox {
   width: 90%;
   margin: 10px 10px;
   padding: 10px;
+  border:groove;
 }
 
 .login-general-title-extra-padding {
