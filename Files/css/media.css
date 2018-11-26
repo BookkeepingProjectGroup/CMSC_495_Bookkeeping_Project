@@ -1,7 +1,7 @@
 /* * Name: media.css * Date:November 24, 2018 * Author: Jennifer Brady * /
 /* Illustration of @media query for break points */
 /*small mobile screen size*/
- @media only screen and (max-width: 480px) and (orientation:portrait){
+ @media only screen and (max-width: 575px) and (orientation:portrait){
     /* remove formatting & set container as flex table */
      #dashboard-container{
          display:flex;
@@ -47,10 +47,19 @@
 
     }
 
+    .general-container{
+      margin-top: 0px;
+    }
     .general-action-button{
       font-size: 8pt;
       border-radius: 0;
     }
+
+    .general-action-button:hover{
+      font-size: 8pt;
+      border-radius: 0;
+    }
+
 /* Convert Ledger table to columns with Headers as labels */
      table, thead, tbody, th, td, tr {
          display:block;
@@ -129,12 +138,81 @@
          margin-bottom: 10px;
     }
 }
- @media (min-width: 992px) {
+
+ @media only screen and (max-width: 575px) and (orientation:landscape){
+
+   #dashboard-container{
+       display:flex;
+       flex-direction: column;
+       margin: auto;
+       padding: unset;
+       border: unset;
+       box-shadow: unset;
+  }
+  /* Remove Title*/
+   #dashboard-topbar-meta{
+       display:none;
+  }
+  /* Reorder page with links on bottom & button selections on top*/
+   #dashboard-container > #dashboard-section{
+       order:1;
+  }
+   #dashboard-container > #dashboard-topbar {
+       order:2;
+       text-align: center;
+  }
+
+  #dashboard-topbar-navlinks-holder{
+    float:none;
+  }
+  /* Set ledger container to flex & move buttons to top*/
+   #dashboard-section.general-flex-justify{
+       display:flex;
+       flex-direction: column;
+       margin:unset;
+  }
+   #dashboard-section.general-flex-justify > #dashboard-sidebar{
+       order:1;
+       display: inline;
+       columns: 4;
+       width: auto;
+       padding-right: 0;
+
+  }
+   #dashboard-section.general-flex-justify > #dashboard-ledger {
+       order:2;
+       margin:unset;
+
+  }
+
+  .general-container{
+    margin-top: 0px;
+  }
+  .general-action-button{
+    font-size: 8pt;
+    border-radius: 0;
+  }
+
+  .general-action-button:hover{
+    font-size: 8pt;
+    border-radius: 0;
+  }
+}
+
+
+
+
+@media (min-width: 768px) {
+    #dashboard-container {
+        width: 1170px;
+   }
+}
+ @media (min-width: 991px) {
      #dashboard-container {
          width: 970px;
     }
 }
- @media (min-width: 1200px) {
+ @media (min-width: 1199px) {
      #dashboard-container {
          width: 1170px;
     }
