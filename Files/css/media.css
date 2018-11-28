@@ -12,6 +12,12 @@
          box-shadow: unset;
          height: auto;
     }
+
+    #application-body{
+      margin:0;
+      background-image: none;
+      font-size: xx-small;
+    }
      .general-topbar-div {
          width:100%;
     }
@@ -144,6 +150,12 @@
          box-shadow: unset;
          height:auto;
     }
+
+    #application-body{
+      margin:0;
+      background-image: none;
+      font-size: xx-small;
+    }
     /* Remove Title*/
      #dashboard-topbar-meta{
          display:none;
@@ -195,6 +207,15 @@
     }
 }
  @media only screen and (min-width: 576px) and (max-width:767px) {
+   #application-body{
+     margin:0;
+     background-image: none;
+     font-size: x-small;
+   }
+
+   .general-container{
+     margin-top:0;
+   }
      #dashboard-container {
          width: 750px;
     }
@@ -206,6 +227,13 @@
     }
 }
  @media only screen and (min-width: 768px) and (max-width: 990px) {
+   #application-body{
+     margin:0;
+     background-image: none;
+
+   }
+
+
      #dashboard-container {
          width: 750px;
     }
@@ -220,9 +248,77 @@
      #dashboard-container {
          width: 950px;
     }
+    #application-body{
+      margin:0;
+      background-image: none;
+    }
+
 }
  @media only screen and (min-width: 1199px) {
      #dashboard-container {
          width: 1170px;
     }
+}
+
+@media print {
+
+  /* Remove sidebar, navlinks, subitle*/
+  #dashboard-sidebar, #general-topbar-meta-subtitle, #dashboard-topbar-navlinks{
+    display:none;
+  }
+
+/*center title*/
+  .general-topbar-div{
+    width:100%;
+    text-align:center;
+  }
+
+#application-body{
+  color: black;
+  background: white;
+  width:100%;
+  margin:0;
+  padding:0;
+}
+
+/*set page size to A4 & landsacpe orientation*/
+@page{
+  size:A4 landscape;
+  margin: 2cm;
+}
+
+/*remove scroll so table can print full size*/
+#dashboard-ledger{
+  height:auto;
+  overflow: visible;
+
+}
+
+
+  #dashboard-ledger-table tr:nth-child(odd){
+    background-color: white;
+  }
+  #dashboard-ledger-table tr:nth-child(even){
+    background-color: lightgray;
+  }
+
+  table,  td{
+    border-collapse: collapse;
+    border:1px solid black;
+    font-size: 10pt;
+    page-break-inside: auto;
+  }
+
+  tr{
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+th{
+  text-align: center;
+}
+
+/*remove delete column*/
+td:first-child{
+  display:none;
 }
