@@ -3,7 +3,7 @@
 /*
  * File: PhpConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-24-2018
+ * Date modified: 11-28-2018
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
@@ -39,30 +39,52 @@ class PhpConnection extends DatabaseConnection {
      * already has a customer by that name.
      */
     public function addCustomer(string $userID, string $name, string $address) {
-        // Query the database to see if the user already has a customer with the
-        // given name.
-        $customerAlreadyExistsResult =
+        return $this->addCustomerOrVendor(TRUE, $userID, $name, $address);
+    }
+
+    /**
+     * A method to add a customer or vendor to the database.
+     *
+     * @param $isCustomer TRUE to add a customer, FALSE to add a vendor.
+     * @param $userID the ID of the user with whom this customer or vendor is
+     * associated.
+     * @param $name the name of the customer or vendor.
+     * @param $address the address of the customer or vendor.
+     *
+     * @return TRUE if the customer or vendor was added successfully; FALSE if
+     * the user already has a customer/vendor by that name.
+     */
+    private function addCustomerOrVendor(
+        bool $isCustomer,
+        string $userID,
+        string $name,
+        string $address) {
+        // Query the database to see if the user already has a customer/vendor
+        // with the given name.
+        $customerOrVendorAlreadyExistsResult =
             $this->runQuery(
-                'SELECT ID from BooksDB.Customers '
-                    . 'WHERE (userID = ?) AND (name = ?)',
+                'SELECT ID from BooksDB.' 
+                    . ($isCustomer ? 'Customers' : 'Vendors')
+                    . ' WHERE (userID = ?) AND (name = ?)',
                 'ss',
                 $userID,
                 $name);
 
         // If DatabaseConnection::runQuery(string,string,...mixed) returns
         // FALSE, an error occurred, so throw an exception.
-        if($customerAlreadyExistsResult === FALSE)
+        if($customerOrVendorAlreadyExistsResult === FALSE)
             throw new DatabaseException(
                 'DatabaseConnection::runQuery(string,string,...mixed) failed.');
 
         // If the query result does not have exactly 0 contents, the user
-        // already has a customer with the given name, so return FALSE.
-        if(count($customerAlreadyExistsResult) !== 0) return FALSE;
+        // already has a customer/vendor with the given name, so return FALSE.
+        if(count($customerOrVendorAlreadyExistsResult) !== 0) return FALSE;
 
-        // Insert the new customer into the database.
+        // Insert the new customer/vendor into the database.
         $this->runQuery(
-            'INSERT INTO BooksDB.Customers (userID, name, address) '
-                . 'VALUES (?, ?, ?)',
+            'INSERT INTO BooksDB.'
+                . ($isCustomer ? 'Customers' : 'Vendors')
+                . ' (userID, name, address) VALUES (?, ?, ?)',
             'sss',
             $userID,
             $name,
@@ -70,8 +92,74 @@ class PhpConnection extends DatabaseConnection {
 
         // If we made it here, everything must have gone well, so return TRUE.
         // (It is possible the insertion was unsuccessful, but no exceptions
-        // were thrown by it; worst case the customer was not actually added to
-        // the database.)
+        // were thrown by it; worst case the customer/vendor was not actually
+        // added to the database.)
         return TRUE;
+    }
+
+    /**
+     * A method to add a vendor to the database.
+     *
+     * @param $userID the ID of the user with whom this vendor is associated.
+     * @param $name the name of the vendor.
+     * @param $address the address of the vendor.
+     *
+     * @return TRUE if the vendor was added successfully; FALSE if the user
+     * already has a vendor by that name.
+     */
+    public function addVendor(string $userID, string $name, string $address) {
+        return $this->addCustomerOrVendor(FALSE, $userID, $name, $address);
+    }
+
+    /**
+     * A method to get all of the customers of a user.
+     *
+     * @param $userID the ID of the user.
+     *
+     * @return a numeric array of associative arrays containing elements "name"
+     * and "address".
+     */
+    public function getCustomers(string $userID) {
+        return $this->getCustomersOrVendors(TRUE, $userID);
+    }
+
+    /**
+     * A method to get all of the customers or vendors of a user.
+     *
+     * @param $userID the ID of the user.
+     *
+     * @return a numeric array of associative arrays containing elements "name"
+     * and "address".
+     */
+    private function getCustomersOrVendors(bool $customers, string $userID) {
+        // Select all of the user's customers/vendors from the database.
+        $getCustomersOrVendorsResult = $this->runQuery(
+            'SELECT name, address FROM BooksDB.'
+                . ($customers ? 'Customers' : 'Vendors')
+                . ' WHERE userID = ?',
+            's',
+            $userID);
+
+        // If DatabaseConnection::runQuery(string,string,...mixed) returns
+        // FALSE, an error occurred, so throw an exception.
+        if($getCustomersOrVendorsResult === FALSE)
+            throw new DatabaseException(
+                'DatabaseConnection::runQuery(string,string,...mixed) failed.');
+
+        // Return the numeric array of associative arrays containing all of the
+        // user's customers/vendors.
+        return $getCustomersOrVendorsResult;
+    }
+
+    /**
+     * A method to get all of the vendors of a user.
+     *
+     * @param $userID the ID of the user.
+     *
+     * @return a numeric array of associative arrays containing elements "name"
+     * and "address".
+     */
+    public function getVendors(string $userID) {
+        return $this->getCustomersOrVendors(FALSE, $userID);
     }
 }
