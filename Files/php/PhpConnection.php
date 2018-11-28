@@ -43,6 +43,54 @@ class PhpConnection extends DatabaseConnection {
     }
 
     /**
+     * A method to add a document with its general ledger rows to the database.
+     *
+     * @param $userID the ID of the user with which the document is associated.
+     * @param $documentName the name of the document.
+     * @param $type the type of the document.
+     * @param $generalLedgerRows a numeric array of generalLedgerRows; each must
+     * be an object containing parameters "code", as in account code; "date";
+     * "isDebit"; "debit" or "credit"; and "description".
+     * @param $customerName the name of the customer if $type is "ARI" or "ARR".
+     * @param $vendorName the name of the vendor if $type is "API" or "APD".
+     *
+     * @return 
+     */
+    public function addDocument(
+        string $userID,
+        string $documentName,
+        string $type,
+        array $generalLedgerRows,
+        string $customerName = NULL,
+        string $vendorName = NULL) {
+        $documentAlreadyExistsResult =
+            $this->runQuery(
+                'SELECT ID FROM BooksDB.Documents '
+                    . 'WHERE (userID = ?) AND (name = ?)',
+                'ss',
+                $userID,
+                $documentName);
+
+        if($documentAlreadyExistsResult === FALSE)
+            throw new DatabaseException(
+                'DatabaseConnection::runQuery(string,string,...mixed) failed.');
+
+        if(count($documentAlreadyExistsResult) !== 0) return FALSE;
+
+        if(strcmp($type, 'ARI') || strcmp($type, 'ARR')) {
+            if((!$customerName) || $vendorName) return FALSE;
+
+            $getCustomerIDResult =
+                $this->runQuery(
+                    'SELECT ID FROM BooksDB.Customers '
+                        . 'WHERE (userID = ?) AND (name = ?)',
+                    'ss',
+                    $userID,
+                    $customerName);
+        }
+    }
+
+    /**
      * A method to add a customer or vendor to the database.
      *
      * @param $isCustomer TRUE to add a customer, FALSE to add a vendor.
@@ -63,7 +111,7 @@ class PhpConnection extends DatabaseConnection {
         // with the given name.
         $customerOrVendorAlreadyExistsResult =
             $this->runQuery(
-                'SELECT ID from BooksDB.' 
+                'SELECT ID FROM BooksDB.' 
                     . ($isCustomer ? 'Customers' : 'Vendors')
                     . ' WHERE (userID = ?) AND (name = ?)',
                 'ss',
