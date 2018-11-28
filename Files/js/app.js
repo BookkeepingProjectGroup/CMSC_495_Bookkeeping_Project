@@ -38,6 +38,7 @@
  *   - Identifiers              Line xxx
  *   - Text                     Line xxx
  *   - Operations               Line xxx
+ *   - ModalButtons             Line xxx
  * - Data arrays
  *   - ledgerHeaders            Line xxx
  *   - sidebarButtonData        Line xxx
@@ -46,6 +47,7 @@
  *   - Utility functions        Line xxx
  *   - Assembly functions       Line xxx
  *   - Builder functions        Line xxx
+ *   - Display functions        Line xxx
  *   - Handler functions        Line xxx
  *   - Main function            Line xxx
  *   - Public functions         Line xxx
@@ -150,6 +152,7 @@ const BookkeepingProjectModule = (function () {
     ID_DASHBOARD_TOPBAR_NAVLINKS: 'dashboard-topbar-navlinks',
     ID_DASHBOARD_TOPBAR_NAVLINKS_HOLDER: 'dashboard-topbar-navlinks-holder',
     ID_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT: 'dashboard-topbar-navlinks-account',
+    ID_DASHBOARD_TOPBAR_NAVLINKS_PRINT: 'dashboard-topbar-navlinks-print',
     ID_DASHBOARD_TOPBAR_NAVLINKS_LOGOUT: 'dashboard-topbar-navlinks-logout',
     ID_DASHBOARD_SECTION: 'dashboard-section',
     ID_DASHBOARD_SIDEBAR: 'dashboard-sidebar',
@@ -157,6 +160,23 @@ const BookkeepingProjectModule = (function () {
     ID_DASHBOARD_LEDGER: 'dashboard-ledger',
     ID_DASHBOARD_LEDGER_TABLE: 'dashboard-ledger-table',
     ID_DASHBOARD_FOOTER: 'dashboard-footer',
+
+    // Modal framework ids
+    ID_MODAL_BLACKOUT: 'modal-blackout',
+    ID_MODAL_MAIN: 'modal-main',
+    ID_MODAL_HEADER: 'modal-header',
+    ID_MODAL_HEADER_TITLE: 'modal-header-title',
+    ID_MODAL_SECTION: 'modal-section',
+    ID_MODAL_FOOTER: 'modal-footer',
+    ID_MODAL_FOOTER_BUTTONS: 'modal-footer-buttons',
+    ID_MODAL_STATUS_DIV: 'modal-status',
+
+    // Change password modal
+    ID_CHANGEP_CONTAINER: 'modal-changepassword-container',
+    ID_CHANGEP_INFORMATION: 'modal-changepassword-information',
+    ID_CHANGEP_FORM: 'modal-changepassword-form',
+    ID_CHANGEP_INPUT_PASSWORD: 'modal-changepassword-input-password',
+    ID_CHANGEP_INPUT_REENTER: 'modal-changepassword-input-reenter',
 
     // General purpose ids that show up on multiple modules
     ID_GENERAL_BODY: 'application-body',
@@ -174,6 +194,13 @@ const BookkeepingProjectModule = (function () {
     CLASS_DASHBOARD_LEDGER_TABLE_HEADER: 'dashboard-ledger-table-header',
     CLASS_DASHBOARD_LEDGER_TABLE_CHECKBOX: 'dashboard-ledger-table-checkbox',
 
+    // Modal classes
+    CLASS_MODAL_MAJOR_SECTION: 'modal-major-section',
+    CLASS_MODAL_BUTTON: 'modal-footer-buttons-button',
+    CLASS_MODAL_SECTION_TEXTBOX: 'modal-section-textbox',
+    CLASS_MODAL_ACTION_SUCCESS: 'modal-action-success',
+    CLASS_MODAL_ACTION_FAILURE: 'modal-action-failure',
+
     // General scene usage classes
     CLASS_GENERAL_CONTAINER: 'general-container',
     CLASS_GENERAL_MAJOR_SECTION: 'general-major-section',
@@ -184,6 +211,7 @@ const BookkeepingProjectModule = (function () {
     CLASS_GENERAL_FLEX_JUSTIFY: 'general-flex-justify',
     CLASS_GENERAL_OPENSANS: 'general-opensans',
     CLASS_GENERAL_MONTSERRAT: 'general-montserrat',
+    CLASS_GENERAL_BUTTONS_HOLDER: 'general-buttons-holder',
   });
 
   /**
@@ -198,15 +226,23 @@ const BookkeepingProjectModule = (function () {
   inaccessible.Text = Object.freeze({
     INPUT_LOGIN_MAIN_USERNAME_PLACEHOLDER: 'Username',
     INPUT_LOGIN_MAIN_PASSWORD_PLACEHOLDER: 'Password',
+    INPUT_CHANGEP_PASSWORD_PLACEHOLDER: 'Enter new password',
+    INPUT_CHANGEP_REENTER_PLACEHOLDER: 'Confirm password',
     BUTTON_LOGIN_FOOTER_CREATE: 'Create',
     BUTTON_LOGIN_FOOTER_SUBMIT: 'Login',
     BUTTON_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT: 'Account',
+    BUTTON_DASHBOARD_TOPBAR_PRINT: 'Print ledger',
     BUTTON_DASHBOARD_TOPBAR_NAVLINKS_LOGOUT: 'Logout',
     DIV_LOGIN_MAIN_HEADER: 'Login or create account',
     DIV_DASHBOARD_TOPBAR_NAVLINKS_WELCOME: 'Welcome user!',
     DIV_GENERAL_TOPBAR_TITLE: 'Keep Dem Books Y\'all', // Need some title
     DIV_GENERAL_TOPBAR_SUBTITLE: 'A bookkeeping application for CMSC 495',
+    DIV_CHANGEP_INFORMATION: 'Please note that password entries must match',
     ERROR_NETWORK: 'A network error has been encountered',
+    ERROR_ILLEGITIMATE_INPUT: 'Password content must be alphanumeric',
+    ERROR_MISMATCHING_PASSWORDS: 'Passwords do not match',
+    ERROR_FAILED_PASSWORD_RESET: 'Password reset unsuccessful',
+    SUCCESS_PASSWORD_RESET: 'Password successfully reset',
   });
 
   /**
@@ -270,6 +306,61 @@ const BookkeepingProjectModule = (function () {
     },
   });
 
+  /**
+   * @description This enum structure, specifically an object of objects, is
+   * used to contain data related to the most common types of button available
+   * for use in the popup modal window. Generally, as these modals are used to
+   * provide user data to the server, they include input textboxes that will
+   * need to be submitted by the user and potentially cleared of previous input.
+   * To this end, this enum includes clear, submit, and close modal
+   * configuration data used to build buttons via
+   * <code>inaccessible.assembleButtonElement</code>. The various in-modal
+   * mini-scene constructors are able to denote which default buttons to include
+   * and can make shallow copies of some buttons in order to adjust click
+   * handlers and the like as required for certain operations.
+   *
+   * @readonly
+   * @enum {object}
+   */
+  inaccessible.ModalButtons = Object.freeze({
+    CLOSE: {
+      buttonType: 'Close',
+      functionName: 'handleModalClose',
+      functionArguments: [],
+      requiresWrapper: false,
+      elementId: 'modal-footer-buttons-close',
+      elementClasses: [
+        inaccessible.Identifiers.CLASS_GENERAL_BIG_BUTTON,
+        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        inaccessible.Identifiers.CLASS_MODAL_BUTTON,
+      ],
+    },
+    CLEAR: {
+      buttonType: 'Clear',
+      functionName: 'handleModalFormClear',
+      functionArguments: [],
+      requiresWrapper: false,
+      elementId: 'modal-footer-buttons-clear',
+      elementClasses: [
+        inaccessible.Identifiers.CLASS_GENERAL_BIG_BUTTON,
+        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        inaccessible.Identifiers.CLASS_MODAL_BUTTON,
+      ],
+    },
+    SUBMIT: {
+      buttonType: 'Submit',
+      functionName: 'handleModalFormSubmit',
+      functionArguments: [],
+      requiresWrapper: false,
+      elementId: 'modal-footer-buttons-submit',
+      elementClasses: [
+        inaccessible.Identifiers.CLASS_GENERAL_BIG_BUTTON,
+        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        inaccessible.Identifiers.CLASS_MODAL_BUTTON,
+      ],
+    },
+  });
+
   // Data arrays
 
   /**
@@ -300,6 +391,18 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.sidebarButtonData = [
     {
+      buttonType: 'Change password',
+      functionName: 'displayPasswordChangeModal',
+      functionArguments: [],
+      requiresWrapper: true,
+      elementId: 'sidebar-buttons-element-change-password',
+      elementClasses: [
+        inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
       buttonType: 'Add new document',
       functionName: 'handleDocumentAddition',
       functionArguments: [],
@@ -312,11 +415,23 @@ const BookkeepingProjectModule = (function () {
       ],
     },
     {
-      buttonType: 'Add new ledger entry',
-      functionName: 'handleLedgerEntryAddition',
+      buttonType: 'Add new customer',
+      functionName: 'handleCustomerAddition',
       functionArguments: [],
       requiresWrapper: true,
-      elementId: 'sidebar-buttons-element-newentry',
+      elementId: 'sidebar-buttons-element-newCustomer',
+      elementClasses: [
+        inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
+      buttonType: 'Add new vendor',
+      functionName: 'handleVendorAddition',
+      functionArguments: [],
+      requiresWrapper: true,
+      elementId: 'sidebar-buttons-element-newVendor',
       elementClasses: [
         inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
         inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
@@ -347,42 +462,6 @@ const BookkeepingProjectModule = (function () {
         inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
-      buttonType: 'Test - Add JSON row 2',
-      functionName: 'handleTestGetRequest',
-      functionArguments: [],
-      requiresWrapper: true,
-      elementId: 'sidebar-buttons-element-test2',
-      elementClasses: [
-        inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
-      ],
-    },
-    {
-      buttonType: 'Test - Add offline row',
-      functionName: 'handleOfflineTestRowAddition',
-      functionArguments: [],
-      requiresWrapper: true,
-      elementId: 'sidebar-buttons-element-test3',
-      elementClasses: [
-        inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
-      ],
-    },
-    {
-      buttonType: 'Test - Add offline row 2',
-      functionName: 'handleOfflineTestRowAddition',
-      functionArguments: [],
-      requiresWrapper: true,
-      elementId: 'sidebar-buttons-element-test4',
-      elementClasses: [
-        inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
-      ],
-    },
   ];
 
   /**
@@ -404,6 +483,17 @@ const BookkeepingProjectModule = (function () {
       functionArguments: [],
       requiresWrapper: false,
       elementId: inaccessible.Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT,
+      elementClasses: [
+        inaccessible.Identifiers.CLASS_GENERAL_LINK_BUTTON,
+        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
+      buttonType: inaccessible.Text.BUTTON_DASHBOARD_TOPBAR_PRINT,
+      functionName: 'handlePagePrinting',
+      functionArguments: [],
+      requiresWrapper: false,
+      elementId: inaccessible.Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_PRINT,
       elementClasses: [
         inaccessible.Identifiers.CLASS_GENERAL_LINK_BUTTON,
         inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
@@ -476,6 +566,7 @@ const BookkeepingProjectModule = (function () {
       }
 
       request.onload = function () {
+        console.warn(request.responseText);
         if (request.status == 200) {
           resolve(request.response);
         } else {
@@ -576,6 +667,20 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.isLegalInput = function (paramInput) {
     return /^[a-z0-9]+$/i.test(paramInput);
+  };
+
+  /**
+   * @description This function is used to add new key/value pairs to an
+   * existing object en masse without having to add each individually as per
+   * standard practices. This function was intentionally constructed to work
+   * like jQuery's <code>$.extend</code>.
+   *
+   * @param {object} paramTarget The object to be extended
+   * @param {object} paramObject The new object to be joined
+   * @returns {object}
+   */
+  inaccessible.extend = function(paramTarget, paramObject) {
+    return {...paramTarget, ...paramObject};
   };
 
   /**
@@ -932,7 +1037,7 @@ const BookkeepingProjectModule = (function () {
     // Some buttons need an individual <div> wrapper
     if (paramObject.requiresWrapper) {
       buttonHolderConfig = {
-        class: this.Identifiers.CLASS_SIDEBAR_BUTTONS_HOLDER,
+        class: this.Identifiers.CLASS_GENERAL_BUTTONS_HOLDER,
       };
 
       buttonElement = this.assembleElement(['div', buttonHolderConfig,
@@ -1127,7 +1232,7 @@ const BookkeepingProjectModule = (function () {
         ],
       ],
     );
-  }
+  };
 
   /**
    * @description This function makes significant use of the DOM element builder
@@ -1247,6 +1352,157 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
+   * @description This builder function is used to build the popup modal
+   * framework to which additional inner HTML skeletons can be attached as
+   * needed for various functions. Each modal will be appended to the body tag,
+   * with the rest of the page content hidden slightly behind a black opaque
+   * screen that directs focus to the modal. The modal has a specific title and
+   * a set of interaction buttons at the bottom that will allow the user to
+   * close the modal, submit data, or attempt several other different tasks as
+   * required.
+   *
+   * @param {string} paramTitle Modal title
+   * @param {HTMLElement} paramContent Inner HTML content
+   * @param {!Array<object>} paramButtons Array of button config objects
+   * @returns {HTMLElement}
+   */
+  inaccessible.buildModal = function (paramTitle, paramContent, paramButtons) {
+
+    // Declarations
+    let that, builtButtons, button, configBlackout, configModal, configHeader,
+      configHeaderTitle, configSection, configFooter, configFooterButtons;
+
+    // Preserve scope
+    that = this;
+
+    // Opaque black background commanding focus on modal
+    configBlackout = {
+      id: this.Identifiers.ID_MODAL_BLACKOUT,
+    };
+
+    // Module div
+    configModal = {
+      id: this.Identifiers.ID_MODAL_MAIN,
+    };
+
+    // Title and nothing else
+    configHeader = {
+      id: this.Identifiers.ID_MODAL_HEADER,
+      class: this.Identifiers.CLASS_MODAL_MAJOR_SECTION,
+    };
+
+    // Span wrapper for title text
+    configHeaderTitle = {
+      id: this.Identifiers.ID_MODAL_HEADER_TITLE,
+      class: this.Identifiers.CLASS_GENERAL_MONTSERRAT,
+    };
+
+    // Empty main section to which other builds will be appended
+    configSection = {
+      id: this.Identifiers.ID_MODAL_SECTION,
+      class: this.Identifiers.CLASS_MODAL_MAJOR_SECTION,
+    };
+
+    // Section for buttons
+    configFooter = {
+      id: this.Identifiers.ID_MODAL_FOOTER,
+      class: this.Identifiers.CLASS_MODAL_MAJOR_SECTION,
+    };
+
+    // Container for the footer buttons
+    configFooterButtons = {
+      id: this.Identifiers.ID_MODAL_FOOTER_BUTTONS,
+    };
+
+    // Build holder
+    builtButtons= this.assembleElement('div', configFooterButtons);
+
+    // Build button config into actual buttons
+    paramButtons.forEach(function (buttonObject) {
+
+      // Build new button HTMLElement
+      button = that.assembleButtonElement(buttonObject);
+
+      // Push completed button to the array in question
+      builtButtons.appendChild(button);
+    });
+
+    // Return assembled interface
+    return this.assembleElement(
+      ['div', configBlackout,
+        ['main', configModal,
+          ['header', configHeader,
+            ['div', configHeaderTitle,
+              paramTitle,
+            ],
+          ],
+          ['section', configSection,
+            paramContent,
+          ],
+          ['footer', configFooter,
+            builtButtons,
+          ],
+        ],
+      ],
+    );
+  };
+
+  /**
+   * @description This builder function is responsible for building the modal
+   * mini-scene related to the password changing process. It assembles a bit of
+   * HTML including a pair of password entry input textfields and a set of
+   * wrapper container divs and some text instructing the user to enter matched
+   * passwords.
+   *
+   * @returns {HTMLElement}
+   */
+  inaccessible.buildPasswordChangeModal = function () {
+
+    let configContainer, configInformation, configInputForm,
+      configInputPassword, configInputPasswordReentered;
+
+    configContainer = {
+      id: this.Identifiers.ID_CHANGEP_CONTAINER,
+    };
+
+    configInformation = {
+      id: this.Identifiers.ID_CHANGEP_INFORMATION,
+      class: this.Identifiers.CLASS_GENERAL_OPENSANS,
+    };
+
+    configInputForm = {
+      id: this.Identifiers.ID_CHANGEP_FORM,
+    };
+
+    configInputPassword = {
+      id: this.Identifiers.ID_CHANGEP_INPUT_PASSWORD,
+      class: this.Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
+      placeholder: this.Text.INPUT_CHANGEP_PASSWORD_PLACEHOLDER,
+      type: 'password',
+    };
+
+    configInputPasswordReentered = {
+      id: this.Identifiers.ID_CHANGEP_INPUT_REENTER,
+      class: this.Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
+      placeholder: this.Text.INPUT_CHANGEP_REENTER_PLACEHOLDER,
+      type: 'password',
+    };
+
+    // Return assembled interface
+    return this.assembleElement(
+      ['div', configContainer,
+        ['div', configInformation,
+          this.Text.DIV_CHANGEP_INFORMATION,
+        ],
+        ['form', configInputForm,
+          ['input', configInputPassword],
+          ['input', configInputPasswordReentered],
+        ],
+      ],
+    );
+  };
+
+  /**
    * @description This simple builder function is used specifically as a fast,
    * convenient way of assembling a wrapper <code>div</code> and the buttons
    * denoted in one of the script-global namespace arrays, either
@@ -1275,6 +1531,90 @@ const BookkeepingProjectModule = (function () {
     return buttonHolder;
   };
 
+  // Display functions
+
+  /**
+   * @description As per the standard usage of display functions, this function
+   * is responsible for building a mini-scene and adding it to the DOM rather
+   * than returning it from the function. This particular display function is
+   * used to create and add the mini-scene contained in the modal framework
+   * related to the password changing functionality. It shows a pair of input
+   * textfields and a set of three buttons allowing the user to clear the modal
+   * of old input and any error notices, submit new data, or exit the modal
+   * window. Its associated handler responsible for vetting input is
+   * <code>inaccessible.handlePasswordChange</code>.
+   *
+   * @returns {void}
+   */
+  inaccessible.displayPasswordChangeModal = function () {
+
+    // Declarations
+    let innerContent, submitButtonCopy, buttons;
+
+    // Inner modal mini-scene
+    innerContent = this.buildPasswordChangeModal();
+
+    // Make shallow copy of default submit button config
+    submitButtonCopy = this.extend({}, this.ModalButtons.SUBMIT);
+
+    // Adjust handler function String representation
+    submitButtonCopy.functionName = 'handlePasswordChange';
+
+    // Buttons for the modal footer
+    buttons = [
+      submitButtonCopy,         // Submit (custom)
+      this.ModalButtons.CLEAR,  // Clear fields
+      this.ModalButtons.CLOSE,  // Close modal
+    ];
+
+    // Build and add the modal to the body at the bottom
+    document.body.appendChild(
+      this.buildModal('Change password', innerContent, buttons));
+  };
+
+  /**
+   * @description This builder function is used to construct a new <div> element
+   * indicating to the user that the operation undertaken in the modal (be that
+   * password submission or the like) has either failed or succeeded. This
+   * approach was inspired by the UMUC LEO login module, which displays an error
+   * div like this on an incorrect login.
+   *
+   * @param {boolean} paramIsSuccess
+   * @param {string} paramMessage
+   * @return {void}
+   */
+  inaccessible.displayStatusNotice = function (paramIsSuccess, paramMessage) {
+
+    // Declaration
+    let configStatusDiv, status, aliasIds, statusDiv, extantStatusDiv;
+
+    // Choose class name fragment based on success of action
+    status = (paramIsSuccess) ? 'SUCCESS' : 'FAILURE';
+
+    // Can alias enums only
+    aliasIds = this.Identifiers;
+
+    configStatusDiv = {
+      id: aliasIds.ID_MODAL_STATUS_DIV,
+      class: aliasIds.CLASS_GENERAL_OPENSANS + ' ' +
+        aliasIds[`CLASS_MODAL_ACTION_${status}`]
+    };
+
+    // Duild the <biv>
+    statusDiv = this.assembleElement(['div', configStatusDiv, paramMessage]);
+
+    // Determine whether or not there is already a status message in the modal
+    extantStatusDiv = document.getElementById(aliasIds.ID_MODAL_STATUS_DIV);
+
+    // Remove it if it does exist
+    if (extantStatusDiv) {
+      extantStatusDiv.remove();
+    }
+
+    // Add the bottom of modal body and above buttons
+    this.append(this.Identifiers.ID_MODAL_SECTION, statusDiv);
+  };
+
   // Handler functions
 
   /**
@@ -1288,33 +1628,29 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description Handler for presses of the new entry addition button on the
-   * lefthand sidebar.
+   * @description This handler is responsible for allowing for the addition of
+   * new customers, with the fields "name" and "address" serving as parameters
+   * to be returned to the appropriate endpoint.
    *
    * @returns {void}
    */
-  inaccessible.handleLedgerEntryAddition = function () {
+  inaccessible.handleCustomerAddition = function () {
 
-    // Declaration
-    let entry;
+    // Declarations
+    let name, address;
 
-    // Definition
-    entry = {
-      "number": 1700,
-      "account": "Widgets",
-      "debit": 0,
-      "credit": 15000,
-      "memo": "Testing POST request",
-      "name": "Andrew E",
-      "date": "11/21/18"
-    };
+    // Test definitions
+    name = "Mr. Customer";
+    address = "1616 McCormick Dr, Largo, MD 20774";
 
-    // Check in Network tab
-    if (DEBUG) {
-      this.sendRequest('POST', 'json/testData.json', entry);
-    }
-
-    window.alert('Add a new entry');
+    this.sendRequest('POST', 'php/add_customer.php', {
+      name: name,
+      address: address,
+    }).then(function (response) {
+      console.log(response);
+    }, function (error) {
+      console.error(error);
+    });
   };
 
   /**
@@ -1347,24 +1683,6 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description Handler for presses of the last testing button on the lefthand
-   * sidebar. Can be used to illustrate row addition outside of a server.
-   *
-   * @returns {void}
-   */
-  inaccessible.handleOfflineTestRowAddition = function () {
-    this.handleRowAddition({
-      "number": 1200,
-      "account": "Soap",
-      "debit": 0,
-      "credit": 10000,
-      "memo": "Soap 4 days",
-      "name": "Andrew",
-      "date": "11/11/18",
-    });
-  };
-
-  /**
    * @description Handler for presses of the "Create" button option login modal
    * page. It may be used to load a new, similar scene that has more fields
    * related to account creation info.
@@ -1390,7 +1708,10 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleLogin = function () {
 
     // Declarations
-    let username, password, aliasIds, params;
+    let that, username, password, aliasIds, data;
+
+    // Preserve scope context
+    that = this;
 
     // Can alias enums only
     aliasIds = this.Identifiers;
@@ -1403,18 +1724,31 @@ const BookkeepingProjectModule = (function () {
 
     // Alphanumeric data only for username and password
     if (!this.isLegalInput(username) || !this.isLegalInput(password)) {
-      window.alert("Illegitimate input");
+      window.alert(this.Text.ERROR_ILLEGITIMATE_INPUT);
       return;
     }
 
-    // Convert to JSON
-    params = {
-      "username": username,
-      "password": password,
-    };
+    this.sendRequest('POST', 'php/login.php', {
+      username: username,
+      password: password,
+    }).then(function (response) {
 
-    this.sendRequest('POST', 'php/login.php', params).then(function (response) {
-      console.log(response);
+      // Parse JSON into object
+      data = JSON.parse(response);
+      console.log(data);
+
+      if (data.isLogonSuccessful) {
+        console.log('TINDERIZE HERE');
+
+        /* UNCOMMENT ONCE ACCOUNT CREATION IS ENABLED
+        // Fade out and remove content prior to rebuilding of main interface
+        that.tinderize(that.Identifiers.ID_LOGIN_CONTAINER,
+          'buildUserInterface', that.Identifiers.ID_DASHBOARD_CONTAINER);
+        */
+      } else {
+        console.warn('DISPLAY ERROR MESSAGE IN SCENE');
+        return;
+      }
     }, function (error) {
       console.error(error);
     });
@@ -1445,6 +1779,147 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.handleAccountDetailsDisplay = function () {
     window.alert('Insert account details in some form');
+  };
+
+  /**
+   * @description As the name implies, this handler is used to close the modal
+   * window on the press of the appropriate in-modal button. It basically just
+   * removes the entire window from the view model without any transitions or
+   * anything.
+   *
+   * @returns {void}
+   */
+  inaccessible.handleModalClose = function () {
+
+    // Declaration
+    let modal;
+
+    // Grab element
+    modal = document.getElementById(this.Identifiers.ID_MODAL_BLACKOUT);
+
+    // Remove
+    modal.parentNode.removeChild(modal);
+  };
+
+  /**
+   * @description This function is used to clear the input textboxes present on
+   * certain modal bodies (the mini-scenes) on the press of the "clear" button.
+   * It works by collecting in an <code>HTMLCollection</code> all the textbox
+   * elements with a certain class that are contained in the body of the modal.
+   *
+   * @returns {void}
+   */
+  inaccessible.handleModalFormClear = function () {
+
+    // Declaration
+    let textboxes, aliasIds, statusNotice;
+
+    // Can alias enums
+    aliasIds = this.Identifiers;
+
+    // Grab the input textboxes in the main modal section body
+    textboxes = document
+      .getElementById(aliasIds.ID_MODAL_SECTION)
+      .getElementsByClassName(aliasIds.CLASS_MODAL_SECTION_TEXTBOX);
+
+    // Grab any extant success/failure action notice
+    statusNotice = document.getElementById(aliasIds.ID_MODAL_STATUS_DIV);
+
+    // Remove if present
+    if (statusNotice) {
+      statusNotice.remove();
+    }
+
+    // Set each input value as an empty string
+    Array.prototype.forEach.call(textboxes, function (textbox) {
+      textbox.value = '';
+    });
+  };
+
+  /**
+   * @description This handler is used to handle the submission of user data on
+   * the press of the "Submit" button. This is the default handler present in
+   * the <code>inaccessible.ModalButtons</code> enum and may be overridden by
+   * implementing functions that shallow copy the appropriate button config
+   * object and adjust the <code>functionName</code> handler string.
+   *
+   * @returns {void}
+   */
+  inaccessible.handleModalFormSubmit = function () {
+    window.alert('Submit data!');
+  };
+
+  /**
+   * @description This handler is simply responsible for printing the contents
+   * of the currently viewed ledger on presses of the "Print ledger" button.
+   *
+   * @returns {void}
+   */
+  inaccessible.handlePagePrinting = function () {
+    window.print();
+  };
+
+  /**
+   * @description This function is used to handle cases wherein the user elects
+   * to change his/her password. In such cases, the user must enter the new
+   * password twice and ensure they match before the POST request can be made to
+   * the server. Assuming the password are alphanumeric in nature, any password
+   * combinations are permitted.
+   * <br />
+   * <br />
+   * The handler is a custom substitute for the default "Submit" button in the
+   * modal interface, and is thus used specifically in the "Change password"
+   * modal window.
+   *
+   * @returns {void}
+   */
+  inaccessible.handlePasswordChange = function () {
+
+    // Declarations
+    let that, password, passwordReenter, aliasIds, data;
+
+    // Preserve scope
+    that = this;
+
+    // Can alias enums only
+    aliasIds = this.Identifiers;
+
+    // Get user input field values
+    password =
+      document.getElementById(aliasIds.ID_CHANGEP_INPUT_PASSWORD).value;
+    passwordReenter =
+      document.getElementById(aliasIds.ID_CHANGEP_INPUT_REENTER).value;
+
+    // Alphanumeric data only for passwords
+    if (!this.isLegalInput(password) || !this.isLegalInput(passwordReenter)) {
+      this.displayStatusNotice(false, this.Text.ERROR_ILLEGITIMATE_INPUT);
+      return;
+    }
+
+    // Passwords must match
+    if (password !== passwordReenter) {
+      this.displayStatusNotice(false, this.Text.ERROR_MISMATCHING_PASSWORDS);
+      return;
+    }
+
+    // Send POST request
+    this.sendRequest('POST', 'php/set_password.php', {
+      password: passwordReenter,
+    }).then(function (response) {
+
+      // Parse the JSON response into a usable object
+      data = JSON.parse(response);
+
+      // Check server response data for successful password reset
+      if (data.isPasswordSetSuccessful) {
+        that.displayStatusNotice(true, that.Text.SUCCESS_PASSWORD_RESET);
+      } else {
+        that.displayStatusNotice(false, that.Text.ERROR_FAILED_PASSWORD_RESET);
+      }
+    }, function (error) {
+      console.warn(error);
+      that.displayStatusNotice(false, that.Text.ERROR_NETWORK);
+    });
   };
 
   /**
@@ -1589,6 +2064,15 @@ const BookkeepingProjectModule = (function () {
    */
   accessible.getOperations = function () {
     return inaccessible.Operations;
+  };
+
+  /**
+   * @description External getter for immutable <code>ModalButtons</code>
+   *
+   * @returns {enum} inaccessible.ModalButtons
+   */
+  accessible.getModalButtons = function () {
+    return inaccessible.ModalButtons;
   };
 
   /**
