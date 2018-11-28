@@ -1581,7 +1581,7 @@ const BookkeepingProjectModule = (function () {
    *
    * @param {boolean} paramIsSuccess
    * @param {string} paramMessage
-   * @return {HTMLElement}
+   * @return {void}
    */
   inaccessible.displayStatusNotice = function (paramIsSuccess, paramMessage) {
 
