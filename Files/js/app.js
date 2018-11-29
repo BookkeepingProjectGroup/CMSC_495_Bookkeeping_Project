@@ -1172,7 +1172,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.assembleLedger = function (paramConfig) {
 
     // Declaration
-    let ledger, newRow, newCell, configRowHeader;
+    let ledger, thead, tbody, newRow, newCell, configRowHeader;
 
     configRowHeader = {
       class: this.Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_HEADER,
@@ -1181,8 +1181,12 @@ const BookkeepingProjectModule = (function () {
     // Create ledger table
     ledger = this.assembleElement(['table', paramConfig]);
 
+    // Create a thead and tbody for row differentiation
+    thead = ledger.createTHead();
+    tbody = ledger.appendChild(document.createElement('tbody'));
+
     // New first row
-    newRow = ledger.insertRow(0);
+    newRow = thead.insertRow(0);
 
     for (let i = 0; i < this.ledgerHeaders.length; i++ ) {
       newCell = newRow.insertCell(i);
@@ -1474,7 +1478,7 @@ const BookkeepingProjectModule = (function () {
               this.sidebarButtonData),
           ],
           ['main', configLedger,
-              this.assembleLedger(configLedgerTable),
+            this.assembleLedger(configLedgerTable),
           ],
         ],
       ],
@@ -1870,7 +1874,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.displayTableRow = function (paramRowObject) {
 
     // Declaration
-    let table, rowCount, newRow, newCell, valuesArray, configCheckbox;
+    let table, tbody, rowCount, newRow, newCell, valuesArray, configCheckbox;
 
     // For storage of values associated with object property keys
     valuesArray = [];
@@ -1878,11 +1882,14 @@ const BookkeepingProjectModule = (function () {
     // The ledger itself
     table = document.getElementById(this.Identifiers.ID_DASHBOARD_LEDGER_TABLE);
 
-    // Number of current rows, used to figure out where to put the new one
-    rowCount = table.rows.length;
+    // Table body
+    tbody = table.getElementsByTagName('tbody')[0];
+
+    // Number of current rows in tbody, figure out where to put the new one
+    rowCount = tbody.rows.length;
 
     // Insert a new row
-    newRow = table.insertRow(rowCount);
+    newRow = tbody.insertRow(rowCount);
 
     // This is a messy step assuming the row data is in object & not array form
     for (let key in paramRowObject) {
