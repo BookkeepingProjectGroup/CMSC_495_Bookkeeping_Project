@@ -157,6 +157,12 @@ const BookkeepingProjectModule = (function () {
     ID_DASHBOARD_SECTION: 'dashboard-section',
     ID_DASHBOARD_SIDEBAR: 'dashboard-sidebar',
     ID_DASHBOARD_SIDEBAR_BUTTONS: 'dashboard-sidebar-buttons',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_CHANGEP: 'dashboard-sidebar-buttons-changep',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT: 'dashboard-sidebar-buttons-document',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_CUSTOMER: 'dashboard-sidebar-buttons-customer',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_VENDOR: 'dashboard-sidebar-buttons-vendor',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_DELETE: 'dashboard-sidebar-buttons-delete',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_TEST: 'dashboard-sidebar-buttons-test',
     ID_DASHBOARD_LEDGER: 'dashboard-ledger',
     ID_DASHBOARD_LEDGER_TABLE: 'dashboard-ledger-table',
     ID_DASHBOARD_FOOTER: 'dashboard-footer',
@@ -177,6 +183,13 @@ const BookkeepingProjectModule = (function () {
     ID_CHANGEP_FORM: 'modal-changepassword-form',
     ID_CHANGEP_INPUT_PASSWORD: 'modal-changepassword-input-password',
     ID_CHANGEP_INPUT_REENTER: 'modal-changepassword-input-reenter',
+
+    // Add customer/vendor (CORV -> Customer OR Vendor)
+    ID_CORV_CONTAINER: 'modal-corv-container',
+    ID_CORV_INFORMATION: 'modal-corv-information',
+    ID_CORV_FORM: 'modal-corv-form',
+    ID_CORV_INPUT_NAME: 'modal-corv-input-name',
+    ID_CORV_INPUT_ADDRESS: 'modal-corv-input-address',
 
     // General purpose ids that show up on multiple modules
     ID_GENERAL_BODY: 'application-body',
@@ -224,25 +237,41 @@ const BookkeepingProjectModule = (function () {
    * @enum {string}
    */
   inaccessible.Text = Object.freeze({
+
+    // Input textfield specific text
     INPUT_LOGIN_MAIN_USERNAME_PLACEHOLDER: 'Username',
     INPUT_LOGIN_MAIN_PASSWORD_PLACEHOLDER: 'Password',
     INPUT_CHANGEP_PASSWORD_PLACEHOLDER: 'Enter new password',
     INPUT_CHANGEP_REENTER_PLACEHOLDER: 'Confirm password',
+    INPUT_CORV_NAME_PLACEHOLDER: 'Name',
+    INPUT_CORV_ADDRESS_PLACEHOLDER: 'Address',
+
+    // Buttons
     BUTTON_LOGIN_FOOTER_CREATE: 'Create',
     BUTTON_LOGIN_FOOTER_SUBMIT: 'Login',
     BUTTON_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT: 'Account',
     BUTTON_DASHBOARD_TOPBAR_PRINT: 'Print ledger',
     BUTTON_DASHBOARD_TOPBAR_NAVLINKS_LOGOUT: 'Logout',
+
+    // Paragraphs, div content, etc.
     DIV_LOGIN_MAIN_HEADER: 'Login or create account',
     DIV_DASHBOARD_TOPBAR_NAVLINKS_WELCOME: 'Welcome user!',
+    DIV_GENERAL_ADD: 'Add $1',
     DIV_GENERAL_TOPBAR_TITLE: 'Keep Dem Books Y\'all', // Need some title
     DIV_GENERAL_TOPBAR_SUBTITLE: 'A bookkeeping application for CMSC 495',
     DIV_CHANGEP_INFORMATION: 'Please note that password entries must match',
+    DIV_CHANGEP_TITLE: 'Change password',
+    DIV_CORV_INFORMATION: 'Please input an entry name and address',
+
+    // Error and success status text entries
     ERROR_NETWORK: 'A network error has been encountered',
-    ERROR_ILLEGITIMATE_INPUT: 'Password content must be alphanumeric',
+    ERROR_ILLEGITIMATE_INPUT: 'Input content must be alphanumeric',
     ERROR_MISMATCHING_PASSWORDS: 'Passwords do not match',
     ERROR_FAILED_PASSWORD_RESET: 'Password reset unsuccessful',
+    ERROR_CORV_DUPLICATE: 'An entry with that name or address already exists',
+    ERROR_CORV_OTHERERROR: 'An error was encountered. Please try again',
     SUCCESS_PASSWORD_RESET: 'Password successfully reset',
+    SUCCESS_CORV_SUBMIT: 'New entry successfully added',
   });
 
   /**
@@ -392,10 +421,14 @@ const BookkeepingProjectModule = (function () {
   inaccessible.sidebarButtonData = [
     {
       buttonType: 'Change password',
-      functionName: 'displayPasswordChangeModal',
-      functionArguments: [],
+      functionName: 'displayModal',
+      functionArguments: [
+        inaccessible.Text.DIV_CHANGEP_TITLE,
+        'buildPasswordChangeModal',
+        'handlePasswordChange',
+      ],
       requiresWrapper: true,
-      elementId: 'sidebar-buttons-element-change-password',
+      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_CHANGEP,
       elementClasses: [
         inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
         inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
@@ -403,11 +436,11 @@ const BookkeepingProjectModule = (function () {
       ],
     },
     {
-      buttonType: 'Add new document',
+      buttonType: inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'document'),
       functionName: 'handleDocumentAddition',
       functionArguments: [],
       requiresWrapper: true,
-      elementId: 'sidebar-buttons-element-newdoc',
+      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT,
       elementClasses: [
         inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
         inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
@@ -415,11 +448,15 @@ const BookkeepingProjectModule = (function () {
       ],
     },
     {
-      buttonType: 'Add new customer',
-      functionName: 'handleCustomerAddition',
-      functionArguments: [],
+      buttonType: inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
+      functionName: 'displayModal',
+      functionArguments: [
+        inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
+        'buildCustomerOrVendorAdditionModal',
+        'handleCustomerOrVendorAddition',
+      ],
       requiresWrapper: true,
-      elementId: 'sidebar-buttons-element-newCustomer',
+      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_CUSTOMER,
       elementClasses: [
         inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
         inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
@@ -427,11 +464,15 @@ const BookkeepingProjectModule = (function () {
       ],
     },
     {
-      buttonType: 'Add new vendor',
-      functionName: 'handleVendorAddition',
-      functionArguments: [],
+      buttonType: inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
+      functionName: 'displayModal',
+      functionArguments: [
+        inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
+        'buildCustomerOrVendorAdditionModal',
+        'handleCustomerOrVendorAddition',
+      ],
       requiresWrapper: true,
-      elementId: 'sidebar-buttons-element-newVendor',
+      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VENDOR,
       elementClasses: [
         inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
         inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
@@ -443,7 +484,7 @@ const BookkeepingProjectModule = (function () {
       functionName: 'handleRowRemoval',
       functionArguments: [],
       requiresWrapper: true,
-      elementId: 'sidebar-buttons-element-delete',
+      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DELETE,
       elementClasses: [
         inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
         inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
@@ -455,7 +496,7 @@ const BookkeepingProjectModule = (function () {
       functionName: 'handleTestGetRequest',
       functionArguments: [],
       requiresWrapper: true,
-      elementId: 'sidebar-buttons-element-test1',
+      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_TEST,
       elementClasses: [
         inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
         inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
@@ -1503,6 +1544,64 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
+   * @description This builder is not unlike that above it, namely
+   * <code>inaccessible.buildPasswordChangeModal</code>, as it possesses a form
+   * element with two textfields. These textfields are related to the vendor or
+   * customer name and address. This mini-scene creation function is used by
+   * both the "Add new customer" and "Add new vendor" sidebar buttons to build a
+   * modal body as both those operations are nearly identical, thus reducing the
+   * need for a duplicate copy/pasted builder for each.
+   *
+   * @returns {HTMLElement}
+   */
+  inaccessible.buildCustomerOrVendorAdditionModal = function () {
+
+    // Declarations
+    let configContainer, configInformation, configInputForm,
+      configInputName, configInputAddress;
+
+    configContainer = {
+      id: this.Identifiers.ID_CORV_CONTAINER,
+    };
+
+    configInformation = {
+      id: this.Identifiers.ID_CORV_INFORMATION,
+      class: this.Identifiers.CLASS_GENERAL_OPENSANS,
+    };
+
+    configInputForm = {
+      id: this.Identifiers.ID_CORV_FORM,
+    };
+
+    configInputName = {
+      id: this.Identifiers.ID_CORV_INPUT_NAME,
+      class: this.Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
+      placeholder: this.Text.INPUT_CORV_NAME_PLACEHOLDER,
+      type: 'password',
+    };
+
+    configInputAddress = {
+      id: this.Identifiers.ID_CORV_INPUT_ADDRESS,
+      class: this.Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
+      placeholder: this.Text.INPUT_CORV_ADDRESS_PLACEHOLDER,
+      type: 'password',
+    };
+
+    // Return assembled interface
+    return this.assembleElement(
+      ['div', configContainer,
+        ['div', configInformation,
+          this.Text.DIV_CORV_INFORMATION,
+        ],
+        ['form', configInputForm,
+          ['input', configInputName],
+          ['input', configInputAddress],
+        ],
+      ],
+    );
+  };
+
+  /**
    * @description This simple builder function is used specifically as a fast,
    * convenient way of assembling a wrapper <code>div</code> and the buttons
    * denoted in one of the script-global namespace arrays, either
@@ -1536,40 +1635,56 @@ const BookkeepingProjectModule = (function () {
   /**
    * @description As per the standard usage of display functions, this function
    * is responsible for building a mini-scene and adding it to the DOM rather
-   * than returning it from the function. This particular display function is
-   * used to create and add the mini-scene contained in the modal framework
-   * related to the password changing functionality. It shows a pair of input
-   * textfields and a set of three buttons allowing the user to clear the modal
-   * of old input and any error notices, submit new data, or exit the modal
-   * window. Its associated handler responsible for vetting input is
-   * <code>inaccessible.handlePasswordChange</code>.
+   * than returning it from the function. It also determines what buttons are
+   * shown in the footer of the modal, the number and type of which are
+   * determined by the inclusion of an optional <code>paramHandlerName</code>
+   * string denoting the custom submission button press event handler used to
+   * collate and transmit user data to the back end. If no such parameter is
+   * included, only the close modal button is included in the footer.
+   * <br />
+   * <br />
+   * As per the Google styleguide, the use of default parameters in function
+   * declarations is permitted in most cases and particularly encouraged for
+   * optional parameters that may not actually be defined in certain invocation
+   * cases in which the function might be called.
    *
+   * @param {string} paramModalTitle
+   * @param {string} paramMiniSceneBuilder
+   * @param {!string=} paramHandlerName The optional submission handler string
    * @returns {void}
    */
-  inaccessible.displayPasswordChangeModal = function () {
+  inaccessible.displayModal = function (paramModalTitle, paramMiniSceneBuilder,
+      paramHandlerName = null) {
 
     // Declarations
     let innerContent, submitButtonCopy, buttons;
 
     // Inner modal mini-scene
-    innerContent = this.buildPasswordChangeModal();
+    innerContent = this[paramMiniSceneBuilder]();
 
-    // Make shallow copy of default submit button config
-    submitButtonCopy = this.extend({}, this.ModalButtons.SUBMIT);
+    // Define array for button configs
+    buttons = [];
 
-    // Adjust handler function String representation
-    submitButtonCopy.functionName = 'handlePasswordChange';
+    // If an input handler exists, we will need submit button and clear button
+    if (paramHandlerName != null) {
 
-    // Buttons for the modal footer
-    buttons = [
-      submitButtonCopy,         // Submit (custom)
-      this.ModalButtons.CLEAR,  // Clear fields
-      this.ModalButtons.CLOSE,  // Close modal
-    ];
+      // Make shallow copy of default submit button config
+      submitButtonCopy = this.extend({}, this.ModalButtons.SUBMIT);
+
+      // Adjust handler function String representation in submit button config
+      submitButtonCopy.functionName = paramHandlerName;
+
+      // Need submission handler button and input clearing button
+      buttons.push(submitButtonCopy);
+      buttons.push(this.ModalButtons.CLEAR);
+    }
+
+    // Modal close button must always be present
+    buttons.push(this.ModalButtons.CLOSE);
 
     // Build and add the modal to the body at the bottom
     document.body.appendChild(
-      this.buildModal('Change password', innerContent, buttons));
+      this.buildModal(paramModalTitle, innerContent, buttons));
   };
 
   /**
@@ -1628,28 +1743,69 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description This handler is responsible for allowing for the addition of
-   * new customers, with the fields "name" and "address" serving as parameters
-   * to be returned to the appropriate endpoint.
+   * @description This handler is responsible for handling the passage of user
+   * input data to the server in the event of a user's attempted input of data
+   * pertaining to a new customer or vendor entry. In such cases, the name and
+   * address are extracted from the textfields and the specific endpoint to
+   * query is determined by the text of the modal title. The modal title name is
+   * itself determined by the button pressed. This system, while complex and
+   * involved, removes the need for a second duplicate copy/pasta handler.
    *
    * @returns {void}
    */
-  inaccessible.handleCustomerAddition = function () {
+  inaccessible.handleCustomerOrVendorAddition = function () {
 
     // Declarations
-    let name, address;
+    let that, aliasIds, name, address, headerText, partyType, endpoint, data;
 
-    // Test definitions
-    name = "Mr. Customer";
-    address = "1616 McCormick Dr, Largo, MD 20774";
+    // Preserve scope
+    that = this;
 
-    this.sendRequest('POST', 'php/add_customer.php', {
+    // Can alias enums only
+    aliasIds = this.Identifiers;
+
+    name =
+      document.getElementById(aliasIds.ID_CORV_INPUT_NAME).value;
+    address =
+      document.getElementById(aliasIds.ID_CORV_INPUT_ADDRESS).value;
+    headerText = //innerText?
+      document.getElementById(aliasIds.ID_MODAL_HEADER_TITLE).textContent;
+
+    // Either 'customer' or 'vendor'
+    partyType = headerText.split(' ')[1];
+
+    // 'Add customer' -> 'add_customer'
+    endpoint = headerText.toLowerCase().replace(/ /g, '_');
+
+    // Alphanumeric data only for username and password
+    if (!this.isLegalInput(name) || !this.isLegalInput(address)) {
+      this.displayStatusNotice(false, this.Text.ERROR_ILLEGITIMATE_INPUT);
+      return;
+    }
+
+    this.sendRequest('POST', `php/${endpoint}.php`, {
       name: name,
       address: address,
     }).then(function (response) {
-      console.log(response);
+
+      // Parse JSON into object
+      data = JSON.parse(response);
+
+      // If successful, no need to examine response further
+      if (data.success) {
+        that.displayStatusNotice(true, that.Text.SUCCESS_CORV_SUBMIT);
+      } else {
+
+        // Entry already exists
+        if (data.duplicate) {
+          that.displayStatusNotice(false, that.Text.ERROR_CORV_DUPLICATE);
+        } else {
+          that.displayStatusNotice(false, that.Text.ERROR_CORV_OTHERERROR);
+        }
+      }
     }, function (error) {
-      console.error(error);
+      console.warn(error);
+      that.displayStatusNotice(false, that.Text.ERROR_NETWORK);
     });
   };
 
@@ -1750,7 +1906,7 @@ const BookkeepingProjectModule = (function () {
         return;
       }
     }, function (error) {
-      console.error(error);
+      console.warn(error);
     });
 
     // Fade out and remove content prior to rebuilding of main interface
