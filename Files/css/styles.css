@@ -1,4 +1,8 @@
-/* * Name: : styles.css * Date : 10/28/2018 * Author : Andrew Eissen */
+/*
+ * Name: : styles.css
+ * Date : 10/28/2018
+ * Author : Andrew Eissen
+ */
  :root {
      --bpg-gold: #e9d787;
      --bpg-offwhite: #f6f6f6;
@@ -272,3 +276,13 @@
   text-align: center;
 }
 */
+
+#modal-document-dropdown-holder {
+  text-align: center;
+}
+
+.modal-dropdown {
+  margin-top: 5px;
+  margin-bottom: 10px;
+  width: 100%;
+}
