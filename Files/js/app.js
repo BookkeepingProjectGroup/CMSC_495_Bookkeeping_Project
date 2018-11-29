@@ -265,7 +265,7 @@ const BookkeepingProjectModule = (function () {
 
     // Error and success status text entries
     ERROR_NETWORK: 'A network error has been encountered',
-    ERROR_ILLEGITIMATE_INPUT: 'Password content must be alphanumeric',
+    ERROR_ILLEGITIMATE_INPUT: 'Input content must be alphanumeric',
     ERROR_MISMATCHING_PASSWORDS: 'Passwords do not match',
     ERROR_FAILED_PASSWORD_RESET: 'Password reset unsuccessful',
     ERROR_CORV_DUPLICATE: 'An entry with that name or address already exists',
