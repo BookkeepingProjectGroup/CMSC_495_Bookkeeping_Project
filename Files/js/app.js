@@ -191,6 +191,14 @@ const BookkeepingProjectModule = (function () {
     ID_CORV_INPUT_NAME: 'modal-corv-input-name',
     ID_CORV_INPUT_ADDRESS: 'modal-corv-input-address',
 
+    // Add document
+    ID_DOCUMENT_CONTAINER: 'modal-document-container',
+    ID_DOCUMENT_INFORMATION: 'modal-document-information',
+    ID_DOCUMENT_DROPDOWN_HOLDER: 'modal-document-dropdown-holder',
+    ID_DOCUMENT_DROPDOWN_TYPE: 'modal-document-dropdown-type',
+    ID_DOCUMENT_DROPDOWN_PARTY: 'modal-document-dropdown-party',
+    ID_DOCUMENT_DROPDOWN_OPTION: 'modal-document-dropdown-option',
+
     // General purpose ids that show up on multiple modules
     ID_GENERAL_BODY: 'application-body',
     ID_GENERAL_TOPBAR_META_HOLDER: 'general-topbar-meta-holder',
@@ -213,6 +221,8 @@ const BookkeepingProjectModule = (function () {
     CLASS_MODAL_SECTION_TEXTBOX: 'modal-section-textbox',
     CLASS_MODAL_ACTION_SUCCESS: 'modal-action-success',
     CLASS_MODAL_ACTION_FAILURE: 'modal-action-failure',
+    CLASS_MODAL_DROPDOWN: 'modal-dropdown',
+    CLASS_MODAL_DROPDOWN_OPTION: 'modal-dropdown-option',
 
     // General scene usage classes
     CLASS_GENERAL_CONTAINER: 'general-container',
@@ -245,6 +255,7 @@ const BookkeepingProjectModule = (function () {
     INPUT_CHANGEP_REENTER_PLACEHOLDER: 'Confirm password',
     INPUT_CORV_NAME_PLACEHOLDER: 'Name',
     INPUT_CORV_ADDRESS_PLACEHOLDER: 'Address',
+    INPUT_DOCUMENT_PARTY_OPTION: 'Add associated party',
 
     // Buttons
     BUTTON_LOGIN_FOOTER_CREATE: 'Create',
@@ -262,6 +273,7 @@ const BookkeepingProjectModule = (function () {
     DIV_CHANGEP_INFORMATION: 'Please note that password entries must match',
     DIV_CHANGEP_TITLE: 'Change password',
     DIV_CORV_INFORMATION: 'Please input an entry name and address',
+    DIV_DOCUMENT_INFORMATION: 'Please select document type & associated party',
 
     // Error and success status text entries
     ERROR_NETWORK: 'A network error has been encountered',
@@ -270,6 +282,7 @@ const BookkeepingProjectModule = (function () {
     ERROR_FAILED_PASSWORD_RESET: 'Password reset unsuccessful',
     ERROR_CORV_DUPLICATE: 'An entry with that name or address already exists',
     ERROR_CORV_OTHERERROR: 'An error was encountered. Please try again',
+    ERROR_DOCUMENT_PARTY_DISPLAY: 'Could not display extant $1',
     SUCCESS_PASSWORD_RESET: 'Password successfully reset',
     SUCCESS_CORV_SUBMIT: 'New entry successfully added',
   });
@@ -400,14 +413,45 @@ const BookkeepingProjectModule = (function () {
    * until the author can think of a better way of doing this.
    */
   inaccessible.ledgerHeaders = [
-    "delete",     // Checkbox for deletion
-    "number",     // Account number
-    "account",    // Account name
-    "debit",      // Debit
-    "credit",     // Credit
-    "memo",       // Description of transaction
-    "name",       // Individual in question
-    "date",       // Recorded date
+    'delete',     // Checkbox for deletion
+    'number',     // Account number
+    'account',    // Account name
+    'debit',      // Debit
+    'credit',     // Credit
+    'memo',       // Description of transaction
+    'name',       // Individual in question
+    'date',       // Recorded date
+  ];
+
+  /**
+   * @description This array of objects is used to temporarily store the names
+   * and dropdown menu option values for each of the five supported document
+   * types available to the user. This approach, like that of
+   * <code>inaccessible.ledgerHeaders</code> above, will probably be revamped in
+   * the near future during the codebase cleanup phase, but it is acceptable for
+   * now.
+   */
+  inaccessible.documentTypes = [
+    {
+      name: 'Journal entry',
+      value: 'je',
+    },
+    {
+      name: 'Accounts payable invoice',
+      value: 'api',
+    },
+    {
+      name: 'Accounts payable disbursement',
+      value: 'apd',
+    },
+    {
+      name: 'Accounts receivable invoice',
+      value: 'ari',
+    },
+    {
+      name: 'Accounts receivable receipt',
+      value: 'arr',
+    },
   ];
 
   /**
@@ -437,8 +481,12 @@ const BookkeepingProjectModule = (function () {
     },
     {
       buttonType: inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'document'),
-      functionName: 'handleDocumentAddition',
-      functionArguments: [],
+      functionName: 'displayModal',
+      functionArguments: [
+        inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'document'),
+        'buildDocumentAdditionModal',
+        'handleDocumentAddition',
+      ],
       requiresWrapper: true,
       elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT,
       elementClasses: [
@@ -723,6 +771,20 @@ const BookkeepingProjectModule = (function () {
   inaccessible.extend = function(paramTarget, paramObject) {
     return {...paramTarget, ...paramObject};
   };
+
+  /**
+   * @description This pseudo-encoding utility function is used simply to
+   * replace spaces with underscores and convert all extant capital letters in
+   * the string to lowercase letters. This function may see an expansion that
+   * incorporates more advanced encoding via more regex, but the present
+   * implementation is sufficient for now.
+   *
+   * @param {string} paramString
+   * @returns {string} Pseudo-encoded string
+   */
+  inaccessible.encode = function (paramString) {
+    return paramString.toLowerCase().replace(/ /g, '_');
+  }
 
   /**
    * @description This function is used to check if an inputted element is a
@@ -1130,6 +1192,33 @@ const BookkeepingProjectModule = (function () {
     }
 
     return ledger;
+  };
+
+  /**
+   * @description This assembly function is used to create and return a new
+   * dropdown option element for selection in an interaction modal. At the time
+   * of writing, this function is used primarily in the addition of document
+   * type options to the type selection menu and in the appending of extant
+   * customers or vendors to the party selection menu in the same modal.
+   * <br />
+   * <pre>
+   * // Wellformed input object example:
+   * paramObject = {
+   *   name: 'Accounts payable invoice',
+   *   value: 'api',
+   * };
+   * </pre>
+   *
+   * @param {object} paramObject Document type config object
+   * @returns {HTMLElement} The assembled dropdown option element
+   */
+  inaccessible.assembleDropdownElement = function (paramObject) {
+    return this.assembleElement('option', {
+      value: paramObject.value,
+      id: this.Identifiers.ID_DOCUMENT_DROPDOWN_OPTION + '-' +
+        paramObject.value,
+      class: this.Identifiers.CLASS_MODAL_DROPDOWN_OPTION,
+    }, paramObject.name);
   };
 
   // Builder functions
@@ -1602,6 +1691,86 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
+   * @description This builder function is responsible for the construction of
+   * the modal mini-scene related to the addition of a new document. It builds a
+   * pair of dropdown menus that allow the user to select document type and a
+   * vendor or customer to which this new document is to be associated. Much of
+   * the second dropdown's contents are built by another handler that assembles
+   * a listing of extant parties depending on the option selected for the doc
+   * type dropdown.
+   *
+   * @returns {HTMLElement}
+   */
+  inaccessible.buildDocumentAdditionModal = function () {
+
+    // Declarations
+    let that, configContainer, configInformation, configTypeDropdown,
+      configTypeDropdownOption, configPartyDropdown, configPartyDropdownOption,
+      typeDropdown, typeDropdownOption, configDropdownHolder;
+
+    // Preserve scope
+    that = this;
+
+    configContainer = {
+      id: this.Identifiers.ID_DOCUMENT_CONTAINER,
+    };
+
+    configInformation = {
+      id: this.Identifiers.ID_DOCUMENT_INFORMATION,
+      class: this.Identifiers.CLASS_GENERAL_OPENSANS,
+    };
+
+    configDropdownHolder ={
+      id: this.Identifiers.ID_DOCUMENT_DROPDOWN_HOLDER,
+    };
+
+    configTypeDropdown = {
+      id: this.Identifiers.ID_DOCUMENT_DROPDOWN_TYPE,
+      class: this.Identifiers.CLASS_MODAL_DROPDOWN,
+    };
+
+    configPartyDropdown = {
+      id: this.Identifiers.ID_DOCUMENT_DROPDOWN_PARTY,
+      class: this.Identifiers.CLASS_MODAL_DROPDOWN,
+    };
+
+    configPartyDropdownOption = {
+      id: this.Identifiers.ID_DOCUMENT_DROPDOWN_OPTION + '-default',
+      class: that.Identifiers.CLASS_MODAL_DROPDOWN_OPTION,
+    };
+
+    // Document type dropdown menu
+    typeDropdown = this.assembleElement('select', configTypeDropdown);
+
+    // Listener for changes to document type dropdown menu
+    typeDropdown.addEventListener('change', function () {
+      that.handleDocumentDropdownChange.call(that, typeDropdown);
+    }, false);
+
+    // Build all five document type options
+    this.documentTypes.forEach(function (doctype) {
+      typeDropdown.appendChild(that.assembleDropdownElement(doctype));
+    });
+
+    // Return assembled interface
+    return this.assembleElement(
+      ['div', configContainer,
+        ['div', configInformation,
+          this.Text.DIV_DOCUMENT_INFORMATION,
+        ],
+        ['div', configDropdownHolder,
+          typeDropdown,
+          ['select', configPartyDropdown,
+            ['option', configPartyDropdownOption,
+              this.Text.INPUT_DOCUMENT_PARTY_OPTION,
+            ]
+          ],
+        ],
+      ],
+    );
+  }
+
+  /**
    * @description This simple builder function is used specifically as a fast,
    * convenient way of assembling a wrapper <code>div</code> and the buttons
    * denoted in one of the script-global namespace arrays, either
@@ -1688,6 +1857,58 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
+   * @description This display function is deals with the insertion of rows to
+   * the main ledger table. It could use some work, but when provided an object
+   * with the required properties (presumably originating from a related
+   * <code>JSON</code> file), it will produce a new line and append it to the
+   * present table listing. Required: Addition of relevant back-end code to
+   * handle addition of user data in some form.
+   *
+   * @param {object} paramRowObject
+   * @returns {void}
+   */
+  inaccessible.displayTableRow = function (paramRowObject) {
+
+    // Declaration
+    let table, rowCount, newRow, newCell, valuesArray, configCheckbox;
+
+    // For storage of values associated with object property keys
+    valuesArray = [];
+
+    // The ledger itself
+    table = document.getElementById(this.Identifiers.ID_DASHBOARD_LEDGER_TABLE);
+
+    // Number of current rows, used to figure out where to put the new one
+    rowCount = table.rows.length;
+
+    // Insert a new row
+    newRow = table.insertRow(rowCount);
+
+    // This is a messy step assuming the row data is in object & not array form
+    for (let key in paramRowObject) {
+      valuesArray.push(paramRowObject[key]);
+    }
+
+    // Individual config for this checkbox
+    configCheckbox = {
+      type: 'checkbox',
+      class: this.Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_CHECKBOX,
+    };
+
+    for (let i = 0; i < this.ledgerHeaders.length; i++) {
+
+      // First cell should be a deletion checkbox
+      if (i == 0) {
+        newCell = newRow.insertCell(i);
+        newCell.appendChild(this.assembleElement(['input', configCheckbox]));
+      } else {
+        newCell = newRow.insertCell(i);
+        newCell.appendChild(document.createTextNode(valuesArray[i - 1]));
+      }
+    }
+  };
+
+  /**
    * @description This builder function is used to construct a new <div> element
    * indicating to the user that the operation undertaken in the modal (be that
    * password submission or the like) has either failed or succeeded. This
@@ -1731,112 +1952,6 @@ const BookkeepingProjectModule = (function () {
   };
 
   // Handler functions
-
-  /**
-   * @description Handler for presses of the new document creation button on the
-   * lefthand sidebar.
-   *
-   * @returns {void}
-   */
-  inaccessible.handleDocumentAddition = function () {
-    window.alert('Add a new document');
-  };
-
-  /**
-   * @description This handler is responsible for handling the passage of user
-   * input data to the server in the event of a user's attempted input of data
-   * pertaining to a new customer or vendor entry. In such cases, the name and
-   * address are extracted from the textfields and the specific endpoint to
-   * query is determined by the text of the modal title. The modal title name is
-   * itself determined by the button pressed. This system, while complex and
-   * involved, removes the need for a second duplicate copy/pasta handler.
-   *
-   * @returns {void}
-   */
-  inaccessible.handleCustomerOrVendorAddition = function () {
-
-    // Declarations
-    let that, aliasIds, name, address, headerText, partyType, endpoint, data;
-
-    // Preserve scope
-    that = this;
-
-    // Can alias enums only
-    aliasIds = this.Identifiers;
-
-    name =
-      document.getElementById(aliasIds.ID_CORV_INPUT_NAME).value;
-    address =
-      document.getElementById(aliasIds.ID_CORV_INPUT_ADDRESS).value;
-    headerText = //innerText?
-      document.getElementById(aliasIds.ID_MODAL_HEADER_TITLE).textContent;
-
-    // Either 'customer' or 'vendor'
-    partyType = headerText.split(' ')[1];
-
-    // 'Add customer' -> 'add_customer'
-    endpoint = headerText.toLowerCase().replace(/ /g, '_');
-
-    // Alphanumeric data only for username and password
-    if (!this.isLegalInput(name) || !this.isLegalInput(address)) {
-      this.displayStatusNotice(false, this.Text.ERROR_ILLEGITIMATE_INPUT);
-      return;
-    }
-
-    this.sendRequest('POST', `php/${endpoint}.php`, {
-      name: name,
-      address: address,
-    }).then(function (response) {
-
-      // Parse JSON into object
-      data = JSON.parse(response);
-
-      // If successful, no need to examine response further
-      if (data.success) {
-        that.displayStatusNotice(true, that.Text.SUCCESS_CORV_SUBMIT);
-      } else {
-
-        // Entry already exists
-        if (data.duplicate) {
-          that.displayStatusNotice(false, that.Text.ERROR_CORV_DUPLICATE);
-        } else {
-          that.displayStatusNotice(false, that.Text.ERROR_CORV_OTHERERROR);
-        }
-      }
-    }, function (error) {
-      console.warn(error);
-      that.displayStatusNotice(false, that.Text.ERROR_NETWORK);
-    });
-  };
-
-  /**
-   * @description This handler is just a test handler attached to a number of
-   * the space-filling buttons contained on the lefthand sidebar. It calls the
-   * main <code>inaccessible.api.get</code> function used to make GET requests
-   * and simply loads some test <code>json</code> data for now.
-   *
-   * @returns {void}
-   */
-  inaccessible.handleTestGetRequest = function () {
-
-    // Declaration
-    let that, returnedData;
-
-    // Preserve scope
-    that = this;
-
-    this.sendRequest('GET', 'json/testData.json').then(function (response) {
-
-      // Parse JSON for use in loop
-      returnedData = JSON.parse(response);
-
-      for (let i = 0; i < returnedData.data.length; i++) {
-        that.handleRowAddition(returnedData.data[i]);
-      }
-    }, function (error) {
-      console.error(error);
-    });
-  };
 
   /**
    * @description Handler for presses of the "Create" button option login modal
@@ -2079,55 +2194,200 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description This handler is used to deal with the insertion of new rows to
-   * the main ledger table. It could use some work, but when provided an object
-   * with the required properties (presumably originating from a related
-   * <code>JSON</code> file), it will produce a new line and append it to the
-   * present table listing. Required: Addition of relevant back-end code to
-   * handle addition of user data in some form.
+   * @description This handler, noop'ed at the moment, will be used to submit a
+   * new document to the database once the <code>add_document</code> endpoint
+   * has been constructed.
    *
-   * @param {object} paramRowObject
    * @returns {void}
    */
-  inaccessible.handleRowAddition = function (paramRowObject) {
+  inaccessible.handleDocumentAddition = function () {
+    this.displayStatusNotice(true, 'Submission successful');
+  };
+
+  /**
+   * @description This function is the main handler associated with the first
+   * dropdown of the "Add document" modal, the menu providing the user with a
+   * listing of the five major document types. This handler is called by the
+   * event listener invoked on change to the dropdown selected option and is
+   * tasked with populating the second dropdown menu with extant customers or
+   * vendors previously entered by the user at some point.
+   * <br />
+   * <br />
+   * For example, if the user had entered a vendor named "Baltimore Gas and
+   * Electric" and decided to create a new accounts payable invoice document,
+   * this handler would query the database via a GET request for a listing of
+   * vendors, displaying BGE as a possible option for selection by the user.
+   *
+   * @param {HTMLElement} paramMenu
+   * @returns {void}
+   */
+  inaccessible.handleDocumentDropdownChange = function (paramMenu) {
+
+    // Declarations
+    let that, selectedOption, endpoint, partyType, data, partyDropdown,
+      extantParties;
+
+    // Definitions
+    that = this;
+    selectedOption = paramMenu.value;
+
+    switch (selectedOption) {
+      case 'api': // Accounts payable invoice
+      case 'apd': // Accounts payable disbursement
+        partyType = 'vendors';
+        break;
+      case 'ari': // Accounts receivable invoice
+      case 'arr': // Accounts receivable receipt
+        partyType = 'customers';
+        break;
+      case 'je':  // Journal entry
+      default:
+        partyType = null;
+        break;
+    }
+
+    // Journal entry selected
+    if (partyType == null) {
+      return;
+    }
+
+    // Either get_vendors or get_customers
+    endpoint = `php/get_${partyType}.php`;
+
+    this.sendRequest('GET', endpoint).then(function (response) {
+
+      // Parse JSON for use in loop
+      data = JSON.parse(response);
+
+       // Array of customers or vendors
+      extantParties = data[partyType];
+
+      // Dropdown menu for display of extant customers or vendors
+      partyDropdown =
+        document.getElementById(that.Identifiers.ID_DOCUMENT_DROPDOWN_PARTY);
+
+      console.log(data);
+
+      if (data.success) {
+        if (extantParties.length > 0) {
+
+          // This approach will need some refactoring in future
+          extantParties.forEach(function (party) {
+
+            // Build new element config (value: "Joe Blow" -> joe_blow)
+            dropdownElementConfig = {
+              name: party.name,
+              value: that.encode(party.name),
+            };
+
+            partyDropdown.appendChild(
+              that.assembleDropdownElement(dropdownElementConfig));
+          });
+        }
+      } else {
+        that.displayStatusNotice(false, // "Could not display vendors"
+          that.Text.ERROR_DOCUMENT_PARTY_DISPLAY.replace('$1', partyType));
+      }
+    }, function (error) {
+      console.warn(error);
+      that.displayStatusNotice(false, that.Text.ERROR_NETWORK);
+    });
+  };
+
+  /**
+   * @description This handler is responsible for handling the passage of user
+   * input data to the server in the event of a user's attempted input of data
+   * pertaining to a new customer or vendor entry. In such cases, the name and
+   * address are extracted from the textfields and the specific endpoint to
+   * query is determined by the text of the modal title. The modal title name is
+   * itself determined by the button pressed. This system, while complex and
+   * involved, removes the need for a second duplicate copy/pasta handler.
+   *
+   * @returns {void}
+   */
+  inaccessible.handleCustomerOrVendorAddition = function () {
+
+    // Declarations
+    let that, aliasIds, name, address, headerText, partyType, endpoint, data;
+
+    // Preserve scope
+    that = this;
+
+    // Can alias enums only
+    aliasIds = this.Identifiers;
+
+    name =
+      document.getElementById(aliasIds.ID_CORV_INPUT_NAME).value;
+    address =
+      document.getElementById(aliasIds.ID_CORV_INPUT_ADDRESS).value;
+    headerText = //innerText?
+      document.getElementById(aliasIds.ID_MODAL_HEADER_TITLE).textContent;
+
+    // Either 'customer' or 'vendor'
+    partyType = headerText.split(' ')[1];
+
+    // 'Add customer' -> 'add_customer'
+    endpoint = this.encode(headerText);
+
+    // Alphanumeric data only for username and password
+    if (!this.isLegalInput(name) || !this.isLegalInput(address)) {
+      this.displayStatusNotice(false, this.Text.ERROR_ILLEGITIMATE_INPUT);
+      return;
+    }
+
+    this.sendRequest('POST', `php/${endpoint}.php`, {
+      name: name,
+      address: address,
+    }).then(function (response) {
+
+      // Parse JSON into object
+      data = JSON.parse(response);
+
+      // If successful, no need to examine response further
+      if (data.success) {
+        that.displayStatusNotice(true, that.Text.SUCCESS_CORV_SUBMIT);
+      } else {
+
+        // Entry already exists
+        if (data.duplicate) {
+          that.displayStatusNotice(false, that.Text.ERROR_CORV_DUPLICATE);
+        } else {
+          that.displayStatusNotice(false, that.Text.ERROR_CORV_OTHERERROR);
+        }
+      }
+    }, function (error) {
+      console.warn(error);
+      that.displayStatusNotice(false, that.Text.ERROR_NETWORK);
+    });
+  };
+
+  /**
+   * @description This handler is just a test handler attached to a number of
+   * the space-filling buttons contained on the lefthand sidebar. It calls the
+   * main <code>inaccessible.api.get</code> function used to make GET requests
+   * and simply loads some test <code>json</code> data for now.
+   *
+   * @returns {void}
+   */
+  inaccessible.handleTestGetRequest = function () {
 
     // Declaration
-    let table, rowCount, newRow, newCell, valuesArray, configCheckbox;
+    let that, returnedData;
 
-    // For storage of values associated with object property keys
-    valuesArray = [];
+    // Preserve scope
+    that = this;
 
-    // The ledger itself
-    table = document.getElementById(this.Identifiers.ID_DASHBOARD_LEDGER_TABLE);
+    this.sendRequest('GET', 'json/testData.json').then(function (response) {
 
-    // Number of current rows, used to figure out where to put the new one
-    rowCount = table.rows.length;
+      // Parse JSON for use in loop
+      returnedData = JSON.parse(response);
 
-    // Insert a new row
-    newRow = table.insertRow(rowCount);
-
-    // This is a messy step assuming the row data is in object & not array form
-    for (let key in paramRowObject) {
-      valuesArray.push(paramRowObject[key]);
-    }
-
-    // Individual config for this checkbox
-    configCheckbox = {
-      type: 'checkbox',
-      class: this.Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_CHECKBOX,
-    };
-
-    for (let i = 0; i < this.ledgerHeaders.length; i++) {
-
-      // First cell should be a deletion checkbox
-      if (i == 0) {
-        newCell = newRow.insertCell(i);
-        newCell.appendChild(this.assembleElement(['input', configCheckbox]));
-      } else {
-        newCell = newRow.insertCell(i);
-        newCell.appendChild(document.createTextNode(valuesArray[i - 1]));
+      for (let i = 0; i < returnedData.data.length; i++) {
+        that.displayTableRow(returnedData.data[i]);
       }
-    }
+    }, function (error) {
+      console.warn(error);
+    });
   };
 
   /**
