@@ -11,12 +11,22 @@
          border: unset;
          box-shadow: unset;
          height: auto;
+         border-radius: unset;
     }
 
+/* wrap buttons*/
+    #dashboard-sidebar-buttons{
+      display:flex;
+      flex-wrap:wrap;
+    }
+
+#dashboard-sidebar{
+  margin-top: 10px;
+}
     #application-body{
       margin:0;
       background-image: none;
-      font-size: xx-small;
+      font-size: x-small;
     }
      .general-topbar-div {
          width:100%;
@@ -44,10 +54,9 @@
     }
      #dashboard-section.general-flex-justify > #dashboard-sidebar{
          order:1;
-         display: inline;
-         columns: 4;
+         border-right:none;
          width: auto;
-         padding-right: 0;
+
     }
      #dashboard-section.general-flex-justify > #dashboard-ledger {
          order:2;
@@ -89,11 +98,12 @@
         /* Now like a table header */
          position: absolute;
         /* Top/left values mimic padding */
-         top: 6px;
+
          left: 6px;
          width: 45%;
          padding-right: 10px;
          white-space: nowrap;
+         vertical-align: middle;
     }
      td:nth-of-type(1):before {
          content: "Delete";
@@ -129,7 +139,8 @@
     /*resize login container & center/stack buttons*/
      #login-container{
          width:95%;
-         margin:unset;
+         margin:auto;
+         padding:0;
     }
      #login-footer-buttons-holder{
          display:block;
@@ -154,11 +165,20 @@
     #application-body{
       margin:0;
       background-image: none;
-      font-size: xx-small;
+      font-size: x-small;
     }
     /* Remove Title*/
      #dashboard-topbar-meta{
          display:none;
+    }
+
+    #dashboard-sidebar-buttons{
+      display:flex;
+      flex-wrap:wrap;
+    }
+
+    #dashboard-sidebar{
+      margin-top: 10px;
     }
     /* Reorder page with links on bottom & button selections on top*/
      #dashboard-container > #dashboard-section{
@@ -179,10 +199,8 @@
     }
      #dashboard-section.general-flex-justify > #dashboard-sidebar{
          order:1;
-         display: inline;
-         columns: 4;
          width: auto;
-         padding-right: 0;
+         padding-right: 5px;
     }
      #dashboard-section.general-flex-justify > #dashboard-ledger {
          order:2;
@@ -210,7 +228,7 @@
    #application-body{
      margin:0;
      background-image: none;
-     font-size: x-small;
+     font-size: small;
    }
 
    .general-container{
@@ -260,6 +278,8 @@
     }
 }
 
+
+/*Print Ledger Table only*/
 @media print {
 
   /* Remove sidebar, navlinks, subitle*/

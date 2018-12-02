@@ -1,7 +1,7 @@
 /*
  * Name: : styles.css
- * Date : 10/28/2018
- * Author : Andrew Eissen
+ * Date : 12/2/2018
+ * Author : Andrew Eissen, Jennifer Brady
  */
  :root {
      --bpg-gold: #e9d787;
@@ -90,6 +90,7 @@
  #general-topbar-meta-title {
      font-size: 12pt;
      text-transform: uppercase;
+     text-shadow: 4px 4px 4px #c5d6d4;
 }
  #general-topbar-meta-subtitle {
      font-size: 10pt;
@@ -108,15 +109,17 @@
 /* Dashboard scene */
 /*main container for records*/
  #dashboard-topbar {
-     border-bottom: 1px solid;
-     border-color: var(--bpg-lightgray, #cccccc);
-     padding-bottom: 10px;
+   border-bottom: 1px dashed;
+   border-color: #c5d6d4;
+    padding-bottom: 10px;
 }
+
+
  #dashboard-topbar-navlinks-holder {
      float: right;
 }
  #dashboard-section {
-     margin-top: 25px;
+     margin-top: 5px;
 }
  #dashboard-sidebar {
      width: 25%;
@@ -124,7 +127,7 @@
      border-right: 1px solid;
      border-color: var(--bpg-lightgray, #cccccc);
      padding-right: 20px;
-     margin-top: 10px;
+     margin-top: 35px;
 }
  .dashboard-sidebar-buttons-item {
      width: 100%;
@@ -149,18 +152,24 @@
 }
  .dashboard-ledger-table-header {
      color: black;
-}
+   }
+
+
 /* Login scene */
  #login-container {
      width:405px;
      border-radius: 15px;
 }
  #login-topbar {
-     border-bottom: 1px solid;
-     border-color: var(--bpg-darkgray, #999999);
+     border-bottom: 1px dashed;
+     border-color: #c5d6d4;
+     text-align: center;
+
 }
  #login-main-header {
      text-align: center;
+
+     font-size: large;
 }
  #login-main-input-holder {
      text-align: center;
@@ -170,10 +179,11 @@
      width: 90%;
      margin: 10px 10px;
      padding: 10px;
-     border:groove;
+     border:inset;
+     border-color:#c5d6d4;
 }
  .login-general-title-extra-padding {
-     padding: 25px 35px 25px 35px;
+     padding: 15px 35px 15px 35px;
 }
  #login-footer-buttons-holder {
      margin-bottom: 15px;
@@ -229,11 +239,12 @@
 
 #modal-section,
 #modal-header {
-  border-bottom: 1px solid;
-  border-color: var(--bpg-lightgray, #cccccc);
-  /*center Header
+  border-bottom: 1px dashed;
+  border-color: #c5d6d4;
+
+  /*center Header*/
   text-align:center;
-  */
+
 }
 
 .modal-major-section {
@@ -269,13 +280,14 @@
   width: 90%;
   margin: 10px 10px;
   padding: 10px;
-  border: groove;
+  border:inset;
+  border-color:#c5d6d4;
 }
-/*center footer buttons
+/*center footer buttons*/
 #modal-footer{
   text-align: center;
 }
-*/
+
 
 #modal-document-dropdown-holder {
   text-align: center;
