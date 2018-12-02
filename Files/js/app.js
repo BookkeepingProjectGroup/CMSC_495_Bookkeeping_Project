@@ -27,7 +27,26 @@
  * initial creation of the login portal scene. Upon pressing the login button,
  * the current scene would fade away via animations and be replaced by the main
  * dashboard scene displaying the ledger and things. On logging out, the main
- * dashboard would be removed and the login scene rebuilt.
+ * dashboard would be removed and the login scene rebuilt. In addition to these
+ * macro scenes, mini-scenes appear as well in the popup modals that serve as
+ * the main means by which user input is facilitated and data is passed to the
+ * back-end database.
+ * <br />
+ * <br />
+ * Functions in <code>inaccessible</code> are organized into 6 major groups that
+ * encapsulate certain responsibilities. Utility functions contain functions
+ * of a variety of uses that are designed to simplify certain basic tasks while
+ * maintaining some degree of readability. Assembly functions build certain DOM
+ * elements and return the preassembled <code>HTMLElement</code>s for addition
+ * to the page by another function. Builder functions use assembly functions to
+ * dynamically create scenes that make up the HTML of the page as seen from the
+ * user's perspective, returning these HTML framework skeletons for addition to
+ * the page. Display functions are used to add scenes and elements to their
+ * respective places in the page while handling ancillary tasks like the
+ * application of event listeners and the like. Handler functions, as the name
+ * implies, are event listener handlers and action handlers that translate the
+ * user's desired button-mediated actions into application logic, and generally
+ * are used to interface with the database in the passage or request of data.
  * <br />
  * <br />
  * <pre>
@@ -39,6 +58,7 @@
  *   - Text                     Line xxx
  *   - Operations               Line xxx
  *   - ModalButtons             Line xxx
+ *   - TableHeaders             Line xxx
  * - Data arrays
  *   - ledgerHeaders            Line xxx
  *   - sidebarButtonData        Line xxx
@@ -95,6 +115,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.Utility = Object.freeze({
     FADE_IN_INTERVAL: 10,
     OPACITY_INCREASE_AMOUNT: 0.015,
+    ELEMENT_CHECK_INTERVAL: 500,
     SWIPE_PIXEL_VALUE: 1,
     SWIPE_DISTANCE_VALUE: 250,
     SWIPE_INTERVAL_TIME: 2000,
@@ -263,6 +284,9 @@ const BookkeepingProjectModule = (function () {
     BUTTON_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT: 'Account',
     BUTTON_DASHBOARD_TOPBAR_PRINT: 'Print ledger',
     BUTTON_DASHBOARD_TOPBAR_NAVLINKS_LOGOUT: 'Logout',
+    BUTTON_MODAL_FOOTER_SUBMIT: 'Submit',
+    BUTTON_MODAL_FOOTER_CLEAR: 'Clear',
+    BUTTON_MODAL_FOOTER_CLOSE: 'Close',
 
     // Paragraphs, div content, etc.
     DIV_LOGIN_MAIN_HEADER: 'Login or create account',
@@ -366,7 +390,7 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.ModalButtons = Object.freeze({
     CLOSE: {
-      buttonType: 'Close',
+      buttonType: inaccessible.Text.BUTTON_MODAL_FOOTER_CLOSE,
       functionName: 'handleModalClose',
       functionArguments: [],
       requiresWrapper: false,
@@ -378,7 +402,7 @@ const BookkeepingProjectModule = (function () {
       ],
     },
     CLEAR: {
-      buttonType: 'Clear',
+      buttonType: inaccessible.Text.BUTTON_MODAL_FOOTER_CLEAR,
       functionName: 'handleModalFormClear',
       functionArguments: [],
       requiresWrapper: false,
@@ -390,7 +414,7 @@ const BookkeepingProjectModule = (function () {
       ],
     },
     SUBMIT: {
-      buttonType: 'Submit',
+      buttonType: inaccessible.Text.BUTTON_MODAL_FOOTER_SUBMIT,
       functionName: 'handleModalFormSubmit',
       functionArguments: [],
       requiresWrapper: false,
@@ -403,25 +427,35 @@ const BookkeepingProjectModule = (function () {
     },
   });
 
-  // Data arrays
-
   /**
-   * @description This array contains the <code>String</code> representations of
-   * each of the table columns present in the ledger. This array will not be
-   * retained in the production build of the project, but under present
-   * circumstances, its use is required to faciliate the addition of headers
-   * until the author can think of a better way of doing this.
+   * @description This enum of string arrays is used to store the names of the
+   * two tables' headers. These headers are related to the general ledger (used
+   * to display all the individual transactions that make up a document) and the
+   * document overview table showing the currently posted documents.
+   *
+   * @readonly
+   * @enum {!Array<string>}
    */
-  inaccessible.ledgerHeaders = [
-    'delete',     // Checkbox for deletion
-    'number',     // Account number
-    'account',    // Account name
-    'debit',      // Debit
-    'credit',     // Credit
-    'memo',       // Description of transaction
-    'name',       // Individual in question
-    'date',       // Recorded date
-  ];
+  inaccessible.TableHeaders = Object.freeze({
+    DOCUMENTS: [
+      'name',            // Document name
+      'type',            // Type of document
+      'vendor/customer', // If applicable
+      'posted',          // If doc is finished
+    ],
+    LEDGER: [
+      'delete',          // Checkbox for deletion
+      'number',          // Account number
+      'account',         // Account name
+      'debit',           // Debit
+      'credit',          // Credit
+      'memo',            // Description of transaction
+      'name',            // Individual in question
+      'date',            // Recorded date
+    ],
+  });
+
+  // Data arrays
 
   /**
    * @description This array of objects is used to temporarily store the names
@@ -768,7 +802,7 @@ const BookkeepingProjectModule = (function () {
    * @param {object} paramObject The new object to be joined
    * @returns {object}
    */
-  inaccessible.extend = function(paramTarget, paramObject) {
+  inaccessible.extend = function (paramTarget, paramObject) {
     return {...paramTarget, ...paramObject};
   };
 
@@ -784,7 +818,43 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.encode = function (paramString) {
     return paramString.toLowerCase().replace(/ /g, '_');
-  }
+  };
+
+  /**
+   * @description This helper function is used to check whether or not a target
+   * element exists in the DOM prior to triggering a <code>focus</code> event on
+   * that element. It primarily sees use in the login module scene to focus in
+   * on the username input textfield. The function makes use of
+   * <code>setTimeout</code> to recursively call itself in its efforts to check
+   * if the element exists yet (such as in the middle of a fading transition
+   * event).
+   *
+   * @param {string} paramSelector String representation of element identifier
+   * @returns {void}
+   */
+  inaccessible.focusOnLoad = function (paramSelector) {
+
+    // Declarations
+    let that, interval, target;
+
+    // Definitions
+    that = this;
+    interval = this.Utility.ELEMENT_CHECK_INTERVAL;
+    target = document.querySelector(paramSelector);
+
+    if (target != null) {
+      if (DEBUG) {
+        console.log('Element found');
+      }
+
+      target.focus();
+      return;
+    } else {
+      setTimeout(function () {
+        that.focusOnLoad(paramSelector);
+      }, interval);
+    }
+  };
 
   /**
    * @description This function is used to check if an inputted element is a
@@ -1172,7 +1242,10 @@ const BookkeepingProjectModule = (function () {
   inaccessible.assembleLedger = function (paramConfig) {
 
     // Declaration
-    let ledger, thead, tbody, newRow, newCell, configRowHeader;
+    let ledger, thead, tbody, newRow, newCell, configRowHeader, ledgerHeaders;
+
+    // Grab string headers from enum
+    ledgerHeaders = this.TableHeaders.LEDGER;
 
     configRowHeader = {
       class: this.Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_HEADER,
@@ -1188,10 +1261,10 @@ const BookkeepingProjectModule = (function () {
     // New first row
     newRow = thead.insertRow(0);
 
-    for (let i = 0; i < this.ledgerHeaders.length; i++ ) {
+    for (let i = 0; i < ledgerHeaders.length; i++) {
       newCell = newRow.insertCell(i);
       newCell.appendChild(
-        this.assembleElement(['th', configRowHeader, this.ledgerHeaders[i]])
+        this.assembleElement(['th', configRowHeader, ledgerHeaders[i]])
       );
     }
 
@@ -1869,9 +1942,10 @@ const BookkeepingProjectModule = (function () {
    * handle addition of user data in some form.
    *
    * @param {object} paramRowObject
+   * @param {!Array<string>} paramHeaders
    * @returns {void}
    */
-  inaccessible.displayTableRow = function (paramRowObject) {
+  inaccessible.displayTableRow = function (paramRowObject, paramHeaders) {
 
     // Declaration
     let table, tbody, rowCount, newRow, newCell, valuesArray, configCheckbox;
@@ -1902,7 +1976,7 @@ const BookkeepingProjectModule = (function () {
       class: this.Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_CHECKBOX,
     };
 
-    for (let i = 0; i < this.ledgerHeaders.length; i++) {
+    for (let i = 0; i < paramHeaders.length; i++) {
 
       // First cell should be a deletion checkbox
       if (i == 0) {
@@ -2047,6 +2121,9 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleLogout = function () {
     this.tinderize(this.Identifiers.ID_DASHBOARD_CONTAINER,
       'buildLoginInterface', this.Identifiers.ID_LOGIN_CONTAINER);
+
+    this.focusOnLoad(`#${this.Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME}`,
+      this.Utility.CHECK_OPACITY_RATE);
   };
 
   /**
@@ -2390,7 +2467,7 @@ const BookkeepingProjectModule = (function () {
       returnedData = JSON.parse(response);
 
       for (let i = 0; i < returnedData.data.length; i++) {
-        that.displayTableRow(returnedData.data[i]);
+        that.displayTableRow(returnedData.data[i], that.TableHeaders.LEDGER);
       }
     }, function (error) {
       console.warn(error);
@@ -2449,6 +2526,10 @@ const BookkeepingProjectModule = (function () {
 
     // Fade in on the scene
     this.fade('in', this.Identifiers.ID_LOGIN_CONTAINER);
+
+    // Focus event on username textfield
+    this.focusOnLoad(`#${this.Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME}`,
+      this.Utility.CHECK_OPACITY_RATE);
   };
 
   // Public functions
@@ -2496,6 +2577,15 @@ const BookkeepingProjectModule = (function () {
    */
   accessible.getModalButtons = function () {
     return inaccessible.ModalButtons;
+  };
+
+  /**
+   * @description External getter for immutable <code>TableHeaders</code>
+   *
+   * @returns {enum} inaccessible.TableHeaders
+   */
+  accessible.getTableHeaders = function () {
+    return inaccessible.TableHeaders;
   };
 
   /**
