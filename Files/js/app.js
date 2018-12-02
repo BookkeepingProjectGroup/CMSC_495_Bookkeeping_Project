@@ -1942,9 +1942,10 @@ const BookkeepingProjectModule = (function () {
    * handle addition of user data in some form.
    *
    * @param {object} paramRowObject
+   * @param {!Array<string>} paramHeaders
    * @returns {void}
    */
-  inaccessible.displayTableRow = function (paramRowObject) {
+  inaccessible.displayTableRow = function (paramRowObject, paramHeaders) {
 
     // Declaration
     let table, tbody, rowCount, newRow, newCell, valuesArray, configCheckbox;
@@ -1975,7 +1976,7 @@ const BookkeepingProjectModule = (function () {
       class: this.Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_CHECKBOX,
     };
 
-    for (let i = 0; i < this.ledgerHeaders.length; i++) {
+    for (let i = 0; i < paramHeaders.length; i++) {
 
       // First cell should be a deletion checkbox
       if (i == 0) {
@@ -2466,7 +2467,7 @@ const BookkeepingProjectModule = (function () {
       returnedData = JSON.parse(response);
 
       for (let i = 0; i < returnedData.data.length; i++) {
-        that.displayTableRow(returnedData.data[i]);
+        that.displayTableRow(returnedData.data[i], that.TableHeaders.LEDGER);
       }
     }, function (error) {
       console.warn(error);
