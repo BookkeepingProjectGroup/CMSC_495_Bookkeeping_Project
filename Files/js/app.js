@@ -51,26 +51,27 @@
  * <br />
  * <pre>
  * Table of contents
- * - Script-globals             Line xxx
+ * - Script-globals             Line xxxx
  * - Enums
- *   - Utility                  Line xxx
- *   - Identifiers              Line xxx
- *   - Text                     Line xxx
- *   - Operations               Line xxx
- *   - ModalButtons             Line xxx
- *   - TableHeaders             Line xxx
+ *   - Utility                  Line xxxx
+ *   - Scenes                   Line xxxx
+ *   - Identifiers              Line xxxx
+ *   - Text                     Line xxxx
+ *   - Operations               Line xxxx
+ *   - ModalButtons             Line xxxx
+ *   - TableHeaders             Line xxxx
  * - Data arrays
- *   - ledgerHeaders            Line xxx
- *   - sidebarButtonData        Line xxx
- *   - navlinksButtonData       Line xxx
+ *   - ledgerHeaders            Line xxxx
+ *   - sidebarButtonData        Line xxxx
+ *   - navlinksButtonData       Line xxxx
  * - Function groups
- *   - Utility functions        Line xxx
- *   - Assembly functions       Line xxx
- *   - Builder functions        Line xxx
- *   - Display functions        Line xxx
- *   - Handler functions        Line xxx
- *   - Main function            Line xxx
- *   - Public functions         Line xxx
+ *   - Utility functions        Line xxxx
+ *   - Assembly functions       Line xxxx
+ *   - Builder functions        Line xxxx
+ *   - Display functions        Line xxxx
+ *   - Handler functions        Line xxxx
+ *   - Main function            Line xxxx
+ *   - Public functions         Line xxxx
  * </pre>
  *
  * @see {@link //google.github.io/styleguide/jsguide.html|Styleguide #1}
@@ -111,8 +112,9 @@ const BookkeepingProjectModule = (function () {
    *
    * @readonly
    * @enum {number}
+   * @const
    */
-  inaccessible.Utility = Object.freeze({
+  const Utility = Object.freeze({
     FADE_IN_INTERVAL: 10,
     OPACITY_INCREASE_AMOUNT: 0.015,
     ELEMENT_CHECK_INTERVAL: 500,
@@ -120,6 +122,28 @@ const BookkeepingProjectModule = (function () {
     SWIPE_DISTANCE_VALUE: 250,
     SWIPE_INTERVAL_TIME: 2000,
     CHECK_OPACITY_RATE: 500,
+  });
+
+  /**
+   * @description This enum is used to store integer values associated with the
+   * different possible macro-scenes that can be loaded via user interaction.
+   * These values are the possible values of <code>inaccessible.scene</code>, an
+   * object property integer flag that indicates to certain functions what scene
+   * is currently being displayed. In some cases, local variable values may
+   * differ depending on the scene being displayed, allowing for the removal of
+   * some scene-specific redundant code and permitting the use of one-size-fits-
+   * all handlers in some cases.
+   *
+   * @readonly
+   * @enum {integer}
+   * @const
+   */
+  const Scenes = Object.freeze({
+    MODAL: 0,       // Modal framework
+    LOGIN: 1,       // Login module
+    CREATE: 2,      // Account creation module
+    LEDGER: 3,      // General ledger table
+    DOCUMENTS: 4,   // Document overview table
   });
 
   /**
@@ -147,8 +171,9 @@ const BookkeepingProjectModule = (function () {
    *
    * @readonly
    * @enum {string}
+   * @const
    */
-  inaccessible.Identifiers = Object.freeze({
+  const Identifiers = Object.freeze({
 
     // Login page
     ID_LOGIN_CONTAINER: 'login-container',
@@ -196,7 +221,6 @@ const BookkeepingProjectModule = (function () {
     ID_MODAL_SECTION: 'modal-section',
     ID_MODAL_FOOTER: 'modal-footer',
     ID_MODAL_FOOTER_BUTTONS: 'modal-footer-buttons',
-    ID_MODAL_STATUS_DIV: 'modal-status',
 
     // Change password modal
     ID_CHANGEP_CONTAINER: 'modal-changepassword-container',
@@ -225,6 +249,7 @@ const BookkeepingProjectModule = (function () {
     ID_GENERAL_TOPBAR_META_HOLDER: 'general-topbar-meta-holder',
     ID_GENERAL_TOPBAR_META_TITLE: 'general-topbar-meta-title',
     ID_GENERAL_TOPBAR_META_SUBTITLE: 'general-topbar-meta-subtitle',
+    ID_GENERAL_STATUS_DIV: 'general-status',
 
     // Assorted login scene classes
     CLASS_LOGIN_GENERAL_EXTRA_PADDING: 'login-general-title-extra-padding',
@@ -240,8 +265,6 @@ const BookkeepingProjectModule = (function () {
     CLASS_MODAL_MAJOR_SECTION: 'modal-major-section',
     CLASS_MODAL_BUTTON: 'modal-footer-buttons-button',
     CLASS_MODAL_SECTION_TEXTBOX: 'modal-section-textbox',
-    CLASS_MODAL_ACTION_SUCCESS: 'modal-action-success',
-    CLASS_MODAL_ACTION_FAILURE: 'modal-action-failure',
     CLASS_MODAL_DROPDOWN: 'modal-dropdown',
     CLASS_MODAL_DROPDOWN_OPTION: 'modal-dropdown-option',
 
@@ -256,6 +279,8 @@ const BookkeepingProjectModule = (function () {
     CLASS_GENERAL_OPENSANS: 'general-opensans',
     CLASS_GENERAL_MONTSERRAT: 'general-montserrat',
     CLASS_GENERAL_BUTTONS_HOLDER: 'general-buttons-holder',
+    CLASS_GENERAL_STATUS_SUCCESS: 'general-status-success',
+    CLASS_GENERAL_STATUS_FAILURE: 'general-status-failure',
   });
 
   /**
@@ -266,8 +291,9 @@ const BookkeepingProjectModule = (function () {
    *
    * @readonly
    * @enum {string}
+   * @const
    */
-  inaccessible.Text = Object.freeze({
+  const Text = Object.freeze({
 
     // Input textfield specific text
     INPUT_LOGIN_MAIN_USERNAME_PLACEHOLDER: 'Username',
@@ -292,6 +318,8 @@ const BookkeepingProjectModule = (function () {
     DIV_LOGIN_MAIN_HEADER: 'Login or create account',
     DIV_DASHBOARD_TOPBAR_NAVLINKS_WELCOME: 'Welcome user!',
     DIV_GENERAL_ADD: 'Add $1',
+    DIV_GENERAL_CHANGEP: 'Change password',
+    DIV_GENERAL_DELETE_ROW: 'Delete ledger entry',
     DIV_GENERAL_TOPBAR_TITLE: 'Keep Dem Books Y\'all', // Need some title
     DIV_GENERAL_TOPBAR_SUBTITLE: 'A bookkeeping application for CMSC 495',
     DIV_CHANGEP_INFORMATION: 'Please note that password entries must match',
@@ -324,8 +352,9 @@ const BookkeepingProjectModule = (function () {
    *
    * @readonly
    * @enum {function}
+   * @const
    */
-  inaccessible.Operations = Object.freeze({
+  const Operations = Object.freeze({
 
     /**
      * @description A simple addition operation involving two arguments.
@@ -387,42 +416,46 @@ const BookkeepingProjectModule = (function () {
    *
    * @readonly
    * @enum {object}
+   * @const
    */
-  inaccessible.ModalButtons = Object.freeze({
+  const ModalButtons = Object.freeze({
     CLOSE: {
-      buttonType: inaccessible.Text.BUTTON_MODAL_FOOTER_CLOSE,
+      buttonType: Text.BUTTON_MODAL_FOOTER_CLOSE,
       functionName: 'handleModalClose',
       functionArguments: [],
       requiresWrapper: false,
-      elementId: 'modal-footer-buttons-close',
+      elementId: Identifiers.ID_MODAL_FOOTER_BUTTONS + '-' +
+          Text.BUTTON_MODAL_FOOTER_CLOSE.toLowerCase(),
       elementClasses: [
-        inaccessible.Identifiers.CLASS_GENERAL_BIG_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
-        inaccessible.Identifiers.CLASS_MODAL_BUTTON,
+        Identifiers.CLASS_GENERAL_BIG_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_MODAL_BUTTON,
       ],
     },
     CLEAR: {
-      buttonType: inaccessible.Text.BUTTON_MODAL_FOOTER_CLEAR,
+      buttonType: Text.BUTTON_MODAL_FOOTER_CLEAR,
       functionName: 'handleModalFormClear',
       functionArguments: [],
       requiresWrapper: false,
-      elementId: 'modal-footer-buttons-clear',
+      elementId: Identifiers.ID_MODAL_FOOTER_BUTTONS + '-' +
+          Text.BUTTON_MODAL_FOOTER_CLEAR.toLowerCase(),
       elementClasses: [
-        inaccessible.Identifiers.CLASS_GENERAL_BIG_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
-        inaccessible.Identifiers.CLASS_MODAL_BUTTON,
+        Identifiers.CLASS_GENERAL_BIG_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_MODAL_BUTTON,
       ],
     },
     SUBMIT: {
-      buttonType: inaccessible.Text.BUTTON_MODAL_FOOTER_SUBMIT,
+      buttonType: Text.BUTTON_MODAL_FOOTER_SUBMIT,
       functionName: 'handleModalFormSubmit',
       functionArguments: [],
       requiresWrapper: false,
-      elementId: 'modal-footer-buttons-submit',
+      elementId: Identifiers.ID_MODAL_FOOTER_BUTTONS + '-' +
+          Text.BUTTON_MODAL_FOOTER_SUBMIT.toLowerCase(),
       elementClasses: [
-        inaccessible.Identifiers.CLASS_GENERAL_BIG_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
-        inaccessible.Identifiers.CLASS_MODAL_BUTTON,
+        Identifiers.CLASS_GENERAL_BIG_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_MODAL_BUTTON,
       ],
     },
   });
@@ -435,8 +468,9 @@ const BookkeepingProjectModule = (function () {
    *
    * @readonly
    * @enum {!Array<string>}
+   * @const
    */
-  inaccessible.TableHeaders = Object.freeze({
+  const TableHeaders = Object.freeze({
     DOCUMENTS: [
       'name',            // Document name
       'type',            // Type of document
@@ -498,91 +532,91 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.sidebarButtonData = [
     {
-      buttonType: 'Change password',
+      buttonType: Text.DIV_GENERAL_CHANGEP,
       functionName: 'displayModal',
       functionArguments: [
-        inaccessible.Text.DIV_CHANGEP_TITLE,
+        Text.DIV_CHANGEP_TITLE,
         'buildPasswordChangeModal',
         'handlePasswordChange',
       ],
       requiresWrapper: true,
-      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_CHANGEP,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_CHANGEP,
       elementClasses: [
-        inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
     {
-      buttonType: inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'document'),
+      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'document'),
       functionName: 'displayModal',
       functionArguments: [
-        inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'document'),
+        Text.DIV_GENERAL_ADD.replace('$1', 'document'),
         'buildDocumentAdditionModal',
         'handleDocumentAddition',
       ],
       requiresWrapper: true,
-      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT,
       elementClasses: [
-        inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
     {
-      buttonType: inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
+      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
       functionName: 'displayModal',
       functionArguments: [
-        inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
+        Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
         'buildCustomerOrVendorAdditionModal',
         'handleCustomerOrVendorAddition',
       ],
       requiresWrapper: true,
-      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_CUSTOMER,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_CUSTOMER,
       elementClasses: [
-        inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
     {
-      buttonType: inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
+      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
       functionName: 'displayModal',
       functionArguments: [
-        inaccessible.Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
+        Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
         'buildCustomerOrVendorAdditionModal',
         'handleCustomerOrVendorAddition',
       ],
       requiresWrapper: true,
-      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VENDOR,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VENDOR,
       elementClasses: [
-        inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
     {
-      buttonType: 'Delete ledger entry',
+      buttonType: Text.DIV_GENERAL_DELETE_ROW,
       functionName: 'handleRowRemoval',
       functionArguments: [],
       requiresWrapper: true,
-      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DELETE,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DELETE,
       elementClasses: [
-        inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
+    { // REMOVE ROW ONCE ACCOUNTS WORK
       buttonType: 'Test - Add JSON row',
       functionName: 'handleTestGetRequest',
       functionArguments: [],
       requiresWrapper: true,
-      elementId: inaccessible.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_TEST,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_TEST,
       elementClasses: [
-        inaccessible.Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        inaccessible.Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
   ];
@@ -601,36 +635,36 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.navlinksButtonData = [
     {
-      buttonType: inaccessible.Text.BUTTON_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT,
+      buttonType: Text.BUTTON_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT,
       functionName: 'handleAccountDetailsDisplay',
       functionArguments: [],
       requiresWrapper: false,
-      elementId: inaccessible.Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT,
+      elementId: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT,
       elementClasses: [
-        inaccessible.Identifiers.CLASS_GENERAL_LINK_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_GENERAL_LINK_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
     {
-      buttonType: inaccessible.Text.BUTTON_DASHBOARD_TOPBAR_PRINT,
+      buttonType: Text.BUTTON_DASHBOARD_TOPBAR_PRINT,
       functionName: 'handlePagePrinting',
       functionArguments: [],
       requiresWrapper: false,
-      elementId: inaccessible.Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_PRINT,
+      elementId: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_PRINT,
       elementClasses: [
-        inaccessible.Identifiers.CLASS_GENERAL_LINK_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_GENERAL_LINK_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
     {
-      buttonType: inaccessible.Text.BUTTON_DASHBOARD_TOPBAR_NAVLINKS_LOGOUT,
+      buttonType: Text.BUTTON_DASHBOARD_TOPBAR_NAVLINKS_LOGOUT,
       functionName: 'handleLogout',
       functionArguments: [],
       requiresWrapper: false,
-      elementId: inaccessible.Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_LOGOUT,
+      elementId: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_LOGOUT,
       elementClasses: [
-        inaccessible.Identifiers.CLASS_GENERAL_LINK_BUTTON,
-        inaccessible.Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_GENERAL_LINK_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
   ];
@@ -699,7 +733,7 @@ const BookkeepingProjectModule = (function () {
 
       // Handle network errors
       request.onerror = function () {
-        reject(Error(inaccessible.Text.ERROR_NETWORK));
+        reject(Error(Text.ERROR_NETWORK));
       };
 
       // Make request (data will be either null or a stringified object)
@@ -754,16 +788,16 @@ const BookkeepingProjectModule = (function () {
    * an inputted array of numbers through the performing of an inputted common
    * algebraic operation. The associated value is then returned from the
    * function. This function is only used with the
-   * <code>inaccessible.Operations.ADDITION</code> and
-   * <code>inaccessible.Operations.SUBTRACTION</code> operations; the
-   * comparison operations in the enum require a different invocation method.
+   * <code>Operations.ADDITION</code> and <code>Operations.SUBTRACTION</code>
+   * operations; the comparison operations in the enum require a different
+   * invocation method.
    *
    * @param {!Array<number>} paramList Array of number values
    * @param {string} paramOperation The <code>Operations</code> enum operation
    * @returns {number}
    */
   inaccessible.performCommonOperation = function (paramList, paramOperation) {
-    return paramList.reduce(this.Operations[paramOperation]);
+    return paramList.reduce(Operations[paramOperation]);
   };
 
   /**
@@ -835,11 +869,10 @@ const BookkeepingProjectModule = (function () {
   inaccessible.focusOnLoad = function (paramSelector) {
 
     // Declarations
-    let that, interval, target;
+    let that, target;
 
     // Definitions
     that = this;
-    interval = this.Utility.ELEMENT_CHECK_INTERVAL;
     target = document.querySelector(paramSelector);
 
     if (target != null) {
@@ -852,7 +885,7 @@ const BookkeepingProjectModule = (function () {
     } else {
       setTimeout(function () {
         that.focusOnLoad(paramSelector);
-      }, interval);
+      }, Utility.ELEMENT_CHECK_INTERVAL);
     }
   };
 
@@ -957,7 +990,7 @@ const BookkeepingProjectModule = (function () {
     interval = setInterval(function () {
 
       if ( // If either opacity < 1 or opacity > 0...
-        that.Operations[fadeTypeObject.comparison](
+        Operations[fadeTypeObject.comparison](
           container.style.opacity,
           fadeTypeObject.comparisonValue
         )
@@ -967,7 +1000,7 @@ const BookkeepingProjectModule = (function () {
         container.style.opacity = that.performCommonOperation(
           [
             Number.parseFloat(container.style.opacity),
-            that.Utility.OPACITY_INCREASE_AMOUNT
+            Utility.OPACITY_INCREASE_AMOUNT,
           ],
           fadeTypeObject.operator
         );
@@ -979,7 +1012,7 @@ const BookkeepingProjectModule = (function () {
         clearInterval(interval);
         return;
       }
-    }, this.Utility.FADE_IN_INTERVAL);
+    }, Utility.FADE_IN_INTERVAL);
   };
 
   /**
@@ -1001,10 +1034,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.swipeRight = function (paramElementId) {
 
     // Declarations
-    let that, container, interval, startTime, timePassed;
-
-    // Preserve scope
-    that = this;
+    let container, interval, startTime, timePassed;
 
     // Cache start time
     startTime = Date.now();
@@ -1019,7 +1049,7 @@ const BookkeepingProjectModule = (function () {
       // Check time since start
       timePassed = Date.now() - startTime;
 
-      if (timePassed >= that.Utility.SWIPE_INTERVAL_TIME) {
+      if (timePassed >= Utility.SWIPE_INTERVAL_TIME) {
         if (DEBUG) {
           console.log('Swiping complete');
         }
@@ -1031,7 +1061,7 @@ const BookkeepingProjectModule = (function () {
       // Draw animation at the moment of timePassed
       container.style.left = timePassed / 5 + 'px';
 
-    }, this.Utility.FADE_IN_INTERVAL);
+    }, Utility.FADE_IN_INTERVAL);
   };
 
   /**
@@ -1073,14 +1103,14 @@ const BookkeepingProjectModule = (function () {
         clearInterval(interval);
 
         // Remove outdated DOM elements
-        that.emptyElementOfContent(that.Identifiers.ID_GENERAL_BODY);
+        that.emptyElementOfContent(Identifiers.ID_GENERAL_BODY);
 
         // Build new page and fade in on the scene
         document.body.appendChild(that[paramBuilderFunctionName]());
         that.fade('in', paramOpacityElementId);
         return true;
       }
-    }, this.Utility.CHECK_OPACITY_RATE);
+    }, Utility.CHECK_OPACITY_RATE);
   };
 
   // Assembly functions
@@ -1180,10 +1210,10 @@ const BookkeepingProjectModule = (function () {
    *   functionName: 'handleFoo',
    *   functionArguments: [paramFoo, paramBar],
    *   requiresWrapper: true,
-   *   elementId: 'inaccessible.Identifiers.ID_FOO',
+   *   elementId: Identifiers.ID_FOO,
    *   elementClasses: [
-   *     inaccessible.Identifiers.CLASS_FOO_1,
-   *     inaccessible.Identifiers.CLASS_FOO_2,
+   *     Identifiers.CLASS_FOO_1,
+   *     Identifiers.CLASS_FOO_2,
    *   ],
    * },
    * </pre>
@@ -1210,7 +1240,7 @@ const BookkeepingProjectModule = (function () {
     // Some buttons need an individual <div> wrapper
     if (paramObject.requiresWrapper) {
       buttonHolderConfig = {
-        class: this.Identifiers.CLASS_GENERAL_BUTTONS_HOLDER,
+        class: Identifiers.CLASS_GENERAL_BUTTONS_HOLDER,
       };
 
       buttonElement = this.assembleElement(['div', buttonHolderConfig,
@@ -1245,10 +1275,10 @@ const BookkeepingProjectModule = (function () {
     let ledger, thead, tbody, newRow, newCell, configRowHeader, ledgerHeaders;
 
     // Grab string headers from enum
-    ledgerHeaders = this.TableHeaders.LEDGER;
+    ledgerHeaders = TableHeaders.LEDGER;
 
     configRowHeader = {
-      class: this.Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_HEADER,
+      class: Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_HEADER,
     };
 
     // Create ledger table
@@ -1292,9 +1322,8 @@ const BookkeepingProjectModule = (function () {
   inaccessible.assembleDropdownElement = function (paramObject) {
     return this.assembleElement('option', {
       value: paramObject.value,
-      id: this.Identifiers.ID_DOCUMENT_DROPDOWN_OPTION + '-' +
-        paramObject.value,
-      class: this.Identifiers.CLASS_MODAL_DROPDOWN_OPTION,
+      id: Identifiers.ID_DOCUMENT_DROPDOWN_OPTION + '-' + paramObject.value,
+      class: Identifiers.CLASS_MODAL_DROPDOWN_OPTION,
     }, paramObject.name);
   };
 
@@ -1325,106 +1354,108 @@ const BookkeepingProjectModule = (function () {
       configButtonsHolder, configButtonsCreate, configButtonsSubmit;
 
     configContainer = {
-      id: this.Identifiers.ID_LOGIN_CONTAINER,
-      class: this.Identifiers.CLASS_GENERAL_MAJOR_SECTION + ' ' +
-        this.Identifiers.CLASS_GENERAL_CONTAINER,
+      id: Identifiers.ID_LOGIN_CONTAINER,
+      class: Identifiers.CLASS_GENERAL_MAJOR_SECTION + ' ' +
+        Identifiers.CLASS_GENERAL_CONTAINER,
       style: 'opacity: 0',
     };
 
     configTopbar = {
-      id: this.Identifiers.ID_LOGIN_TOPBAR,
-      class: this.Identifiers.CLASS_GENERAL_MAJOR_SECTION,
+      id: Identifiers.ID_LOGIN_TOPBAR,
+      class: Identifiers.CLASS_GENERAL_MAJOR_SECTION,
     };
 
     configTopbarHolder = {
-      id: this.Identifiers.ID_GENERAL_TOPBAR_META_HOLDER,
-      class: this.Identifiers.CLASS_LOGIN_GENERAL_EXTRA_PADDING,
+      id: Identifiers.ID_GENERAL_TOPBAR_META_HOLDER,
+      class: Identifiers.CLASS_LOGIN_GENERAL_EXTRA_PADDING,
     };
 
     configTopbarTitle = {
-      id: this.Identifiers.ID_GENERAL_TOPBAR_META_TITLE,
-      class: this.Identifiers.CLASS_GENERAL_MONTSERRAT,
+      id: Identifiers.ID_GENERAL_TOPBAR_META_TITLE,
+      class: Identifiers.CLASS_GENERAL_MONTSERRAT,
     };
 
     configTopbarSubtitle = {
-      id: this.Identifiers.ID_GENERAL_TOPBAR_META_SUBTITLE,
-      class: this.Identifiers.CLASS_GENERAL_OPENSANS,
+      id: Identifiers.ID_GENERAL_TOPBAR_META_SUBTITLE,
+      class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
     configMain = {
-      id: this.Identifiers.ID_LOGIN_MAIN,
+      id: Identifiers.ID_LOGIN_MAIN,
     };
 
     configMainHeader = {
-      id: this.Identifiers.ID_LOGIN_MAIN_HEADER,
-      class: this.Identifiers.CLASS_LOGIN_GENERAL_EXTRA_PADDING + ' ' +
-        this.Identifiers.CLASS_GENERAL_OPENSANS,
+      id: Identifiers.ID_LOGIN_MAIN_HEADER,
+      class: Identifiers.CLASS_LOGIN_GENERAL_EXTRA_PADDING + ' ' +
+        Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
     configMainLoginHolder = {
-      id: this.Identifiers.ID_LOGIN_MAIN_INPUT_HOLDER,
+      id: Identifiers.ID_LOGIN_MAIN_INPUT_HOLDER,
     };
 
     configMainLoginUsername = {
-      id: this.Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME,
-      class: this.Identifiers.CLASS_LOGIN_MAIN_INPUT_TEXTBOX,
-      placeholder: this.Text.INPUT_LOGIN_MAIN_USERNAME_PLACEHOLDER,
+      id: Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME,
+      class: Identifiers.CLASS_LOGIN_MAIN_INPUT_TEXTBOX,
+      placeholder: Text.INPUT_LOGIN_MAIN_USERNAME_PLACEHOLDER,
       type: 'text',
     };
 
     configMainLoginPassword = {
-      id: this.Identifiers.ID_LOGIN_MAIN_INPUT_PASSWORD,
-      class: this.Identifiers.CLASS_LOGIN_MAIN_INPUT_TEXTBOX,
-      placeholder: this.Text.INPUT_LOGIN_MAIN_PASSWORD_PLACEHOLDER,
+      id: Identifiers.ID_LOGIN_MAIN_INPUT_PASSWORD,
+      class: Identifiers.CLASS_LOGIN_MAIN_INPUT_TEXTBOX,
+      placeholder: Text.INPUT_LOGIN_MAIN_PASSWORD_PLACEHOLDER,
       type: 'password',
     };
 
     configFooter = {
-      id: this.Identifiers.ID_LOGIN_FOOTER,
+      id: Identifiers.ID_LOGIN_FOOTER,
     };
 
     configButtonsHolder = {
-      id: this.Identifiers.ID_LOGIN_FOOTER_BUTTONS_HOLDER,
-      class: this.Identifiers.CLASS_GENERAL_FLEX_JUSTIFY,
+      id: Identifiers.ID_LOGIN_FOOTER_BUTTONS_HOLDER,
+      class: Identifiers.CLASS_GENERAL_FLEX_JUSTIFY,
     };
 
     configButtonsCreate = {
-      buttonType: this.Text.BUTTON_LOGIN_FOOTER_CREATE,
+      buttonType: Text.BUTTON_LOGIN_FOOTER_CREATE,
       functionName: 'handleAccountCreation',
       functionArguments: [],
       requiresWrapper: false,
-      elementId: this.Identifiers.ID_LOGIN_FOOTER_BUTTONS_CREATE,
+      elementId: Identifiers.ID_LOGIN_FOOTER_BUTTONS_CREATE,
       elementClasses: [
-        inaccessible.Identifiers.CLASS_GENERAL_BIG_BUTTON,
+        Identifiers.CLASS_GENERAL_BIG_BUTTON,
       ],
     };
 
     configButtonsSubmit = {
-      buttonType: this.Text.BUTTON_LOGIN_FOOTER_SUBMIT,
+      buttonType: Text.BUTTON_LOGIN_FOOTER_SUBMIT,
       functionName: 'handleLogin',
       functionArguments: [],
       requiresWrapper: false,
-      elementId: this.Identifiers.ID_LOGIN_FOOTER_BUTTONS_SUBMIT,
+      elementId: Identifiers.ID_LOGIN_FOOTER_BUTTONS_SUBMIT,
       elementClasses: [
-        inaccessible.Identifiers.CLASS_GENERAL_BIG_BUTTON,
+        Identifiers.CLASS_GENERAL_BIG_BUTTON,
       ],
     };
+
+    this.scene = Scenes.LOGIN;
 
     return this.assembleElement(
       ['div', configContainer,
         ['header', configTopbar,
           ['div', configTopbarHolder,
             ['div', configTopbarTitle,
-              this.Text.DIV_GENERAL_TOPBAR_TITLE,
+              Text.DIV_GENERAL_TOPBAR_TITLE,
             ],
             ['div', configTopbarSubtitle,
-              this.Text.DIV_GENERAL_TOPBAR_SUBTITLE,
+              Text.DIV_GENERAL_TOPBAR_SUBTITLE,
             ],
           ],
         ],
         ['main', configMain,
           ['div', configMainHeader,
-            this.Text.DIV_LOGIN_MAIN_HEADER,
+            Text.DIV_LOGIN_MAIN_HEADER,
           ],
           ['form', configMainLoginHolder,
             ['input', configMainLoginUsername],
@@ -1463,70 +1494,69 @@ const BookkeepingProjectModule = (function () {
     let configContainer, configTopbar, configTopbarMeta, configTopbarMetaTitle,
       configTopbarMetaSubtitle, configTopbarNavLinks,
       configTopbarNavLinksHolder, configSection, configSidebar,
-      configSidebarButtonContainer, configLedger, configLedgerTable, that;
-
-    // Preserve scope
-    that = this;
+      configSidebarButtonContainer, configLedger, configLedgerTable;
 
     configContainer = {
-      id: this.Identifiers.ID_DASHBOARD_CONTAINER,
-      class: this.Identifiers.CLASS_GENERAL_MAJOR_SECTION + ' ' +
-        this.Identifiers.CLASS_GENERAL_CONTAINER,
+      id: Identifiers.ID_DASHBOARD_CONTAINER,
+      class: Identifiers.CLASS_GENERAL_MAJOR_SECTION + ' ' +
+        Identifiers.CLASS_GENERAL_CONTAINER,
       style: 'opacity: 0',
     };
 
     configTopbar = {
-      id: this.Identifiers.ID_DASHBOARD_TOPBAR,
-      class: this.Identifiers.CLASS_GENERAL_MAJOR_SECTION,
+      id: Identifiers.ID_DASHBOARD_TOPBAR,
+      class: Identifiers.CLASS_GENERAL_MAJOR_SECTION,
     };
 
     configTopbarMeta = {
-      id: this.Identifiers.ID_DASHBOARD_TOPBAR_META,
-      class: this.Identifiers.CLASS_GENERAL_TOPBAR_DIV,
+      id: Identifiers.ID_DASHBOARD_TOPBAR_META,
+      class: Identifiers.CLASS_GENERAL_TOPBAR_DIV,
     };
 
     configTopbarMetaTitle = {
-      id: this.Identifiers.ID_GENERAL_TOPBAR_META_TITLE,
-      class: this.Identifiers.CLASS_GENERAL_MONTSERRAT,
+      id: Identifiers.ID_GENERAL_TOPBAR_META_TITLE,
+      class: Identifiers.CLASS_GENERAL_MONTSERRAT,
     };
 
     configTopbarMetaSubtitle = {
-      id: this.Identifiers.ID_GENERAL_TOPBAR_META_SUBTITLE,
-      class: this.Identifiers.CLASS_GENERAL_OPENSANS,
+      id: Identifiers.ID_GENERAL_TOPBAR_META_SUBTITLE,
+      class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
     configTopbarNavLinks = {
-      id: this.Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS,
-      class: this.Identifiers.CLASS_GENERAL_TOPBAR_DIV,
+      id: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS,
+      class: Identifiers.CLASS_GENERAL_TOPBAR_DIV,
     };
 
     configTopbarNavLinksHolder = {
-      id: this.Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_HOLDER
+      id: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_HOLDER
     };
 
     configSection = {
-      id: this.Identifiers.ID_DASHBOARD_SECTION,
-      class: this.Identifiers.CLASS_GENERAL_FLEX_JUSTIFY,
+      id: Identifiers.ID_DASHBOARD_SECTION,
+      class: Identifiers.CLASS_GENERAL_FLEX_JUSTIFY,
     };
 
     configSidebar = {
-      id: this.Identifiers.ID_DASHBOARD_SIDEBAR,
-      class: this.Identifiers.CLASS_GENERAL_MAJOR_SECTION,
+      id: Identifiers.ID_DASHBOARD_SIDEBAR,
+      class: Identifiers.CLASS_GENERAL_MAJOR_SECTION,
     };
 
     configSidebarButtonContainer = {
-      id: this.Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS,
+      id: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS,
     };
 
     configLedger = {
-      id: this.Identifiers.ID_DASHBOARD_LEDGER,
-      class: this.Identifiers.CLASS_GENERAL_MAJOR_SECTION,
+      id: Identifiers.ID_DASHBOARD_LEDGER,
+      class: Identifiers.CLASS_GENERAL_MAJOR_SECTION,
     };
 
     configLedgerTable = {
-      id: this.Identifiers.ID_DASHBOARD_LEDGER_TABLE,
+      id: Identifiers.ID_DASHBOARD_LEDGER_TABLE,
       style: 'table-layout: fixed;',
     };
+
+    this.scene = Scenes.LEDGER;
 
     // Return assembled interface
     return this.assembleElement(
@@ -1534,10 +1564,10 @@ const BookkeepingProjectModule = (function () {
         ['header', configTopbar,
           ['div', configTopbarMeta,
             ['div', configTopbarMetaTitle,
-              this.Text.DIV_GENERAL_TOPBAR_TITLE,
+              Text.DIV_GENERAL_TOPBAR_TITLE,
             ],
             ['div', configTopbarMetaSubtitle,
-              this.Text.DIV_GENERAL_TOPBAR_SUBTITLE,
+              Text.DIV_GENERAL_TOPBAR_SUBTITLE,
             ],
           ],
           ['div', configTopbarNavLinks,
@@ -1584,41 +1614,41 @@ const BookkeepingProjectModule = (function () {
 
     // Opaque black background commanding focus on modal
     configBlackout = {
-      id: this.Identifiers.ID_MODAL_BLACKOUT,
+      id: Identifiers.ID_MODAL_BLACKOUT,
     };
 
     // Module div
     configModal = {
-      id: this.Identifiers.ID_MODAL_MAIN,
+      id: Identifiers.ID_MODAL_MAIN,
     };
 
     // Title and nothing else
     configHeader = {
-      id: this.Identifiers.ID_MODAL_HEADER,
-      class: this.Identifiers.CLASS_MODAL_MAJOR_SECTION,
+      id: Identifiers.ID_MODAL_HEADER,
+      class: Identifiers.CLASS_MODAL_MAJOR_SECTION,
     };
 
     // Span wrapper for title text
     configHeaderTitle = {
-      id: this.Identifiers.ID_MODAL_HEADER_TITLE,
-      class: this.Identifiers.CLASS_GENERAL_MONTSERRAT,
+      id: Identifiers.ID_MODAL_HEADER_TITLE,
+      class: Identifiers.CLASS_GENERAL_MONTSERRAT,
     };
 
     // Empty main section to which other builds will be appended
     configSection = {
-      id: this.Identifiers.ID_MODAL_SECTION,
-      class: this.Identifiers.CLASS_MODAL_MAJOR_SECTION,
+      id: Identifiers.ID_MODAL_SECTION,
+      class: Identifiers.CLASS_MODAL_MAJOR_SECTION,
     };
 
     // Section for buttons
     configFooter = {
-      id: this.Identifiers.ID_MODAL_FOOTER,
-      class: this.Identifiers.CLASS_MODAL_MAJOR_SECTION,
+      id: Identifiers.ID_MODAL_FOOTER,
+      class: Identifiers.CLASS_MODAL_MAJOR_SECTION,
     };
 
     // Container for the footer buttons
     configFooterButtons = {
-      id: this.Identifiers.ID_MODAL_FOOTER_BUTTONS,
+      id: Identifiers.ID_MODAL_FOOTER_BUTTONS,
     };
 
     // Build holder
@@ -1633,6 +1663,8 @@ const BookkeepingProjectModule = (function () {
       // Push completed button to the array in question
       builtButtons.appendChild(button);
     });
+
+    this.scene = Scenes.MODAL;
 
     // Return assembled interface
     return this.assembleElement(
@@ -1669,29 +1701,29 @@ const BookkeepingProjectModule = (function () {
       configInputPassword, configInputPasswordReentered;
 
     configContainer = {
-      id: this.Identifiers.ID_CHANGEP_CONTAINER,
+      id: Identifiers.ID_CHANGEP_CONTAINER,
     };
 
     configInformation = {
-      id: this.Identifiers.ID_CHANGEP_INFORMATION,
-      class: this.Identifiers.CLASS_GENERAL_OPENSANS,
+      id: Identifiers.ID_CHANGEP_INFORMATION,
+      class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
     configInputForm = {
-      id: this.Identifiers.ID_CHANGEP_FORM,
+      id: Identifiers.ID_CHANGEP_FORM,
     };
 
     configInputPassword = {
-      id: this.Identifiers.ID_CHANGEP_INPUT_PASSWORD,
-      class: this.Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
-      placeholder: this.Text.INPUT_CHANGEP_PASSWORD_PLACEHOLDER,
+      id: Identifiers.ID_CHANGEP_INPUT_PASSWORD,
+      class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
+      placeholder: Text.INPUT_CHANGEP_PASSWORD_PLACEHOLDER,
       type: 'password',
     };
 
     configInputPasswordReentered = {
-      id: this.Identifiers.ID_CHANGEP_INPUT_REENTER,
-      class: this.Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
-      placeholder: this.Text.INPUT_CHANGEP_REENTER_PLACEHOLDER,
+      id: Identifiers.ID_CHANGEP_INPUT_REENTER,
+      class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
+      placeholder: Text.INPUT_CHANGEP_REENTER_PLACEHOLDER,
       type: 'password',
     };
 
@@ -1699,7 +1731,7 @@ const BookkeepingProjectModule = (function () {
     return this.assembleElement(
       ['div', configContainer,
         ['div', configInformation,
-          this.Text.DIV_CHANGEP_INFORMATION,
+          Text.DIV_CHANGEP_INFORMATION,
         ],
         ['form', configInputForm,
           ['input', configInputPassword],
@@ -1727,29 +1759,29 @@ const BookkeepingProjectModule = (function () {
       configInputName, configInputAddress;
 
     configContainer = {
-      id: this.Identifiers.ID_CORV_CONTAINER,
+      id: Identifiers.ID_CORV_CONTAINER,
     };
 
     configInformation = {
-      id: this.Identifiers.ID_CORV_INFORMATION,
-      class: this.Identifiers.CLASS_GENERAL_OPENSANS,
+      id: Identifiers.ID_CORV_INFORMATION,
+      class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
     configInputForm = {
-      id: this.Identifiers.ID_CORV_FORM,
+      id: Identifiers.ID_CORV_FORM,
     };
 
     configInputName = {
-      id: this.Identifiers.ID_CORV_INPUT_NAME,
-      class: this.Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
-      placeholder: this.Text.INPUT_CORV_NAME_PLACEHOLDER,
+      id: Identifiers.ID_CORV_INPUT_NAME,
+      class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
+      placeholder: Text.INPUT_CORV_NAME_PLACEHOLDER,
       type: 'password',
     };
 
     configInputAddress = {
-      id: this.Identifiers.ID_CORV_INPUT_ADDRESS,
-      class: this.Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
-      placeholder: this.Text.INPUT_CORV_ADDRESS_PLACEHOLDER,
+      id: Identifiers.ID_CORV_INPUT_ADDRESS,
+      class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
+      placeholder: Text.INPUT_CORV_ADDRESS_PLACEHOLDER,
       type: 'password',
     };
 
@@ -1757,7 +1789,7 @@ const BookkeepingProjectModule = (function () {
     return this.assembleElement(
       ['div', configContainer,
         ['div', configInformation,
-          this.Text.DIV_CORV_INFORMATION,
+          Text.DIV_CORV_INFORMATION,
         ],
         ['form', configInputForm,
           ['input', configInputName],
@@ -1789,31 +1821,31 @@ const BookkeepingProjectModule = (function () {
     that = this;
 
     configContainer = {
-      id: this.Identifiers.ID_DOCUMENT_CONTAINER,
+      id: Identifiers.ID_DOCUMENT_CONTAINER,
     };
 
     configInformation = {
-      id: this.Identifiers.ID_DOCUMENT_INFORMATION,
-      class: this.Identifiers.CLASS_GENERAL_OPENSANS,
+      id: Identifiers.ID_DOCUMENT_INFORMATION,
+      class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
     configDropdownHolder ={
-      id: this.Identifiers.ID_DOCUMENT_DROPDOWN_HOLDER,
+      id: Identifiers.ID_DOCUMENT_DROPDOWN_HOLDER,
     };
 
     configTypeDropdown = {
-      id: this.Identifiers.ID_DOCUMENT_DROPDOWN_TYPE,
-      class: this.Identifiers.CLASS_MODAL_DROPDOWN,
+      id: Identifiers.ID_DOCUMENT_DROPDOWN_TYPE,
+      class: Identifiers.CLASS_MODAL_DROPDOWN,
     };
 
     configPartyDropdown = {
-      id: this.Identifiers.ID_DOCUMENT_DROPDOWN_PARTY,
-      class: this.Identifiers.CLASS_MODAL_DROPDOWN,
+      id: Identifiers.ID_DOCUMENT_DROPDOWN_PARTY,
+      class: Identifiers.CLASS_MODAL_DROPDOWN,
     };
 
     configPartyDropdownOption = {
-      id: this.Identifiers.ID_DOCUMENT_DROPDOWN_OPTION + '-default',
-      class: that.Identifiers.CLASS_MODAL_DROPDOWN_OPTION,
+      id: Identifiers.ID_DOCUMENT_DROPDOWN_OPTION + '-default',
+      class: Identifiers.CLASS_MODAL_DROPDOWN_OPTION,
     };
 
     // Document type dropdown menu
@@ -1833,14 +1865,14 @@ const BookkeepingProjectModule = (function () {
     return this.assembleElement(
       ['div', configContainer,
         ['div', configInformation,
-          this.Text.DIV_DOCUMENT_INFORMATION,
+          Text.DIV_DOCUMENT_INFORMATION,
         ],
         ['div', configDropdownHolder,
           typeDropdown,
           ['select', configPartyDropdown,
             ['option', configPartyDropdownOption,
-              this.Text.INPUT_DOCUMENT_PARTY_OPTION,
-            ]
+              Text.INPUT_DOCUMENT_PARTY_OPTION,
+            ],
           ],
         ],
       ],
@@ -1915,18 +1947,18 @@ const BookkeepingProjectModule = (function () {
     if (paramHandlerName != null) {
 
       // Make shallow copy of default submit button config
-      submitButtonCopy = this.extend({}, this.ModalButtons.SUBMIT);
+      submitButtonCopy = this.extend({}, ModalButtons.SUBMIT);
 
       // Adjust handler function String representation in submit button config
       submitButtonCopy.functionName = paramHandlerName;
 
       // Need submission handler button and input clearing button
       buttons.push(submitButtonCopy);
-      buttons.push(this.ModalButtons.CLEAR);
+      buttons.push(ModalButtons.CLEAR);
     }
 
     // Modal close button must always be present
-    buttons.push(this.ModalButtons.CLOSE);
+    buttons.push(ModalButtons.CLOSE);
 
     // Build and add the modal to the body at the bottom
     document.body.appendChild(
@@ -1954,7 +1986,7 @@ const BookkeepingProjectModule = (function () {
     valuesArray = [];
 
     // The ledger itself
-    table = document.getElementById(this.Identifiers.ID_DASHBOARD_LEDGER_TABLE);
+    table = document.getElementById(Identifiers.ID_DASHBOARD_LEDGER_TABLE);
 
     // Table body
     tbody = table.getElementsByTagName('tbody')[0];
@@ -1973,7 +2005,7 @@ const BookkeepingProjectModule = (function () {
     // Individual config for this checkbox
     configCheckbox = {
       type: 'checkbox',
-      class: this.Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_CHECKBOX,
+      class: Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_CHECKBOX,
     };
 
     for (let i = 0; i < paramHeaders.length; i++) {
@@ -1991,10 +2023,11 @@ const BookkeepingProjectModule = (function () {
 
   /**
    * @description This builder function is used to construct a new <div> element
-   * indicating to the user that the operation undertaken in the modal (be that
-   * password submission or the like) has either failed or succeeded. This
-   * approach was inspired by the UMUC LEO login module, which displays an error
-   * div like this on an incorrect login.
+   * indicating to the user that the undertaken operation has succeeded or
+   * failed, be that operation a modal-based information submission or a login
+   * or account creation operation. The placement of the notice will depend on
+   * the scene presently existing on the page, indicated via the enum value
+   * of <code>inaccessible.scene</code>.
    *
    * @param {boolean} paramIsSuccess
    * @param {string} paramMessage
@@ -2003,33 +2036,46 @@ const BookkeepingProjectModule = (function () {
   inaccessible.displayStatusNotice = function (paramIsSuccess, paramMessage) {
 
     // Declaration
-    let configStatusDiv, status, aliasIds, statusDiv, extantStatusDiv;
+    let configStatusDiv, location, status, statusDiv, extantNotice;
 
     // Choose class name fragment based on success of action
     status = (paramIsSuccess) ? 'SUCCESS' : 'FAILURE';
 
-    // Can alias enums only
-    aliasIds = this.Identifiers;
-
     configStatusDiv = {
-      id: aliasIds.ID_MODAL_STATUS_DIV,
-      class: aliasIds.CLASS_GENERAL_OPENSANS + ' ' +
-        aliasIds[`CLASS_MODAL_ACTION_${status}`]
+      id: Identifiers.ID_GENERAL_STATUS_DIV,
+      class: Identifiers.CLASS_GENERAL_OPENSANS + ' ' +
+        Identifiers[`CLASS_GENERAL_STATUS_${status}`]
     };
 
     // Duild the <biv>
     statusDiv = this.assembleElement(['div', configStatusDiv, paramMessage]);
 
     // Determine whether or not there is already a status message in the modal
-    extantStatusDiv = document.getElementById(aliasIds.ID_MODAL_STATUS_DIV);
+    extantNotice = document.getElementById(Identifiers.ID_GENERAL_STATUS_DIV);
 
     // Remove it if it does exist
-    if (extantStatusDiv) {
-      extantStatusDiv.remove();
+    if (extantNotice) {
+      extantNotice.remove();
     }
 
-    // Add the bottom of modal body and above buttons
-    this.append(this.Identifiers.ID_MODAL_SECTION, statusDiv);
+    // Switch placement location based on current scene
+    switch (this.scene) {
+      case 0: // MODAL
+        location = Identifiers.ID_MODAL_SECTION;
+        break;
+      case 1: // LOGIN
+        location = Identifiers.ID_LOGIN_MAIN_INPUT_HOLDER;
+        break;
+      case 2: // CREATE
+      case 3: // LEDGER
+      case 4: // DOCUMENTS
+      default:
+        location = Identifiers.ID_MODAL_SECTION;
+        break;
+    }
+
+    // Add the bottom of body and above buttons
+    this.append(location, statusDiv);
   };
 
   // Handler functions
@@ -2048,7 +2094,7 @@ const BookkeepingProjectModule = (function () {
   /**
    * @description This handler function is invoked once the user has pressed the
    * "Login" button in the login modal scene. It grabs the values inputted by
-   * the user in the input textboxes and calls
+   * the user in the username and password input textboxes and calls
    * <code>inaccessible.isLegalInput</code> for each <code>String</code> to
    * ensure that input is alphanumeric in nature. If it is wellformed input, the
    * handler <code>inaccessible.tinderize</code> is called to shift the scene to
@@ -2060,23 +2106,20 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleLogin = function () {
 
     // Declarations
-    let that, username, password, aliasIds, data;
+    let that, username, password, data;
 
     // Preserve scope context
     that = this;
 
-    // Can alias enums only
-    aliasIds = this.Identifiers;
-
     // Get user input field values
     username =
-      document.getElementById(aliasIds.ID_LOGIN_MAIN_INPUT_USERNAME).value;
+      document.getElementById(Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME).value;
     password =
-      document.getElementById(aliasIds.ID_LOGIN_MAIN_INPUT_PASSWORD).value;
+      document.getElementById(Identifiers.ID_LOGIN_MAIN_INPUT_PASSWORD).value;
 
     // Alphanumeric data only for username and password
     if (!this.isLegalInput(username) || !this.isLegalInput(password)) {
-      window.alert(this.Text.ERROR_ILLEGITIMATE_INPUT);
+      this.displayStatusNotice(false, Text.ERROR_ILLEGITIMATE_INPUT);
       return;
     }
 
@@ -2094,8 +2137,8 @@ const BookkeepingProjectModule = (function () {
 
         /* UNCOMMENT ONCE ACCOUNT CREATION IS ENABLED
         // Fade out and remove content prior to rebuilding of main interface
-        that.tinderize(that.Identifiers.ID_LOGIN_CONTAINER,
-          'buildUserInterface', that.Identifiers.ID_DASHBOARD_CONTAINER);
+        that.tinderize(Identifiers.ID_LOGIN_CONTAINER,
+          'buildUserInterface', Identifiers.ID_DASHBOARD_CONTAINER);
         */
       } else {
         console.warn('DISPLAY ERROR MESSAGE IN SCENE');
@@ -2106,8 +2149,8 @@ const BookkeepingProjectModule = (function () {
     });
 
     // Fade out and remove content prior to rebuilding of main interface
-    this.tinderize(this.Identifiers.ID_LOGIN_CONTAINER, 'buildUserInterface',
-      this.Identifiers.ID_DASHBOARD_CONTAINER);
+    this.tinderize(Identifiers.ID_LOGIN_CONTAINER, 'buildUserInterface',
+      Identifiers.ID_DASHBOARD_CONTAINER);
   };
 
   /**
@@ -2119,11 +2162,11 @@ const BookkeepingProjectModule = (function () {
    * @returns {void}
    */
   inaccessible.handleLogout = function () {
-    this.tinderize(this.Identifiers.ID_DASHBOARD_CONTAINER,
-      'buildLoginInterface', this.Identifiers.ID_LOGIN_CONTAINER);
+    this.tinderize(Identifiers.ID_DASHBOARD_CONTAINER,
+      'buildLoginInterface', Identifiers.ID_LOGIN_CONTAINER);
 
-    this.focusOnLoad(`#${this.Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME}`,
-      this.Utility.CHECK_OPACITY_RATE);
+    this.focusOnLoad(`#${Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME}`,
+      Utility.CHECK_OPACITY_RATE);
   };
 
   /**
@@ -2150,7 +2193,7 @@ const BookkeepingProjectModule = (function () {
     let modal;
 
     // Grab element
-    modal = document.getElementById(this.Identifiers.ID_MODAL_BLACKOUT);
+    modal = document.getElementById(Identifiers.ID_MODAL_BLACKOUT);
 
     // Remove
     modal.parentNode.removeChild(modal);
@@ -2167,18 +2210,15 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleModalFormClear = function () {
 
     // Declaration
-    let textboxes, aliasIds, statusNotice;
-
-    // Can alias enums
-    aliasIds = this.Identifiers;
+    let textboxes, statusNotice;
 
     // Grab the input textboxes in the main modal section body
     textboxes = document
-      .getElementById(aliasIds.ID_MODAL_SECTION)
-      .getElementsByClassName(aliasIds.CLASS_MODAL_SECTION_TEXTBOX);
+      .getElementById(Identifiers.ID_MODAL_SECTION)
+      .getElementsByClassName(Identifiers.CLASS_MODAL_SECTION_TEXTBOX);
 
     // Grab any extant success/failure action notice
-    statusNotice = document.getElementById(aliasIds.ID_MODAL_STATUS_DIV);
+    statusNotice = document.getElementById(Identifiers.ID_GENERAL_STATUS_DIV);
 
     // Remove if present
     if (statusNotice) {
@@ -2194,7 +2234,7 @@ const BookkeepingProjectModule = (function () {
   /**
    * @description This handler is used to handle the submission of user data on
    * the press of the "Submit" button. This is the default handler present in
-   * the <code>inaccessible.ModalButtons</code> enum and may be overridden by
+   * the <code>ModalButtons</code> enum and may be overridden by any
    * implementing functions that shallow copy the appropriate button config
    * object and adjust the <code>functionName</code> handler string.
    *
@@ -2231,29 +2271,26 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handlePasswordChange = function () {
 
     // Declarations
-    let that, password, passwordReenter, aliasIds, data;
+    let that, password, passwordReenter, data;
 
     // Preserve scope
     that = this;
 
-    // Can alias enums only
-    aliasIds = this.Identifiers;
-
     // Get user input field values
     password =
-      document.getElementById(aliasIds.ID_CHANGEP_INPUT_PASSWORD).value;
+      document.getElementById(Identifiers.ID_CHANGEP_INPUT_PASSWORD).value;
     passwordReenter =
-      document.getElementById(aliasIds.ID_CHANGEP_INPUT_REENTER).value;
+      document.getElementById(Identifiers.ID_CHANGEP_INPUT_REENTER).value;
 
     // Alphanumeric data only for passwords
     if (!this.isLegalInput(password) || !this.isLegalInput(passwordReenter)) {
-      this.displayStatusNotice(false, this.Text.ERROR_ILLEGITIMATE_INPUT);
+      this.displayStatusNotice(false, Text.ERROR_ILLEGITIMATE_INPUT);
       return;
     }
 
     // Passwords must match
     if (password !== passwordReenter) {
-      this.displayStatusNotice(false, this.Text.ERROR_MISMATCHING_PASSWORDS);
+      this.displayStatusNotice(false, Text.ERROR_MISMATCHING_PASSWORDS);
       return;
     }
 
@@ -2267,13 +2304,13 @@ const BookkeepingProjectModule = (function () {
 
       // Check server response data for successful password reset
       if (data.isPasswordSetSuccessful) {
-        that.displayStatusNotice(true, that.Text.SUCCESS_PASSWORD_RESET);
+        that.displayStatusNotice(true, Text.SUCCESS_PASSWORD_RESET);
       } else {
-        that.displayStatusNotice(false, that.Text.ERROR_FAILED_PASSWORD_RESET);
+        that.displayStatusNotice(false, Text.ERROR_FAILED_PASSWORD_RESET);
       }
     }, function (error) {
       console.warn(error);
-      that.displayStatusNotice(false, that.Text.ERROR_NETWORK);
+      that.displayStatusNotice(false, Text.ERROR_NETWORK);
     });
   };
 
@@ -2348,7 +2385,7 @@ const BookkeepingProjectModule = (function () {
 
       // Dropdown menu for display of extant customers or vendors
       partyDropdown =
-        document.getElementById(that.Identifiers.ID_DOCUMENT_DROPDOWN_PARTY);
+        document.getElementById(Identifiers.ID_DOCUMENT_DROPDOWN_PARTY);
 
       console.log(data);
 
@@ -2370,11 +2407,11 @@ const BookkeepingProjectModule = (function () {
         }
       } else {
         that.displayStatusNotice(false, // "Could not display vendors"
-          that.Text.ERROR_DOCUMENT_PARTY_DISPLAY.replace('$1', partyType));
+          Text.ERROR_DOCUMENT_PARTY_DISPLAY.replace('$1', partyType));
       }
     }, function (error) {
       console.warn(error);
-      that.displayStatusNotice(false, that.Text.ERROR_NETWORK);
+      that.displayStatusNotice(false, Text.ERROR_NETWORK);
     });
   };
 
@@ -2392,20 +2429,17 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleCustomerOrVendorAddition = function () {
 
     // Declarations
-    let that, aliasIds, name, address, headerText, partyType, endpoint, data;
+    let that, name, address, headerText, partyType, endpoint, data;
 
     // Preserve scope
     that = this;
 
-    // Can alias enums only
-    aliasIds = this.Identifiers;
-
     name =
-      document.getElementById(aliasIds.ID_CORV_INPUT_NAME).value;
+      document.getElementById(Identifiers.ID_CORV_INPUT_NAME).value;
     address =
-      document.getElementById(aliasIds.ID_CORV_INPUT_ADDRESS).value;
+      document.getElementById(Identifiers.ID_CORV_INPUT_ADDRESS).value;
     headerText = //innerText?
-      document.getElementById(aliasIds.ID_MODAL_HEADER_TITLE).textContent;
+      document.getElementById(Identifiers.ID_MODAL_HEADER_TITLE).textContent;
 
     // Either 'customer' or 'vendor'
     partyType = headerText.split(' ')[1];
@@ -2415,7 +2449,7 @@ const BookkeepingProjectModule = (function () {
 
     // Alphanumeric data only for username and password
     if (!this.isLegalInput(name) || !this.isLegalInput(address)) {
-      this.displayStatusNotice(false, this.Text.ERROR_ILLEGITIMATE_INPUT);
+      this.displayStatusNotice(false, Text.ERROR_ILLEGITIMATE_INPUT);
       return;
     }
 
@@ -2429,19 +2463,19 @@ const BookkeepingProjectModule = (function () {
 
       // If successful, no need to examine response further
       if (data.success) {
-        that.displayStatusNotice(true, that.Text.SUCCESS_CORV_SUBMIT);
+        that.displayStatusNotice(true, Text.SUCCESS_CORV_SUBMIT);
       } else {
 
         // Entry already exists
         if (data.duplicate) {
-          that.displayStatusNotice(false, that.Text.ERROR_CORV_DUPLICATE);
+          that.displayStatusNotice(false, Text.ERROR_CORV_DUPLICATE);
         } else {
-          that.displayStatusNotice(false, that.Text.ERROR_CORV_OTHERERROR);
+          that.displayStatusNotice(false, Text.ERROR_CORV_OTHERERROR);
         }
       }
     }, function (error) {
       console.warn(error);
-      that.displayStatusNotice(false, that.Text.ERROR_NETWORK);
+      that.displayStatusNotice(false, Text.ERROR_NETWORK);
     });
   };
 
@@ -2467,7 +2501,7 @@ const BookkeepingProjectModule = (function () {
       returnedData = JSON.parse(response);
 
       for (let i = 0; i < returnedData.data.length; i++) {
-        that.displayTableRow(returnedData.data[i], that.TableHeaders.LEDGER);
+        that.displayTableRow(returnedData.data[i], TableHeaders.LEDGER);
       }
     }, function (error) {
       console.warn(error);
@@ -2490,7 +2524,7 @@ const BookkeepingProjectModule = (function () {
     let checkedInputs, table, tbody;
 
     // Definitions
-    table = document.getElementById(this.Identifiers.ID_DASHBOARD_LEDGER_TABLE);
+    table = document.getElementById(Identifiers.ID_DASHBOARD_LEDGER_TABLE);
     tbody = table.querySelector("tbody");
     checkedInputs = document.querySelectorAll("input[type='checkbox']:checked");
 
@@ -2516,7 +2550,7 @@ const BookkeepingProjectModule = (function () {
     let userInterface;
 
     // Apply body identifier
-    document.body.setAttribute('id', this.Identifiers.ID_GENERAL_BODY);
+    document.body.setAttribute('id', Identifiers.ID_GENERAL_BODY);
 
     // Assemble the user interface dynamically
     userInterface = this.buildLoginInterface();
@@ -2525,11 +2559,11 @@ const BookkeepingProjectModule = (function () {
     document.body.appendChild(userInterface);
 
     // Fade in on the scene
-    this.fade('in', this.Identifiers.ID_LOGIN_CONTAINER);
+    this.fade('in', Identifiers.ID_LOGIN_CONTAINER);
 
     // Focus event on username textfield
-    this.focusOnLoad(`#${this.Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME}`,
-      this.Utility.CHECK_OPACITY_RATE);
+    this.focusOnLoad(`#${Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME}`,
+      Utility.CHECK_OPACITY_RATE);
   };
 
   // Public functions
@@ -2537,55 +2571,64 @@ const BookkeepingProjectModule = (function () {
   /**
    * @description External getter for immutable <code>Utility</code>
    *
-   * @returns {enum} inaccessible.Utility
+   * @returns {enum} Utility
    */
   accessible.getUtility = function () {
-    return inaccessible.Utility;
+    return Utility;
+  };
+
+  /**
+   * @description External getter for immutable <code>Scenes</code>
+   *
+   * @returns {enum} Utility
+   */
+  accessible.getScenes = function () {
+    return Scenes;
   };
 
   /**
    * @description External getter for immutable <code>Identifiers</code>
    *
-   * @returns {enum} inaccessible.Identifiers
+   * @returns {enum} Identifiers
    */
   accessible.getIdentifiers = function () {
-    return inaccessible.Identifiers;
+    return Identifiers;
   };
 
   /**
    * @description External getter for immutable <code>Text</code>
    *
-   * @returns {enum} inaccessible.Text
+   * @returns {enum} Text
    */
   accessible.getText = function () {
-    return inaccessible.Text;
+    return Text;
   };
 
   /**
    * @description External getter for immutable <code>Operations</code>
    *
-   * @returns {enum} inaccessible.Operations
+   * @returns {enum} Operations
    */
   accessible.getOperations = function () {
-    return inaccessible.Operations;
+    return Operations;
   };
 
   /**
    * @description External getter for immutable <code>ModalButtons</code>
    *
-   * @returns {enum} inaccessible.ModalButtons
+   * @returns {enum} ModalButtons
    */
   accessible.getModalButtons = function () {
-    return inaccessible.ModalButtons;
+    return ModalButtons;
   };
 
   /**
    * @description External getter for immutable <code>TableHeaders</code>
    *
-   * @returns {enum} inaccessible.TableHeaders
+   * @returns {enum} TableHeaders
    */
   accessible.getTableHeaders = function () {
-    return inaccessible.TableHeaders;
+    return TableHeaders;
   };
 
   /**
