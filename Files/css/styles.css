@@ -95,6 +95,20 @@
  #general-topbar-meta-subtitle {
      font-size: 10pt;
 }
+
+#general-status {
+  text-align: center;
+  font-size: 10pt;
+}
+
+.general-status-success {
+  color: green;
+}
+
+.general-status-failure {
+  color: red;
+}
+
  .general-topbar-div {
      float: left;
      width:50%;
@@ -261,19 +275,6 @@
 
 .modal-footer-buttons-button:hover {
   border-radius: 10px;
-}
-
-#modal-status {
-  text-align: center;
-  font-size: 10pt;
-}
-
-.modal-action-success {
-  color: green;
-}
-
-.modal-action-failure {
-  color: red;
 }
 
 .modal-section-textbox {
