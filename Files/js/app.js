@@ -2448,7 +2448,9 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description
+   * @description This presently noop'ed function will be used to toggle between
+   * the documents overview table and the general ledger table on the press of
+   * the appropriate sidebar button.
    *
    * @returns {void}
    */
