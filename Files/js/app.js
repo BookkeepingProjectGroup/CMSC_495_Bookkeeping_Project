@@ -346,6 +346,9 @@ const BookkeepingProjectModule = (function () {
     ERROR_CORV_DUPLICATE: 'An entry with that name or address already exists',
     ERROR_CORV_OTHERERROR: 'An error was encountered. Please try again',
     ERROR_DOCUMENT_PARTY_DISPLAY: 'Could not display extant $1',
+    ERROR_ACCOUNT_EXISTS: 'An account with this name already exists',
+    ERROR_ACCOUNT_OTHERERROR: 'An error was encountered. Please try again',
+    SUCCESS_ACCOUNT_CREATED: 'Account successfully created',
     SUCCESS_PASSWORD_RESET: 'Password successfully reset',
     SUCCESS_CORV_SUBMIT: 'New entry successfully added',
   });
@@ -2253,7 +2256,58 @@ const BookkeepingProjectModule = (function () {
    * @returns {void}
    */
   inaccessible.handleAccountCreation = function () {
-    window.alert('Insert account creation here');
+
+    // Declarations
+    let that, username, password, passwordReenter, data;
+
+    // Preserve scope
+    that = this;
+
+    // Get user input field values
+    username=
+      document.getElementById(Identifiers.ID_LOGIN_BODY_INPUT_USERNAME).value;
+    password =
+      document.getElementById(Identifiers.ID_LOGIN_BODY_INPUT_PASSWORD).value;
+    passwordReenter =
+      document.getElementById(Identifiers.ID_LOGIN_BODY_INPUT_REENTER).value;
+
+    // Alphanumeric data only
+    if (!this.isLegalInput(username) ||!this.isLegalInput(password) ||
+        !this.isLegalInput(passwordReenter)) {
+
+      this.displayStatusNotice(false, Text.ERROR_ILLEGITIMATE_INPUT);
+      return;
+    }
+
+    // Passwords must match
+    if (password !== passwordReenter) {
+      this.displayStatusNotice(false, Text.ERROR_MISMATCHING_PASSWORDS);
+      return;
+    }
+
+    // Send POST request
+    this.sendRequest('POST', 'php/create_account.php', {
+      username: username,
+      password: password,
+    }).then(function (response) {
+
+      // Parse the JSON response into a usable object
+      data = JSON.parse(response);
+      console.log(data);
+
+      if (data.success) {
+        that.displayStatusNotice(true, Text.SUCCESS_ACCOUNT_CREATED);
+      } else {
+        if (data.duplicate) {
+          that.displayStatusNotice(false, Text.ERROR_ACCOUNT_EXISTS);
+        } else {
+          that.displayStatusNotice(false, Text.ERROR_ACCOUNT_OTHERERROR);
+        }
+      }
+    }, function (error) {
+      console.warn(error);
+      that.displayStatusNotice(false, Text.ERROR_NETWORK);
+    });
   };
 
   /**
