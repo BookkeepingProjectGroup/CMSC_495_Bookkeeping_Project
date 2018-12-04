@@ -2296,7 +2296,7 @@ const BookkeepingProjectModule = (function () {
       console.log(data);
 
       if (data.success) {
-        that.displayStatusNotice(false, Text.SUCCESS_ACCOUNT_CREATED);
+        that.displayStatusNotice(true, Text.SUCCESS_ACCOUNT_CREATED);
       } else {
         if (data.duplicate) {
           that.displayStatusNotice(false, Text.ERROR_ACCOUNT_EXISTS);
