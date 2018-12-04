@@ -59,6 +59,7 @@
  *   - Text                     Line xxxx
  *   - Operations               Line xxxx
  *   - ModalButtons             Line xxxx
+ *   - ModuleButtons            Line xxxx
  *   - TableHeaders             Line xxxx
  * - Data arrays
  *   - ledgerHeaders            Line xxxx
@@ -140,10 +141,8 @@ const BookkeepingProjectModule = (function () {
    */
   const Scenes = Object.freeze({
     MODAL: 0,       // Modal framework
-    LOGIN: 1,       // Login module
-    CREATE: 2,      // Account creation module
-    LEDGER: 3,      // General ledger table
-    DOCUMENTS: 4,   // Document overview table
+    LOGIN: 1,       // Login module (Login + Create)
+    DASHBOARD: 2,   // Dashboard (Docs + Ledger)
   });
 
   /**
@@ -179,14 +178,20 @@ const BookkeepingProjectModule = (function () {
     ID_LOGIN_CONTAINER: 'login-container',
     ID_LOGIN_TOPBAR: 'login-topbar',
     ID_LOGIN_MAIN: 'login-main',
-    ID_LOGIN_MAIN_HEADER: 'login-main-header',
-    ID_LOGIN_MAIN_INPUT_HOLDER: 'login-main-input-holder',
-    ID_LOGIN_MAIN_INPUT_USERNAME: 'login-main-input-username',
-    ID_LOGIN_MAIN_INPUT_PASSWORD: 'login-main-input-password',
+    ID_LOGIN_CONTENT: 'login-content',
+    ID_LOGIN_BODY: 'login-body',
+    ID_LOGIN_BODY_HEADER: 'login-body-header',
+    ID_LOGIN_BODY_INPUT_HOLDER: 'login-body-input-holder',
+    ID_LOGIN_BODY_INPUT_USERNAME: 'login-body-input-username',
+    ID_LOGIN_BODY_INPUT_PASSWORD: 'login-body-input-password',
+    ID_LOGIN_BODY_INPUT_REENTER: 'login-body-input-reenter',
     ID_LOGIN_FOOTER: 'login-footer',
     ID_LOGIN_FOOTER_BUTTONS_HOLDER: 'login-footer-buttons-holder',
     ID_LOGIN_FOOTER_BUTTONS_CREATE: 'login-footer-buttons-create',
     ID_LOGIN_FOOTER_BUTTONS_SUBMIT: 'login-footer-buttons-submit',
+    ID_LOGIN_FOOTER_BUTTONS_NEW: 'login-footer-buttons-new',
+    ID_LOGIN_FOOTER_BUTTONS_BACK: 'login-footer-buttons-back',
+    ID_LOGIN_FOOTER_BUTTONS_CLEAR: 'login-footer-buttons-clear',
 
     // Main application dashboard
     ID_DASHBOARD_CONTAINER: 'dashboard-container',
@@ -203,6 +208,7 @@ const BookkeepingProjectModule = (function () {
     ID_DASHBOARD_SECTION: 'dashboard-section',
     ID_DASHBOARD_SIDEBAR: 'dashboard-sidebar',
     ID_DASHBOARD_SIDEBAR_BUTTONS: 'dashboard-sidebar-buttons',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_TOGGLE: 'dashboard-sidebar-buttons-toggle',
     ID_DASHBOARD_SIDEBAR_BUTTONS_CHANGEP: 'dashboard-sidebar-buttons-changep',
     ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT: 'dashboard-sidebar-buttons-document',
     ID_DASHBOARD_SIDEBAR_BUTTONS_CUSTOMER: 'dashboard-sidebar-buttons-customer',
@@ -253,7 +259,7 @@ const BookkeepingProjectModule = (function () {
 
     // Assorted login scene classes
     CLASS_LOGIN_GENERAL_EXTRA_PADDING: 'login-general-title-extra-padding',
-    CLASS_LOGIN_MAIN_INPUT_TEXTBOX: 'login-main-input-textbox',
+    CLASS_LOGIN_BODY_INPUT_TEXTBOX: 'login-body-input-textbox',
 
     // Dashboard classes
     CLASS_DASHBOARD_SIDEBAR_BUTTONS_HOLDER: 'dashboard-sidebar-buttons-holder',
@@ -296,8 +302,9 @@ const BookkeepingProjectModule = (function () {
   const Text = Object.freeze({
 
     // Input textfield specific text
-    INPUT_LOGIN_MAIN_USERNAME_PLACEHOLDER: 'Username',
-    INPUT_LOGIN_MAIN_PASSWORD_PLACEHOLDER: 'Password',
+    INPUT_LOGIN_BODY_USERNAME_PLACEHOLDER: 'Username',
+    INPUT_LOGIN_BODY_PASSWORD_PLACEHOLDER: 'Password',
+    INPUT_LOGIN_BODY_REENTER_PLACEHOLDER: 'Reenter password',
     INPUT_CHANGEP_PASSWORD_PLACEHOLDER: 'Enter new password',
     INPUT_CHANGEP_REENTER_PLACEHOLDER: 'Confirm password',
     INPUT_CORV_NAME_PLACEHOLDER: 'Name',
@@ -313,10 +320,14 @@ const BookkeepingProjectModule = (function () {
     BUTTON_MODAL_FOOTER_SUBMIT: 'Submit',
     BUTTON_MODAL_FOOTER_CLEAR: 'Clear',
     BUTTON_MODAL_FOOTER_CLOSE: 'Close',
+    BUTTON_LOGIN_FOOTER_NEW: 'Submit details',
+    BUTTON_LOGIN_FOOTER_BACK: 'Back',
+    BUTTON_LOGIN_FOOTER_CLEAR: 'Clear',
 
     // Paragraphs, div content, etc.
-    DIV_LOGIN_MAIN_HEADER: 'Login or create account',
+    DIV_LOGIN_BODY_HEADER: 'Login or create account',
     DIV_DASHBOARD_TOPBAR_NAVLINKS_WELCOME: 'Welcome user!',
+    DIV_GENERAL_TOGGLE: 'Toggle views',
     DIV_GENERAL_ADD: 'Add $1',
     DIV_GENERAL_CHANGEP: 'Change password',
     DIV_GENERAL_DELETE_ROW: 'Delete ledger entry',
@@ -461,6 +472,66 @@ const BookkeepingProjectModule = (function () {
   });
 
   /**
+   * @description This enum stores button config objects used to construct the
+   * login module's footer buttons as needed. Since the login scene handles both
+   * account login and new account creation responsibilities, buttons related to
+   * submission of new account data, navigation between mini-module scenes, and
+   * logging into extant accounts are included herein.
+   *
+   * @readonly
+   * @enum {object}
+   * @const
+   */
+  const ModuleButtons = Object.freeze({
+    CREATE_ACCOUNT: { // Login scene
+      buttonType: Text.BUTTON_LOGIN_FOOTER_CREATE,
+      functionName: 'handleLoginSceneChanges',
+      functionArguments: [
+        'buildAccountCreationContent',
+        ['BACK', 'NEW_ACCOUNT'],
+      ],
+      requiresWrapper: false,
+      elementId: Identifiers.ID_LOGIN_FOOTER_BUTTONS_CREATE,
+      elementClasses: [
+        Identifiers.CLASS_GENERAL_BIG_BUTTON,
+      ],
+    },
+    LOGIN: { // Login scene
+      buttonType: Text.BUTTON_LOGIN_FOOTER_SUBMIT,
+      functionName: 'handleLogin',
+      functionArguments: [],
+      requiresWrapper: false,
+      elementId: Identifiers.ID_LOGIN_FOOTER_BUTTONS_SUBMIT,
+      elementClasses: [
+        Identifiers.CLASS_GENERAL_BIG_BUTTON,
+      ],
+    },
+    NEW_ACCOUNT: { // Create account scene
+      buttonType: Text.BUTTON_LOGIN_FOOTER_NEW,
+      functionName: 'handleAccountCreation',
+      functionArguments: [],
+      requiresWrapper: false,
+      elementId: Identifiers.ID_LOGIN_FOOTER_BUTTONS_NEW,
+      elementClasses: [
+        Identifiers.CLASS_GENERAL_BIG_BUTTON,
+      ],
+    },
+    BACK: { // Create account scene
+      buttonType: Text.BUTTON_LOGIN_FOOTER_BACK,
+      functionName: 'handleLoginSceneChanges',
+      functionArguments: [
+        'buildLoginContent',
+        ['CREATE_ACCOUNT', 'LOGIN'],
+      ],
+      requiresWrapper: false,
+      elementId: Identifiers.ID_LOGIN_FOOTER_BUTTONS_BACK,
+      elementClasses: [
+        Identifiers.CLASS_GENERAL_BIG_BUTTON,
+      ],
+    },
+  });
+
+  /**
    * @description This enum of string arrays is used to store the names of the
    * two tables' headers. These headers are related to the general ledger (used
    * to display all the individual transactions that make up a document) and the
@@ -531,6 +602,19 @@ const BookkeepingProjectModule = (function () {
    * function, among other such properties.
    */
   inaccessible.sidebarButtonData = [
+    {
+      buttonType: Text.DIV_GENERAL_TOGGLE,
+      functionName: 'handleDashboardViewsToggle',
+      functionArguments: [],
+      requiresWrapper: true,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_TOGGLE,
+      elementClasses: [
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+
     {
       buttonType: Text.DIV_GENERAL_CHANGEP,
       functionName: 'displayModal',
@@ -969,6 +1053,9 @@ const BookkeepingProjectModule = (function () {
     // Grab DOM element from id
     container = document.getElementById(paramElementId);
 
+    // Set default opacity here rather than in config objects
+    container.style.opacity = (paramFadeType === 'out') ? 1.005 : 0;
+
     // Removes need for separate functions
     fadeTypeParameters = Object.freeze({
       'in': {
@@ -1078,23 +1165,27 @@ const BookkeepingProjectModule = (function () {
    * session cookie, though since the interfaces are not overly complex, it
    * may be fine has it is. We'll have to see how things work out.
    *
+   * @param {boolean} paramCanSwipeRight Use <code>swipeRight()</code>
    * @param {string} paramElementId Present container id
-   * @param {string} paramBuilderFunctionName Builder name
-   * @param {string} paramOpacityElementId Future container id
-   * @returns {boolean}
+   * @param {string} paramBuilderName Builder name
+   * @param {!Array<object>=} paramBuilderArgs Function arguments
+   * @returns {void}
    */
-  inaccessible.tinderize = function (paramElementId,
-      paramBuilderFunctionName, paramOpacityElementId) {
+  inaccessible.tinderize = function (paramCanSwipeRight, paramElementId,
+      paramBuilderName, paramBuilderArgs = []) {
 
     // Declaration
-    let that, interval, container;
+    let that, interval, container, parent;
 
     // Definitions
     that = this;
     container = document.getElementById(paramElementId);
+    parent = container.parentNode;
 
     // Move scene to the right and fade out prior to removing children from DOM
-    this.swipeRight(paramElementId);
+    if (paramCanSwipeRight) {
+      this.swipeRight(paramElementId);
+    }
     this.fade('out', paramElementId);
 
     // Maybe reconfigure using a promise as per the api method above?
@@ -1103,12 +1194,14 @@ const BookkeepingProjectModule = (function () {
         clearInterval(interval);
 
         // Remove outdated DOM elements
-        that.emptyElementOfContent(Identifiers.ID_GENERAL_BODY);
+        that.emptyElementOfContent(parent.id);
 
-        // Build new page and fade in on the scene
-        document.body.appendChild(that[paramBuilderFunctionName]());
-        that.fade('in', paramOpacityElementId);
-        return true;
+        // Build new content
+        parent.appendChild(that[paramBuilderName](...paramBuilderArgs));
+
+        // Fade in on the scene
+        that.fade('in', parent.id);
+        return;
       }
     }, Utility.CHECK_OPACITY_RATE);
   };
@@ -1266,23 +1359,28 @@ const BookkeepingProjectModule = (function () {
    * replaced with a better method; this is a bit janked at the moment, but it's
    * good enough for a v.1 build.
    *
-   * @param {object} paramConfig Config object for the <code>table</code> itself
    * @returns {HTMLElement} ledger The formed ledger DOM element
    */
-  inaccessible.assembleLedger = function (paramConfig) {
+  inaccessible.assembleLedger = function () {
 
     // Declaration
-    let ledger, thead, tbody, newRow, newCell, configRowHeader, ledgerHeaders;
+    let ledger, thead, tbody, newRow, newCell, configRowHeader, configTable,
+      ledgerHeaders;
 
     // Grab string headers from enum
     ledgerHeaders = TableHeaders.LEDGER;
+
+    configTable = {
+      id: Identifiers.ID_DASHBOARD_LEDGER_TABLE,
+      style: 'table-layout: fixed;',
+    };
 
     configRowHeader = {
       class: Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_HEADER,
     };
 
     // Create ledger table
-    ledger = this.assembleElement(['table', paramConfig]);
+    ledger = this.assembleElement(['table', configTable]);
 
     // Create a thead and tbody for row differentiation
     thead = ledger.createTHead();
@@ -1330,34 +1428,30 @@ const BookkeepingProjectModule = (function () {
   // Builder functions
 
   /**
-   * @description This function makes significant use of the DOM element builder
-   * <code>inaccessible.assembleElement</code>'s recursive functionality to
-   * construct many levels of nested elements. This function mainly just fills
-   * the otherwise empty <code>body</code> tag with a container wrapper
-   * <code>div</code>, a set of sidebar containers for checkboxes and buttons,
-   * and a <code>div</code> wrapper for the central ledger element itself. It is
-   * to these DOM nodes that the rest of the elements are assembled dynamically
-   * and added to the wrapper.
-   * <br />
-   * <br />
-   * This particular builder is responsible for constructing the login page
-   * scene, viewable on app load or account logout.
+   * @description Replacing the previous
+   * <code>inaccessible.buildLoginInterface</code> implementation, this function
+   * and its pair of related inner content builders are responsible for the
+   * construction of the login module interface, used to both login to an extant
+   * account and to create a new account. This new implementation makes use of
+   * the <code>inaccessible.tinderize</code> helper function to fade in and out
+   * of the main body section of the module rather than replace the entire
+   * scene with a new scene every time the user moves between the login module
+   * and the create account module. This ensures that the module header does not
+   * have to be removed and recreated every time.
    *
-   * @returns {HTMLElement} The constructed page scene
+   * @param {HTMLElement} paramContent
+   * @returns {HTMLElement}
    */
-  inaccessible.buildLoginInterface = function () {
+  inaccessible.buildLoginModule = function (paramContent) {
 
     // Declarations
     let configContainer, configTopbar, configTopbarHolder, configTopbarTitle,
-      configTopbarSubtitle, configMain, configMainHeader, configMainLoginHolder,
-      configMainLoginUsername, configMainLoginPassword, configFooter,
-      configButtonsHolder, configButtonsCreate, configButtonsSubmit;
+      configTopbarSubtitle, configMain;
 
     configContainer = {
       id: Identifiers.ID_LOGIN_CONTAINER,
       class: Identifiers.CLASS_GENERAL_MAJOR_SECTION + ' ' +
         Identifiers.CLASS_GENERAL_CONTAINER,
-      style: 'opacity: 0',
     };
 
     configTopbar = {
@@ -1384,61 +1478,6 @@ const BookkeepingProjectModule = (function () {
       id: Identifiers.ID_LOGIN_MAIN,
     };
 
-    configMainHeader = {
-      id: Identifiers.ID_LOGIN_MAIN_HEADER,
-      class: Identifiers.CLASS_LOGIN_GENERAL_EXTRA_PADDING + ' ' +
-        Identifiers.CLASS_GENERAL_OPENSANS,
-    };
-
-    configMainLoginHolder = {
-      id: Identifiers.ID_LOGIN_MAIN_INPUT_HOLDER,
-    };
-
-    configMainLoginUsername = {
-      id: Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME,
-      class: Identifiers.CLASS_LOGIN_MAIN_INPUT_TEXTBOX,
-      placeholder: Text.INPUT_LOGIN_MAIN_USERNAME_PLACEHOLDER,
-      type: 'text',
-    };
-
-    configMainLoginPassword = {
-      id: Identifiers.ID_LOGIN_MAIN_INPUT_PASSWORD,
-      class: Identifiers.CLASS_LOGIN_MAIN_INPUT_TEXTBOX,
-      placeholder: Text.INPUT_LOGIN_MAIN_PASSWORD_PLACEHOLDER,
-      type: 'password',
-    };
-
-    configFooter = {
-      id: Identifiers.ID_LOGIN_FOOTER,
-    };
-
-    configButtonsHolder = {
-      id: Identifiers.ID_LOGIN_FOOTER_BUTTONS_HOLDER,
-      class: Identifiers.CLASS_GENERAL_FLEX_JUSTIFY,
-    };
-
-    configButtonsCreate = {
-      buttonType: Text.BUTTON_LOGIN_FOOTER_CREATE,
-      functionName: 'handleAccountCreation',
-      functionArguments: [],
-      requiresWrapper: false,
-      elementId: Identifiers.ID_LOGIN_FOOTER_BUTTONS_CREATE,
-      elementClasses: [
-        Identifiers.CLASS_GENERAL_BIG_BUTTON,
-      ],
-    };
-
-    configButtonsSubmit = {
-      buttonType: Text.BUTTON_LOGIN_FOOTER_SUBMIT,
-      functionName: 'handleLogin',
-      functionArguments: [],
-      requiresWrapper: false,
-      elementId: Identifiers.ID_LOGIN_FOOTER_BUTTONS_SUBMIT,
-      elementClasses: [
-        Identifiers.CLASS_GENERAL_BIG_BUTTON,
-      ],
-    };
-
     this.scene = Scenes.LOGIN;
 
     return this.assembleElement(
@@ -1454,19 +1493,166 @@ const BookkeepingProjectModule = (function () {
           ],
         ],
         ['main', configMain,
-          ['div', configMainHeader,
-            Text.DIV_LOGIN_MAIN_HEADER,
-          ],
-          ['form', configMainLoginHolder,
-            ['input', configMainLoginUsername],
-            ['input', configMainLoginPassword],
-          ]
+          paramContent
         ],
-        ['footer', configFooter,
-          ['div', configButtonsHolder,
-            this.assembleButtonElement(configButtonsCreate),
-            this.assembleButtonElement(configButtonsSubmit),
+      ],
+    );
+  };
+
+  /**
+   * @description This builder function returns the prebuilt HTML framework for
+   * the login module body. This framework is related to the logging into an
+   * existing account, and thus contains fields for username and password as
+   * well as buttons for submission of data and an "account creation" button for
+   * new users.
+   *
+   * @param {!Array<object>} paramButtons Array of <code>ModuleButtons</code>
+   * @returns {HTMLElement}
+   */
+  inaccessible.buildLoginContent = function (paramButtons) {
+
+    let configContent, configBody, configBodyHeader, configBodyLoginHolder,
+      configBodyLoginUsername, configBodyLoginPassword, configFooter,
+      configButtonsHolder;
+
+    configContent = {
+      id: Identifiers.ID_LOGIN_CONTENT,
+    };
+
+    configBody = {
+      id: Identifiers.ID_LOGIN_BODY,
+    };
+
+    configBodyHeader = {
+      id: Identifiers.ID_LOGIN_BODY_HEADER,
+      class: Identifiers.CLASS_LOGIN_GENERAL_EXTRA_PADDING + ' ' +
+        Identifiers.CLASS_GENERAL_OPENSANS,
+    };
+
+    configBodyLoginHolder = {
+      id: Identifiers.ID_LOGIN_BODY_INPUT_HOLDER,
+    };
+
+    configBodyLoginUsername = {
+      id: Identifiers.ID_LOGIN_BODY_INPUT_USERNAME,
+      class: Identifiers.CLASS_LOGIN_BODY_INPUT_TEXTBOX,
+      placeholder: Text.INPUT_LOGIN_BODY_USERNAME_PLACEHOLDER,
+      type: 'text',
+    };
+
+    configBodyLoginPassword = {
+      id: Identifiers.ID_LOGIN_BODY_INPUT_PASSWORD,
+      class: Identifiers.CLASS_LOGIN_BODY_INPUT_TEXTBOX,
+      placeholder: Text.INPUT_LOGIN_BODY_PASSWORD_PLACEHOLDER,
+      type: 'password',
+    };
+
+    configFooter = {
+      id: Identifiers.ID_LOGIN_FOOTER,
+    };
+
+    configButtonsHolder = {
+      id: Identifiers.ID_LOGIN_FOOTER_BUTTONS_HOLDER,
+      class: Identifiers.CLASS_GENERAL_FLEX_JUSTIFY,
+    };
+
+    return this.assembleElement(
+      ['article', configContent,
+        ['section', configBody,
+          ['div', configBodyHeader,
+            Text.DIV_LOGIN_BODY_HEADER,
           ],
+          ['form', configBodyLoginHolder,
+            ['input', configBodyLoginUsername],
+            ['input', configBodyLoginPassword],
+          ],
+        ],
+        ['section', configFooter,
+          this.buildButtonsListing(configButtonsHolder, paramButtons),
+        ],
+      ],
+    );
+  };
+
+  /**
+   * @description Like that above it, this function returns an HTML framework
+   * for the login module interface, though this function's HTML is related to
+   * the creation of a new account and is added to the module on presses of the
+   * "Create account" button. As such, its content contains fields for the input
+   * of new usernames and passwords as well as <code>ModuleButtons</code> for
+   * returning to the login module and submitting new account data.
+   *
+   * @param {!Array<object>} paramButtons Array of <code>ModuleButtons</code>
+   * @returns {HTMLElement}
+   */
+  inaccessible.buildAccountCreationContent = function (paramButtons) {
+
+    let configContent, configBody, configBodyHeader, configBodyLoginHolder,
+      configBodyLoginUsername, configBodyLoginPassword, configBodyLoginReenter,
+      configFooter, configButtonsHolder;
+
+    configContent = {
+      id: Identifiers.ID_LOGIN_CONTENT,
+    };
+
+    configBody = {
+      id: Identifiers.ID_LOGIN_BODY,
+    };
+
+    configBodyHeader = {
+      id: Identifiers.ID_LOGIN_BODY_HEADER,
+      class: Identifiers.CLASS_LOGIN_GENERAL_EXTRA_PADDING + ' ' +
+        Identifiers.CLASS_GENERAL_OPENSANS,
+    };
+
+    configBodyLoginHolder = {
+      id: Identifiers.ID_LOGIN_BODY_INPUT_HOLDER,
+    };
+
+    configBodyLoginUsername = {
+      id: Identifiers.ID_LOGIN_BODY_INPUT_USERNAME,
+      class: Identifiers.CLASS_LOGIN_BODY_INPUT_TEXTBOX,
+      placeholder: Text.INPUT_LOGIN_BODY_USERNAME_PLACEHOLDER,
+      type: 'text',
+    };
+
+    configBodyLoginPassword = {
+      id: Identifiers.ID_LOGIN_BODY_INPUT_PASSWORD,
+      class: Identifiers.CLASS_LOGIN_BODY_INPUT_TEXTBOX,
+      placeholder: Text.INPUT_LOGIN_BODY_PASSWORD_PLACEHOLDER,
+      type: 'password',
+    };
+
+    configBodyLoginReenter = {
+      id: Identifiers.ID_LOGIN_BODY_INPUT_REENTER,
+      class: Identifiers.CLASS_LOGIN_BODY_INPUT_TEXTBOX,
+      placeholder: Text.INPUT_LOGIN_BODY_REENTER_PLACEHOLDER,
+      type: 'password',
+    };
+
+    configFooter = {
+      id: Identifiers.ID_LOGIN_FOOTER,
+    };
+
+    configButtonsHolder = {
+      id: Identifiers.ID_LOGIN_FOOTER_BUTTONS_HOLDER,
+      class: Identifiers.CLASS_GENERAL_FLEX_JUSTIFY,
+    };
+
+    return this.assembleElement(
+      ['article', configContent,
+        ['section', configBody,
+          ['div', configBodyHeader,
+            Text.DIV_LOGIN_BODY_HEADER,
+          ],
+          ['form', configBodyLoginHolder,
+            ['input', configBodyLoginUsername],
+            ['input', configBodyLoginPassword],
+            ['input', configBodyLoginReenter],
+          ],
+        ],
+        ['section', configFooter,
+          this.buildButtonsListing(configButtonsHolder, paramButtons),
         ],
       ],
     );
@@ -1500,7 +1686,6 @@ const BookkeepingProjectModule = (function () {
       id: Identifiers.ID_DASHBOARD_CONTAINER,
       class: Identifiers.CLASS_GENERAL_MAJOR_SECTION + ' ' +
         Identifiers.CLASS_GENERAL_CONTAINER,
-      style: 'opacity: 0',
     };
 
     configTopbar = {
@@ -1551,12 +1736,7 @@ const BookkeepingProjectModule = (function () {
       class: Identifiers.CLASS_GENERAL_MAJOR_SECTION,
     };
 
-    configLedgerTable = {
-      id: Identifiers.ID_DASHBOARD_LEDGER_TABLE,
-      style: 'table-layout: fixed;',
-    };
-
-    this.scene = Scenes.LEDGER;
+    this.scene = Scenes.DASHBOARD;
 
     // Return assembled interface
     return this.assembleElement(
@@ -1581,7 +1761,7 @@ const BookkeepingProjectModule = (function () {
               this.sidebarButtonData),
           ],
           ['main', configLedger,
-            this.assembleLedger(configLedgerTable),
+            this.assembleLedger(),
           ],
         ],
       ],
@@ -1606,7 +1786,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.buildModal = function (paramTitle, paramContent, paramButtons) {
 
     // Declarations
-    let that, builtButtons, button, configBlackout, configModal, configHeader,
+    let that, button, configBlackout, configModal, configHeader,
       configHeaderTitle, configSection, configFooter, configFooterButtons;
 
     // Preserve scope
@@ -1651,19 +1831,6 @@ const BookkeepingProjectModule = (function () {
       id: Identifiers.ID_MODAL_FOOTER_BUTTONS,
     };
 
-    // Build holder
-    builtButtons= this.assembleElement('div', configFooterButtons);
-
-    // Build button config into actual buttons
-    paramButtons.forEach(function (buttonObject) {
-
-      // Build new button HTMLElement
-      button = that.assembleButtonElement(buttonObject);
-
-      // Push completed button to the array in question
-      builtButtons.appendChild(button);
-    });
-
     this.scene = Scenes.MODAL;
 
     // Return assembled interface
@@ -1679,7 +1846,7 @@ const BookkeepingProjectModule = (function () {
             paramContent,
           ],
           ['footer', configFooter,
-            builtButtons,
+            this.buildButtonsListing(configFooterButtons, paramButtons),
           ],
         ],
       ],
@@ -2064,11 +2231,9 @@ const BookkeepingProjectModule = (function () {
         location = Identifiers.ID_MODAL_SECTION;
         break;
       case 1: // LOGIN
-        location = Identifiers.ID_LOGIN_MAIN_INPUT_HOLDER;
+        location = Identifiers.ID_LOGIN_BODY_INPUT_HOLDER;
         break;
-      case 2: // CREATE
-      case 3: // LEDGER
-      case 4: // DOCUMENTS
+      case 2: // DASHBOARD
       default:
         location = Identifiers.ID_MODAL_SECTION;
         break;
@@ -2089,6 +2254,34 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.handleAccountCreation = function () {
     window.alert('Insert account creation here');
+  };
+
+  /**
+   * @description This handler is for presses of the "Create account" and "Back"
+   * buttons in the login module. The handler works by accepting a builder
+   * function name and an array of strings representing
+   * <code>ModuleButtons</code> to include in the module footer. Using these, a
+   * new body content framework is constructed, disguised by way of fade-ins and
+   * fade-outs.
+   *
+   * @param {string} paramBuilder
+   * @param {!Array<string>} paramButtons
+   * @returns {void}
+   */
+  inaccessible.handleLoginSceneChanges = function (paramBuilder, paramButtons) {
+
+    // Declaration
+    let buttonsArray;
+
+    // Definition
+    buttonsArray = [];
+
+    paramButtons.forEach(function (buttonString) {
+      buttonsArray.push(ModuleButtons[buttonString]);
+    });
+
+    this.tinderize(false, Identifiers.ID_LOGIN_CONTENT, paramBuilder,
+      [buttonsArray]);
   };
 
   /**
@@ -2113,9 +2306,9 @@ const BookkeepingProjectModule = (function () {
 
     // Get user input field values
     username =
-      document.getElementById(Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME).value;
+      document.getElementById(Identifiers.ID_LOGIN_BODY_INPUT_USERNAME).value;
     password =
-      document.getElementById(Identifiers.ID_LOGIN_MAIN_INPUT_PASSWORD).value;
+      document.getElementById(Identifiers.ID_LOGIN_BODY_INPUT_PASSWORD).value;
 
     // Alphanumeric data only for username and password
     if (!this.isLegalInput(username) || !this.isLegalInput(password)) {
@@ -2137,8 +2330,8 @@ const BookkeepingProjectModule = (function () {
 
         /* UNCOMMENT ONCE ACCOUNT CREATION IS ENABLED
         // Fade out and remove content prior to rebuilding of main interface
-        that.tinderize(Identifiers.ID_LOGIN_CONTAINER,
-          'buildUserInterface', Identifiers.ID_DASHBOARD_CONTAINER);
+        that.tinderize(true, Identifiers.ID_LOGIN_CONTAINER,
+          'buildUserInterface');
         */
       } else {
         console.warn('DISPLAY ERROR MESSAGE IN SCENE');
@@ -2149,8 +2342,7 @@ const BookkeepingProjectModule = (function () {
     });
 
     // Fade out and remove content prior to rebuilding of main interface
-    this.tinderize(Identifiers.ID_LOGIN_CONTAINER, 'buildUserInterface',
-      Identifiers.ID_DASHBOARD_CONTAINER);
+    this.tinderize(true, Identifiers.ID_LOGIN_CONTAINER, 'buildUserInterface');
   };
 
   /**
@@ -2162,10 +2354,11 @@ const BookkeepingProjectModule = (function () {
    * @returns {void}
    */
   inaccessible.handleLogout = function () {
-    this.tinderize(Identifiers.ID_DASHBOARD_CONTAINER,
-      'buildLoginInterface', Identifiers.ID_LOGIN_CONTAINER);
+    this.tinderize(true, Identifiers.ID_DASHBOARD_CONTAINER,
+      'buildLoginModule', [this.buildLoginContent(
+      [ModuleButtons.CREATE_ACCOUNT, ModuleButtons.LOGIN])]);
 
-    this.focusOnLoad(`#${Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME}`,
+    this.focusOnLoad(`#${Identifiers.ID_LOGIN_BODY_INPUT_USERNAME}`,
       Utility.CHECK_OPACITY_RATE);
   };
 
@@ -2252,6 +2445,15 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.handlePagePrinting = function () {
     window.print();
+  };
+
+  /**
+   * @description
+   *
+   * @returns {void}
+   */
+  inaccessible.handleDashboardViewsToggle = function () {
+    this.tinderize(false, 'dashboard-ledger-table', 'assembleLedger');
   };
 
   /**
@@ -2553,7 +2755,8 @@ const BookkeepingProjectModule = (function () {
     document.body.setAttribute('id', Identifiers.ID_GENERAL_BODY);
 
     // Assemble the user interface dynamically
-    userInterface = this.buildLoginInterface();
+    userInterface = this.buildLoginModule(this.buildLoginContent(
+      [ModuleButtons.CREATE_ACCOUNT, ModuleButtons.LOGIN]));
 
     // Populate DOM body with assembled interface
     document.body.appendChild(userInterface);
@@ -2562,7 +2765,7 @@ const BookkeepingProjectModule = (function () {
     this.fade('in', Identifiers.ID_LOGIN_CONTAINER);
 
     // Focus event on username textfield
-    this.focusOnLoad(`#${Identifiers.ID_LOGIN_MAIN_INPUT_USERNAME}`,
+    this.focusOnLoad(`#${Identifiers.ID_LOGIN_BODY_INPUT_USERNAME}`,
       Utility.CHECK_OPACITY_RATE);
   };
 
@@ -2620,6 +2823,15 @@ const BookkeepingProjectModule = (function () {
    */
   accessible.getModalButtons = function () {
     return ModalButtons;
+  };
+
+  /**
+   * @description External getter for immutable <code>ModuleButtons</code>
+   *
+   * @returns {enum} ModalButtons
+   */
+  accessible.getModuleButtons = function () {
+    return ModuleButtons;
   };
 
   /**
