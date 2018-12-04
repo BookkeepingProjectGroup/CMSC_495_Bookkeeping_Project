@@ -180,16 +180,16 @@
      text-align: center;
 
 }
- #login-main-header {
+ #login-body-header {
      text-align: center;
 
      font-size: large;
 }
- #login-main-input-holder {
+ #login-body-input-holder {
      text-align: center;
      margin: 15px 15px 15px;
 }
- .login-main-input-textbox {
+ .login-body-input-textbox {
      width: 90%;
      margin: 10px 10px;
      padding: 10px;
