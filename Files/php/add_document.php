@@ -26,7 +26,7 @@
  *         "code": "2400",
  *         "date": "2018-01-01",
  *         "credit": "1000.00",
- *         "description": "Loan
+ *         "description": "Loan"
  *     }
  * ]
  *
@@ -55,7 +55,7 @@ try {
             || (!array_key_exists('type', $_POST))
             || (!array_key_exists('generalLedgerRows', $_POST)))
         throw new Exception(
-            'No new document name, type and/or general legder rows given.');
+            'No new document name, type and/or general ledger rows given.');
 
     // Decode the JSON-encoded POST parameter "generalLedgerRows", capturing
     // objects as associative arrays.
