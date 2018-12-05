@@ -13,34 +13,31 @@
          height: auto;
          border-radius: unset;
     }
-
-/* wrap buttons*/
-    #dashboard-sidebar-buttons{
-      display:flex;
-      flex-wrap:wrap;
+    /* wrap buttons*/
+     #dashboard-sidebar-buttons{
+         display:flex;
+         flex-wrap:wrap;
     }
-
-#dashboard-sidebar{
-  margin-top: 10px;
-}
-    #application-body{
-      margin:0;
-      background-image: none;
-      font-size: x-small;
+     #dashboard-sidebar{
+         margin-top: 10px;
+    }
+     #application-body{
+         margin:0;
+         background-image: none;
+         font-size: x-small;
     }
      .general-topbar-div {
          width:100%;
+    }
+     #dashboard-ledger{
+         max-height: 500px
     }
     /* Remove Title*/
      #dashboard-topbar-meta{
          display:none;
     }
-    /* Reorder page with links on bottom & button selections on top*/
-     #dashboard-container > #dashboard-section{
-         order:1;
-    }
-     #dashboard-container > #dashboard-topbar {
-         order:2;
+    /* Reorder page */
+     #dashboard-topbar {
          text-align: center;
     }
      #dashboard-topbar-navlinks-holder{
@@ -56,7 +53,6 @@
          order:1;
          border-right:none;
          width: auto;
-
     }
      #dashboard-section.general-flex-justify > #dashboard-ledger {
          order:2;
@@ -98,7 +94,6 @@
         /* Now like a table header */
          position: absolute;
         /* Top/left values mimic padding */
-
          left: 6px;
          width: 45%;
          padding-right: 10px;
@@ -161,24 +156,21 @@
          box-shadow: unset;
          height:auto;
     }
-
-    #application-body{
-      margin:0;
-      background-image: none;
-      font-size: x-small;
+     #application-body{
+         margin:0;
+         background-image: none;
+         font-size: x-small;
     }
     /* Remove Title*/
      #dashboard-topbar-meta{
          display:none;
     }
-
-    #dashboard-sidebar-buttons{
-      display:flex;
-      flex-wrap:wrap;
+     #dashboard-sidebar-buttons{
+         display:flex;
+         flex-wrap:wrap;
     }
-
-    #dashboard-sidebar{
-      margin-top: 10px;
+     #dashboard-sidebar{
+         margin-top: 10px;
     }
     /* Reorder page with links on bottom & button selections on top*/
      #dashboard-container > #dashboard-section{
@@ -225,15 +217,14 @@
     }
 }
  @media only screen and (min-width: 576px) and (max-width:767px) {
-   #application-body{
-     margin:0;
-     background-image: none;
-     font-size: small;
-   }
-
-   .general-container{
-     margin-top:0;
-   }
+     #application-body{
+         margin:0;
+         background-image: none;
+         font-size: small;
+    }
+     .general-container{
+         margin-top:0;
+    }
      #dashboard-container {
          width: 750px;
     }
@@ -245,13 +236,10 @@
     }
 }
  @media only screen and (min-width: 768px) and (max-width: 990px) {
-   #application-body{
-     margin:0;
-     background-image: none;
-
-   }
-
-
+     #application-body{
+         margin:0;
+         background-image: none;
+    }
      #dashboard-container {
          width: 750px;
     }
@@ -266,79 +254,80 @@
      #dashboard-container {
          width: 950px;
     }
-    #application-body{
-      margin:0;
-      background-image: none;
+     #application-body{
+         margin:0;
+         background-image: none;
     }
-
 }
  @media only screen and (min-width: 1199px) {
      #dashboard-container {
          width: 1170px;
     }
 }
-
-
 /*Print Ledger Table only*/
-@media print {
-
-  /* Remove sidebar, navlinks, subitle*/
-  #dashboard-sidebar, #general-topbar-meta-subtitle, #dashboard-topbar-navlinks{
-    display:none;
-  }
-
-/*center title*/
-  .general-topbar-div{
-    width:100%;
-    text-align:center;
-  }
-
-#application-body{
-  color: black;
-  background: white;
-  width:100%;
-  margin:0;
-  padding:0;
-}
-
-/*set page size to A4 & landsacpe orientation*/
-@page{
-  size:A4 landscape;
-  margin: 2cm;
-}
-
-/*remove scroll so table can print full size*/
-#dashboard-ledger{
-  height:auto;
-  overflow: visible;
-
-}
-
-
-  #dashboard-ledger-table tr:nth-child(odd){
-    background-color: white;
-  }
-  #dashboard-ledger-table tr:nth-child(even){
-    background-color: lightgray;
-  }
-
-  table,  td{
-    border-collapse: collapse;
-    border:1px solid black;
-    font-size: 10pt;
-    page-break-inside: auto;
-  }
-
-  tr{
-    page-break-inside: avoid;
-    page-break-after: auto;
-  }
-
-th{
-  text-align: center;
-}
-
-/*remove delete column*/
-td:first-child{
-  display:none;
+ @media print {
+    /* Remove sidebar, navlinks, subitle*/
+     #dashboard-sidebar, #general-topbar-meta-subtitle, #dashboard-topbar-navlinks{
+         display:none;
+    }
+    /*center title*/
+     .general-topbar-div{
+         width:100%;
+         text-align:center;
+    }
+     #application-body{
+         color: black;
+         background: white;
+         width:100%;
+         margin:0;
+         padding:0;
+    }
+    /*remove container outlines & effects */
+     .general-container{
+         box-shadow: unset;
+         border:unset;
+    }
+     #dashboard-topbar{
+         border-bottom:unset;
+    }
+     #general-topbar-meta-title{
+         text-shadow: unset;
+    }
+    /*set page size to A4 & landsacpe orientation*/
+     @page{
+         size:A4 landscape;
+         margin: 2cm;
+    }
+    /*remove scroll so table can print full size*/
+     #dashboard-ledger{
+         height:auto;
+         overflow: visible;
+    }
+    /*set table row colors */
+     #dashboard-ledger-table thead{
+         background-color: gray;
+    }
+     #dashboard-ledger-table tbody tr:nth-child(odd){
+         background-color: white;
+    }
+     #dashboard-ledger-table tbody tr:nth-child(even){
+         background-color: lightgray;
+    }
+     table, td{
+         border-collapse: collapse;
+         border:1px solid black;
+         font-size: 10pt;
+         page-break-inside: auto;
+    }
+     tr{
+         page-break-inside: avoid;
+         page-break-after: auto;
+    }
+     th{
+         text-align: center;
+    }
+    /*remove delete column*/
+     td:first-child{
+         display:none;
+    }
 }
