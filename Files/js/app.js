@@ -245,10 +245,14 @@ const BookkeepingProjectModule = (function () {
     // Add document
     ID_DOCUMENT_CONTAINER: 'modal-document-container',
     ID_DOCUMENT_INFORMATION: 'modal-document-information',
+    ID_DOCUMENT_INPUT_NAME_HOLDER: 'modal-document-input-name-holder',
+    ID_DOCUMENT_INPUT_NAME: 'modal-document-input-name',
     ID_DOCUMENT_DROPDOWN_HOLDER: 'modal-document-dropdown-holder',
     ID_DOCUMENT_DROPDOWN_TYPE: 'modal-document-dropdown-type',
     ID_DOCUMENT_DROPDOWN_PARTY: 'modal-document-dropdown-party',
     ID_DOCUMENT_DROPDOWN_OPTION: 'modal-document-dropdown-option',
+    ID_DOCUMENT_TABLE_HOLDER: 'modal-document-table-holder',
+    ID_DOCUMENT_TABLE: 'modal-document-table',
 
     // General purpose ids that show up on multiple modules
     ID_GENERAL_BODY: 'application-body',
@@ -273,6 +277,12 @@ const BookkeepingProjectModule = (function () {
     CLASS_MODAL_SECTION_TEXTBOX: 'modal-section-textbox',
     CLASS_MODAL_DROPDOWN: 'modal-dropdown',
     CLASS_MODAL_DROPDOWN_OPTION: 'modal-dropdown-option',
+
+    // Add document classes
+    CLASS_DOCUMENT_TABLE_ROW_CELL: 'modal-document-table-cell',
+    CLASS_DOCUMENT_TABLE_ROW_INPUT: 'modal-document-table-input',
+    CLASS_DOCUMENT_TABLE_ROW_WRAPPER: 'modal-document-table-row',
+    CLASS_DOCUMENT_TABLE_ROW_DROPDOWN: 'modal-document-table-dropdown',
 
     // General scene usage classes
     CLASS_GENERAL_CONTAINER: 'general-container',
@@ -310,6 +320,13 @@ const BookkeepingProjectModule = (function () {
     INPUT_CORV_NAME_PLACEHOLDER: 'Name',
     INPUT_CORV_ADDRESS_PLACEHOLDER: 'Address',
     INPUT_DOCUMENT_PARTY_OPTION: 'Add associated party',
+    INPUT_DOCUMENT_NAME_PLACEHOLDER: 'Add document name',
+    INPUT_DOCUMENT_CODE_PLACEHOLDER: 'Code',
+    INPUT_DOCUMENT_DATE_PLACEHOLDER: 'Date',
+    INPUT_DOCUMENT_AMOUNT_PLACEHOLDER: 'Amount',
+    INPUT_DOCUMENT_DESCRIPTION_PLACEHOLDER: 'Description',
+    INPUT_DOCUMENT_OPTION_CREDIT: 'Credit',
+    INPUT_DOCUMENT_OPTION_DEBIT: 'Debit',
 
     // Buttons
     BUTTON_LOGIN_FOOTER_CREATE: 'Create',
@@ -320,6 +337,8 @@ const BookkeepingProjectModule = (function () {
     BUTTON_MODAL_FOOTER_SUBMIT: 'Submit',
     BUTTON_MODAL_FOOTER_CLEAR: 'Clear',
     BUTTON_MODAL_FOOTER_CLOSE: 'Close',
+    BUTTON_MODAL_FOOTER_NEWROW: 'New row',
+    BUTTON_MODAL_FOOTER_DELETEROW: 'Delete rows',
     BUTTON_LOGIN_FOOTER_NEW: 'Submit details',
     BUTTON_LOGIN_FOOTER_BACK: 'Back',
     BUTTON_LOGIN_FOOTER_CLEAR: 'Clear',
@@ -345,12 +364,20 @@ const BookkeepingProjectModule = (function () {
     ERROR_FAILED_PASSWORD_RESET: 'Password reset unsuccessful',
     ERROR_CORV_DUPLICATE: 'An entry with that name or address already exists',
     ERROR_CORV_OTHERERROR: 'An error was encountered. Please try again',
-    ERROR_DOCUMENT_PARTY_DISPLAY: 'Could not display extant $1',
+    ERROR_DOCU_PARTY_DISPLAY: 'Could not display extant $1',
+    ERROR_DOCU_NAME_ANUMER: 'Document name must be alphanumeric',
+    ERROR_DOCU_CODE_NUMER: 'Code must be numeric',
+    ERROR_DOCU_DATE_FORMAT: 'Date must be formatted as YYYY-MM-DD',
+    ERROR_DOCU_AMOUNT: 'Amount must be formatted as XXXX.XX',
+    ERROR_DOCU_DESC_ANUMER: 'Description must be alphanumeric',
+    ERROR_DOCU_BLANK_INPUT: 'Entry input fields cannot be blank',
+    ERROR_DOCU_OTHERERROR: 'An error was encountered. Please try again',
     ERROR_ACCOUNT_EXISTS: 'An account with this name already exists',
     ERROR_ACCOUNT_OTHERERROR: 'An error was encountered. Please try again',
     SUCCESS_ACCOUNT_CREATED: 'Account successfully created',
     SUCCESS_PASSWORD_RESET: 'Password successfully reset',
     SUCCESS_CORV_SUBMIT: 'New entry successfully added',
+    SUCCESS_DOCU_CREATED: 'New document successfully created',
   });
 
   /**
@@ -472,6 +499,32 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_MODAL_BUTTON,
       ],
     },
+    NEW_ROW: {
+      buttonType: Text.BUTTON_MODAL_FOOTER_NEWROW,
+      functionName: 'handleModalFormRowAddition',
+      functionArguments: [],
+      requiresWrapper: false,
+      elementId: Identifiers.ID_MODAL_FOOTER_BUTTONS + '-' +
+          Text.BUTTON_MODAL_FOOTER_NEWROW.toLowerCase(),
+      elementClasses: [
+        Identifiers.CLASS_GENERAL_BIG_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_MODAL_BUTTON,
+      ],
+    },
+    DELETE_ROW: {
+      buttonType: Text.BUTTON_MODAL_FOOTER_DELETEROW,
+      functionName: 'handleRowRemoval',
+      functionArguments: [],
+      requiresWrapper: false,
+      elementId: Identifiers.ID_MODAL_FOOTER_BUTTONS + '-' +
+          Text.BUTTON_MODAL_FOOTER_DELETEROW.toLowerCase(),
+      elementClasses: [
+        Identifiers.CLASS_GENERAL_BIG_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+        Identifiers.CLASS_MODAL_BUTTON,
+      ],
+    }
   });
 
   /**
@@ -576,23 +629,23 @@ const BookkeepingProjectModule = (function () {
   inaccessible.documentTypes = [
     {
       name: 'Journal entry',
-      value: 'je',
+      value: 'JE',
     },
     {
       name: 'Accounts payable invoice',
-      value: 'api',
+      value: 'API',
     },
     {
       name: 'Accounts payable disbursement',
-      value: 'apd',
+      value: 'APD',
     },
     {
       name: 'Accounts receivable invoice',
-      value: 'ari',
+      value: 'ARI',
     },
     {
       name: 'Accounts receivable receipt',
-      value: 'arr',
+      value: 'ARR',
     },
   ];
 
@@ -624,6 +677,7 @@ const BookkeepingProjectModule = (function () {
       functionArguments: [
         Text.DIV_CHANGEP_TITLE,
         'buildPasswordChangeModal',
+        [ModalButtons.CLEAR],
         'handlePasswordChange',
       ],
       requiresWrapper: true,
@@ -640,6 +694,7 @@ const BookkeepingProjectModule = (function () {
       functionArguments: [
         Text.DIV_GENERAL_ADD.replace('$1', 'document'),
         'buildDocumentAdditionModal',
+        [ModalButtons.NEW_ROW, ModalButtons.DELETE_ROW],
         'handleDocumentAddition',
       ],
       requiresWrapper: true,
@@ -656,6 +711,7 @@ const BookkeepingProjectModule = (function () {
       functionArguments: [
         Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
         'buildCustomerOrVendorAdditionModal',
+        [ModalButtons.CLEAR],
         'handleCustomerOrVendorAddition',
       ],
       requiresWrapper: true,
@@ -672,6 +728,7 @@ const BookkeepingProjectModule = (function () {
       functionArguments: [
         Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
         'buildCustomerOrVendorAdditionModal',
+        [ModalButtons.CLEAR],
         'handleCustomerOrVendorAddition',
       ],
       requiresWrapper: true,
@@ -797,16 +854,16 @@ const BookkeepingProjectModule = (function () {
       request.open(paramType, paramUrl);
 
       if (paramType === 'POST' && paramData != null) {
-
-        /* JSON implementation
-         * request.setRequestHeader('Content-Type', 'application/json');
-         * paramData = JSON.stringify(paramData);
-         */
-
-        // Query string implementation
-        request.setRequestHeader('Content-Type',
-          'application/x-www-form-urlencoded');
-        paramData = that.serialize(paramData);
+        if (that.isJSON(paramData)) {
+          // If data is passed as JSON string, we can use JSON REST method
+          request.setRequestHeader('Content-Type', 'application/json');
+          paramData = JSON.stringify(paramData);
+        } else {
+          // Query string implementation
+          request.setRequestHeader('Content-Type',
+            'application/x-www-form-urlencoded');
+          paramData = that.serialize(paramData);
+        }
       }
 
       request.onload = function () {
@@ -826,6 +883,31 @@ const BookkeepingProjectModule = (function () {
       // Make request (data will be either null or a stringified object)
       request.send(paramData);
     });
+  };
+
+  /**
+   * @description This utility function is used by
+   * <code>inaccessible.sendRequest</code> to determine whether or not the
+   * passed <code>paramData</code> optional parameter has been
+   * <code>JSON.stringify</code>'ed prior to passage. If it is, the requester
+   * uses a JSON-based RESTful approach; otherwise, it uses a query string
+   * approach.
+   *
+   * @param {string} paramTarget String (could be JSONified)
+   * @returns {boolean}
+   */
+  inaccessible.isJSON = function (paramTarget) {
+    paramTarget = typeof paramTarget !== 'string'
+      ? JSON.stringify(paramTarget)
+      : paramTarget;
+
+    try {
+      paramTarget = JSON.parse(paramTarget);
+    } catch (e) {
+      return false;
+    }
+
+    return (typeof paramTarget === 'object' && paramTarget !== null);
   };
 
   /**
@@ -914,6 +996,33 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
+   * @description This utility function, like the similar
+   * <code>inaccessible.isLegalInput</code>, is used to compare a parameter
+   * string against a set of regex to determine whether or not the included
+   * monetary amount is properly formatted with decimals in the right places and
+   * so forth.
+   *
+   * @param {string} paramInput String representing amount of money
+   * @returns {boolean} Returns <code>true</code> if input is wellformed
+   */
+  inaccessible.isValidAmount = function (paramInput) {
+    return /^\d+(?:\.\d{0,2})$/.test(paramInput);
+  };
+
+  /**
+   * @description This helper function returns a <code>boolean</code> denoting
+   * whether or not the parameter <code>string</code> possesses any characters
+   * other than whitespace. It is used primarily to determine whether or not the
+   * user has left any pseudo-cells blank when seeking to create a new document.
+   *
+   * @param {string} paramInput String of text to be evaluated for nonwhitespace
+   * @returns {boolean} Returns <code>true</code> if input has no other chars
+   */
+  inaccessible.isBlank = function (paramInput) {
+    return !paramInput.replace(/\s/g, '').length;
+  };
+
+  /**
    * @description This function is used to add new key/value pairs to an
    * existing object en masse without having to add each individually as per
    * standard practices. This function was intentionally constructed to work
@@ -939,6 +1048,33 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.encode = function (paramString) {
     return paramString.toLowerCase().replace(/ /g, '_');
+  };
+
+  /**
+   * @description This function is used by the handler function
+   * <code>inaccessible.handleDocumentAddition</code> to determine whether or
+   * not the user-inputted date for a ledger transaction is wellformed or not.
+   * A <code>boolean</code> response is returned depending on the nature of the
+   * input date.
+   *
+   * @param {string} paramDateString String input representing date (YYYY-MM-DD)
+   * @returns {boolean}
+   */
+  inaccessible.isValidDate = function (paramDateString) {
+
+    let fragments, daysInMonth, year, month, day;
+
+    fragments = paramDateString.split('-');
+    year = fragments[0];
+    month = fragments[1];
+    day = fragments[2];
+    daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+    if ((!(year % 4) && year % 100) || !(year % 400)) {
+      daysInMonth[1] = 29;
+    }
+
+    return !(/\D/.test(String(day))) && day > 0 && day <= daysInMonth[--month];
   };
 
   /**
@@ -1955,6 +2091,8 @@ const BookkeepingProjectModule = (function () {
       type: 'password',
     };
 
+    this.scene = Scenes.MODAL;
+
     // Return assembled interface
     return this.assembleElement(
       ['div', configContainer,
@@ -1985,7 +2123,9 @@ const BookkeepingProjectModule = (function () {
     // Declarations
     let that, configContainer, configInformation, configTypeDropdown,
       configTypeDropdownOption, configPartyDropdown, configPartyDropdownOption,
-      typeDropdown, typeDropdownOption, configDropdownHolder;
+      typeDropdown, typeDropdownOption, configDropdownHolder, configDocName,
+      configDocNameHolder, configEntriesHolder, configEntriesForm,
+      documentName;
 
     // Preserve scope
     that = this;
@@ -1997,6 +2137,17 @@ const BookkeepingProjectModule = (function () {
     configInformation = {
       id: Identifiers.ID_DOCUMENT_INFORMATION,
       class: Identifiers.CLASS_GENERAL_OPENSANS,
+    };
+
+    configDocNameHolder = {
+      id: Identifiers.ID_DOCUMENT_INPUT_NAME_HOLDER,
+    };
+
+    configDocName = {
+      id: Identifiers.ID_DOCUMENT_INPUT_NAME,
+      class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
+      placeholder: Text.INPUT_DOCUMENT_NAME_PLACEHOLDER,
+      type: 'text',
     };
 
     configDropdownHolder ={
@@ -2018,8 +2169,19 @@ const BookkeepingProjectModule = (function () {
       class: Identifiers.CLASS_MODAL_DROPDOWN_OPTION,
     };
 
+    configEntriesHolder = {
+      id: Identifiers.ID_DOCUMENT_TABLE_HOLDER,
+    };
+
+    configEntriesForm = {
+      id: Identifiers.ID_DOCUMENT_TABLE,
+    };
+
+    this.scene = Scenes.MODAL;
+
     // Document type dropdown menu
-    typeDropdown = this.assembleElement('select', configTypeDropdown);
+    documentName = this.assembleElement(['input', configDocName]);
+    typeDropdown = this.assembleElement(['select', configTypeDropdown]);
 
     // Listener for changes to document type dropdown menu
     typeDropdown.addEventListener('change', function () {
@@ -2037,6 +2199,9 @@ const BookkeepingProjectModule = (function () {
         ['div', configInformation,
           Text.DIV_DOCUMENT_INFORMATION,
         ],
+        ['div', configDocNameHolder,
+          documentName,
+        ],
         ['div', configDropdownHolder,
           typeDropdown,
           ['select', configPartyDropdown,
@@ -2045,9 +2210,101 @@ const BookkeepingProjectModule = (function () {
             ],
           ],
         ],
+        ['div', configEntriesHolder,
+          ['form', configEntriesForm,
+            this.buildDocumentAdditionTableRow()
+          ],
+        ],
       ],
     );
-  }
+  };
+
+  /**
+   * @description This builder function is used to construct the framework of a
+   * new pseudo-table row for the ledger transactions entry table included in
+   * the documents addition modal. Originally, the author tried an HTML table-
+   * based approach, but eventually replaced this with a simple
+   * <code>form</code> approach, wherein rows are simply groups of input
+   * elements bound within a <code>div</code>.
+   *
+   * @returns {HTMLElement}
+   */
+  inaccessible.buildDocumentAdditionTableRow = function () {
+
+    let that, configWrapper, configDelete, configCode, configDate,
+      configDropdown, configDropdownOptionCredit, configDropdownOptionDebit,
+      configAmount, configDescription;
+
+    that = this;
+
+    configWrapper = {
+      class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_WRAPPER,
+    };
+
+    configDelete = {
+      type: 'checkbox',
+      class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL,
+    };
+
+    configCode = {
+      class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
+        Identifiers.CLASS_DOCUMENT_TABLE_ROW_INPUT,
+      placeholder: Text.INPUT_DOCUMENT_CODE_PLACEHOLDER,
+      type: 'text',
+    };
+
+    configDate = {
+      class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
+        Identifiers.CLASS_DOCUMENT_TABLE_ROW_INPUT,
+      placeholder: Text.INPUT_DOCUMENT_DATE_PLACEHOLDER,
+      type: 'text',
+    };
+
+    configDropdown = {
+      class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
+        Identifiers.CLASS_DOCUMENT_TABLE_ROW_DROPDOWN,
+    };
+
+    configDropdownOptionCredit = {
+      class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL,
+    };
+
+    configDropdownOptionDebit = {
+      class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL,
+    };
+
+    configAmount = {
+      class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
+        Identifiers.CLASS_DOCUMENT_TABLE_ROW_INPUT,
+      placeholder: Text.INPUT_DOCUMENT_AMOUNT_PLACEHOLDER,
+      type: 'text',
+    };
+
+    configDescription = {
+      class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
+        Identifiers.CLASS_DOCUMENT_TABLE_ROW_INPUT,
+      placeholder: Text.INPUT_DOCUMENT_DESCRIPTION_PLACEHOLDER,
+      type: 'text',
+    };
+
+    return this.assembleElement(
+      ['div', configWrapper,
+        ['input', configDelete],
+        ['input', configCode],
+        ['input', configDate],
+        ['select', configDropdown,
+          ['option', configDropdownOptionCredit,
+            Text.INPUT_DOCUMENT_OPTION_CREDIT,
+          ],
+          ['option', configDropdownOptionDebit,
+            Text.INPUT_DOCUMENT_OPTION_DEBIT,
+          ],
+        ],
+        ['input', configAmount],
+        ['input', configDescription],
+      ],
+    );
+  };
 
   /**
    * @description This simple builder function is used specifically as a fast,
@@ -2098,11 +2355,12 @@ const BookkeepingProjectModule = (function () {
    *
    * @param {string} paramModalTitle
    * @param {string} paramMiniSceneBuilder
+   * @param {!Array<object>=} paramButtonsArray Optional buttons array
    * @param {!string=} paramHandlerName The optional submission handler string
    * @returns {void}
    */
   inaccessible.displayModal = function (paramModalTitle, paramMiniSceneBuilder,
-      paramHandlerName = null) {
+      paramButtonsArray = [], paramHandlerName = null) {
 
     // Declarations
     let innerContent, submitButtonCopy, buttons;
@@ -2124,7 +2382,12 @@ const BookkeepingProjectModule = (function () {
 
       // Need submission handler button and input clearing button
       buttons.push(submitButtonCopy);
-      buttons.push(ModalButtons.CLEAR);
+    }
+
+    if (paramButtonsArray.length > 0) {
+      paramButtonsArray.forEach(function (button) {
+        buttons.push(button);
+      });
     }
 
     // Modal close button must always be present
@@ -2150,13 +2413,25 @@ const BookkeepingProjectModule = (function () {
   inaccessible.displayTableRow = function (paramRowObject, paramHeaders) {
 
     // Declaration
-    let table, tbody, rowCount, newRow, newCell, valuesArray, configCheckbox;
+    let table, tbody, rowCount, newRow, newCell, valuesArray, configCheckbox,
+      location;
 
     // For storage of values associated with object property keys
     valuesArray = [];
 
+    switch (this.scene) {
+      case 0: // MODAL
+        location = Identifiers.ID_DOCUMENT_TABLE;
+        break;
+      case 1: // LOGIN
+      case 2: // DASHBOARD
+      default:
+        location = Identifiers.ID_DASHBOARD_LEDGER_TABLE;
+        break;
+    }
+
     // The ledger itself
-    table = document.getElementById(Identifiers.ID_DASHBOARD_LEDGER_TABLE);
+    table = document.getElementById(location);
 
     // Table body
     tbody = table.getElementsByTagName('tbody')[0];
@@ -2186,7 +2461,11 @@ const BookkeepingProjectModule = (function () {
         newCell.appendChild(this.assembleElement(['input', configCheckbox]));
       } else {
         newCell = newRow.insertCell(i);
-        newCell.appendChild(document.createTextNode(valuesArray[i - 1]));
+        newCell.appendChild(
+          (this.scene === Scenes.DASHBOARD)
+            ? document.createTextNode(valuesArray[i - 1])
+            : valuesArray[i - 1]
+        );
       }
     }
   };
@@ -2249,9 +2528,12 @@ const BookkeepingProjectModule = (function () {
   // Handler functions
 
   /**
-   * @description Handler for presses of the "Create" button option login modal
-   * page. It may be used to load a new, similar scene that has more fields
-   * related to account creation info.
+   * @description This function is the handler related to the creation of a new
+   * user account. Under its current construction, it validates the new username
+   * and password, ensuring that only alphanumeric characters are permitted in
+   * either entry. Once validated, the data is passed to the relevant endpoint,
+   * namely <code>create_user</code>, and the result of the creation operation
+   * is displayed as a status notice.
    *
    * @returns {void}
    */
@@ -2286,7 +2568,7 @@ const BookkeepingProjectModule = (function () {
     }
 
     // Send POST request
-    this.sendRequest('POST', 'php/create_account.php', {
+    this.sendRequest('POST', 'php/create_user.php', {
       username: username,
       password: password,
     }).then(function (response) {
@@ -2444,6 +2726,9 @@ const BookkeepingProjectModule = (function () {
 
     // Remove
     modal.parentNode.removeChild(modal);
+
+    // Reset scene to dashboard
+    this.scene = Scenes.DASHBOARD;
   };
 
   /**
@@ -2473,9 +2758,9 @@ const BookkeepingProjectModule = (function () {
     }
 
     // Set each input value as an empty string
-    Array.prototype.forEach.call(textboxes, function (textbox) {
+    for (let textbox of textboxes) {
       textbox.value = '';
-    });
+    }
   };
 
   /**
@@ -2489,6 +2774,17 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.handleModalFormSubmit = function () {
     window.alert('Submit data!');
+  };
+
+  /**
+   * @description This function handler is used to add a new pseudo-table row to
+   * the document addition modal's form table.
+   *
+   * @returns {void}
+   */
+  inaccessible.handleModalFormRowAddition = function () {
+    document.getElementById(Identifiers.ID_DOCUMENT_TABLE)
+      .appendChild(this.buildDocumentAdditionTableRow());
   };
 
   /**
@@ -2573,14 +2869,163 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description This handler, noop'ed at the moment, will be used to submit a
-   * new document to the database once the <code>add_document</code> endpoint
-   * has been constructed.
+   * @description This function is the handler for submission of user input data
+   * related to new documents. It individually evaluated and validates all of
+   * the fields for the document name, the type, the party involved in the
+   * entry, and the input fields for each of the new ledger entries to be
+   * included in the ledger. It does by making use of a number of utility
+   * functions used to validate input and ensure that only proper wellformed
+   * data is provided to the server by means of the <code>add_document</code>
+   * endpoint.
    *
    * @returns {void}
    */
   inaccessible.handleDocumentAddition = function () {
-    this.displayStatusNotice(true, 'Submission successful');
+
+    // Declarations
+    let that, data, input, entryRows, index, documentName, type, party,
+      generalLedgerRows, ledgerRowObject, credebit, wasProblemDetected;
+
+    // Initial definitions
+    that = this;
+    input = {};
+    wasProblemDetected = false;
+
+    // Grab values and HTMLCollection
+    documentName =
+      document.getElementById(Identifiers.ID_DOCUMENT_INPUT_NAME).value;
+    type =
+      document.getElementById(Identifiers.ID_DOCUMENT_DROPDOWN_TYPE).value;
+    party =
+      document.getElementById(Identifiers.ID_DOCUMENT_DROPDOWN_PARTY).value;
+    entryRows = document
+      .getElementById(Identifiers.ID_DOCUMENT_TABLE)
+      .getElementsByClassName(Identifiers.CLASS_DOCUMENT_TABLE_ROW_WRAPPER);
+
+    // Check document name
+    if (!this.isLegalInput(documentName)) {
+      this.displayStatusNotice(false, Identifiers.ERROR_DOCU_NAME_ANUMER);
+    } else {
+      input.documentName = documentName;
+    }
+
+    // Set doc type from default input value
+    input.type = type;
+
+    // Determine if selected party (if any) is customer or vendor
+    if (['API', 'APD'].includes(type)) {
+      input.vendorName = party;
+    } else if (['ARI', 'ARR'].includes(type)) {
+      input.customerName = party;
+    }
+
+    // New array for row objects
+    input.generalLedgerRows = [];
+
+    outerLoop: // Iterate over pseudo-rows in pseudo-table
+    for (let row of entryRows) {
+
+      // Reset index for each new row
+      index = 0;
+
+      // New row object
+      ledgerRowObject = {};
+
+      innerLoop: // Iterate over pseudo-row cells
+      for (let child of row.children) {
+        switch (index++) {
+          case 0: // Deletion checkbox - we don't need that
+            break;
+          case 1: // Code input field
+            if (that.isBlank(child.value)) {
+              that.displayStatusNotice(false, Text.ERROR_DOCU_BLANK_INPUT);
+              wasProblemDetected = true;
+              break outerLoop;
+            } else if (isNaN(child.value)) {
+              that.displayStatusNotice(false, Text.ERROR_DOCU_CODE_NUMER);
+              wasProblemDetected = true;
+              break outerLoop;
+            } else {
+              ledgerRowObject.code = child.value;
+            }
+            break;
+          case 2: // Date field
+            if (that.isBlank(child.value)) {
+              that.displayStatusNotice(false, Text.ERROR_DOCU_BLANK_INPUT);
+              wasProblemDetected = true;
+              break outerLoop;
+            } else if (!that.isValidDate(child.value)) {
+              that.displayStatusNotice(false, Text.ERROR_DOCU_DATE_FORMAT);
+              wasProblemDetected = true;
+              break outerLoop;
+            } else {
+              ledgerRowObject.date = child.value;
+            }
+            break;
+          case 3: // Credit or debit dropdown
+            credebit = child.value.toLowerCase();
+            break;
+          case 4: // Dollar amount
+            if (that.isBlank(child.value)) {
+              that.displayStatusNotice(false, Text.ERROR_DOCU_BLANK_INPUT);
+              wasProblemDetected = true;
+              break outerLoop;
+            } else if (!that.isValidAmount(child.value)) {
+              that.displayStatusNotice(false, Text.ERROR_DOCU_AMOUNT);
+              wasProblemDetected = true;
+              break outerLoop;
+            } else {
+              ledgerRowObject[credebit] = child.value;
+            }
+            break;
+          case 5: // Description
+            if (that.isBlank(child.value)) {
+              that.displayStatusNotice(false, Text.ERROR_DOCU_BLANK_INPUT);
+              wasProblemDetected = true;
+              break outerLoop;
+            } else if (!that.isLegalInput(child.value)) {
+              that.displayStatusNotice(false, Text.ERROR_DOCU_DESC_ANUMER);
+              wasProblemDetected = true;
+              break outerLoop;
+            } else {
+              ledgerRowObject.description = child.value;
+            }
+            break;
+          default:
+            break;
+        }
+      }
+
+      // Add new ledger row object to the array
+      input.generalLedgerRows.push(ledgerRowObject);
+    }
+
+    // If we break'd (lulz) from the outer loop, we don't want to proceed
+    if (wasProblemDetected) {
+      return;
+    }
+
+    console.log(input);
+
+    this.sendRequest(
+      'POST',
+      'php/add_document.php',
+      JSON.stringify(input), // Tells request func to use JSON REST approach
+    ).then(function (response) {
+
+      // Parse the JSON response into a usable object
+      data = JSON.parse(response);
+      console.log(data);
+
+      if (data.success) {
+        that.displayStatusNotice(true, Text.SUCCESS_DOCU_CREATED);
+      } else {
+        that.displayStatusNotice(false, Text.ERROR_DOCU_OTHERERROR);
+      }
+    }, function (error) {
+      console.warn(error);
+      that.displayStatusNotice(false, Text.ERROR_NETWORK);
+    });
   };
 
   /**
@@ -2611,15 +3056,15 @@ const BookkeepingProjectModule = (function () {
     selectedOption = paramMenu.value;
 
     switch (selectedOption) {
-      case 'api': // Accounts payable invoice
-      case 'apd': // Accounts payable disbursement
+      case 'API': // Accounts payable invoice
+      case 'APD': // Accounts payable disbursement
         partyType = 'vendors';
         break;
-      case 'ari': // Accounts receivable invoice
-      case 'arr': // Accounts receivable receipt
+      case 'ARI': // Accounts receivable invoice
+      case 'ARR': // Accounts receivable receipt
         partyType = 'customers';
         break;
-      case 'je':  // Journal entry
+      case 'JE':  // Journal entry
       default:
         partyType = null;
         break;
@@ -2665,7 +3110,7 @@ const BookkeepingProjectModule = (function () {
         }
       } else {
         that.displayStatusNotice(false, // "Could not display vendors"
-          Text.ERROR_DOCUMENT_PARTY_DISPLAY.replace('$1', partyType));
+          Text.ERROR_DOCU_PARTY_DISPLAY.replace('$1', partyType));
       }
     }, function (error) {
       console.warn(error);
@@ -2779,15 +3224,24 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleRowRemoval = function () {
 
     // Declarations
-    let checkedInputs, table, tbody;
+    let checkedInputs, table, tableBody, target;
 
-    // Definitions
-    table = document.getElementById(Identifiers.ID_DASHBOARD_LEDGER_TABLE);
-    tbody = table.querySelector("tbody");
+    if (this.scene === Scenes.DASHBOARD) {
+      table = document.getElementById(Identifiers.ID_DASHBOARD_LEDGER_TABLE);
+      tableBody = table.querySelector("tbody");
+    } else {
+      table = document.getElementById(Identifiers.ID_DOCUMENT_TABLE);
+      tableBody = table;
+    }
+
     checkedInputs = document.querySelectorAll("input[type='checkbox']:checked");
 
     Array.prototype.slice.call(checkedInputs).forEach(input =>
-      tbody.removeChild(input.parentNode.parentNode)
+      tableBody.removeChild(
+        (this.scene === Scenes.DASHBOARD)
+          ? input.parentNode.parentNode
+          : input.parentNode
+      )
     );
   };
 
