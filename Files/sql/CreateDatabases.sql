@@ -170,7 +170,7 @@ GRANT ALL ON UsersDB.* TO 'admin'@'localhost';
  * user accounts; has complete access to UsersDB.
  */
 CREATE USER 'users'@'localhost' IDENTIFIED BY '***INSERT PASSWORD HERE***';
-GRANT ALL ON UsersDB.*;
+GRANT ALL ON UsersDB.* TO 'users'@'localhost';
 
 /*
  * The account the password administrator (a program) will use to setup and
