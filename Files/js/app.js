@@ -345,7 +345,6 @@ const BookkeepingProjectModule = (function () {
 
     // Paragraphs, div content, etc.
     DIV_LOGIN_BODY_HEADER: 'Login or create account',
-    DIV_DASHBOARD_TOPBAR_NAVLINKS_WELCOME: 'Welcome user!',
     DIV_GENERAL_TOGGLE: 'Toggle views',
     DIV_GENERAL_ADD: 'Add $1',
     DIV_GENERAL_CHANGEP: 'Change password',
@@ -670,7 +669,6 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-
     {
       buttonType: Text.DIV_GENERAL_CHANGEP,
       functionName: 'displayModal',
@@ -780,8 +778,13 @@ const BookkeepingProjectModule = (function () {
   inaccessible.navlinksButtonData = [
     {
       buttonType: Text.BUTTON_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT,
-      functionName: 'handleAccountDetailsDisplay',
-      functionArguments: [],
+      functionName: 'displayModal',
+      functionArguments: [
+        Text.DIV_CHANGEP_TITLE,
+        'buildPasswordChangeModal',
+        [ModalButtons.CLEAR],
+        'handlePasswordChange',
+      ],
       requiresWrapper: false,
       elementId: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT,
       elementClasses: [
@@ -1853,7 +1856,7 @@ const BookkeepingProjectModule = (function () {
     };
 
     configTopbarNavLinksHolder = {
-      id: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_HOLDER
+      id: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_HOLDER,
     };
 
     configSection = {
@@ -2081,14 +2084,14 @@ const BookkeepingProjectModule = (function () {
       id: Identifiers.ID_CORV_INPUT_NAME,
       class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
       placeholder: Text.INPUT_CORV_NAME_PLACEHOLDER,
-      type: 'password',
+      type: 'text',
     };
 
     configInputAddress = {
       id: Identifiers.ID_CORV_INPUT_ADDRESS,
       class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
       placeholder: Text.INPUT_CORV_ADDRESS_PLACEHOLDER,
-      type: 'password',
+      type: 'text',
     };
 
     this.scene = Scenes.MODAL;
@@ -2693,7 +2696,7 @@ const BookkeepingProjectModule = (function () {
       console.warn(error);
     });
 
-    // Fade out and remove content prior to rebuilding of main interface
+    /* REMOVE ALL BEYOND THIS POINT ONCE ACCOUNT CREATION WORKS */
     this.tinderize(true, Identifiers.ID_LOGIN_CONTAINER, 'buildUserInterface');
   };
 
@@ -2712,16 +2715,6 @@ const BookkeepingProjectModule = (function () {
 
     this.focusOnLoad(`#${Identifiers.ID_LOGIN_BODY_INPUT_USERNAME}`,
       Utility.CHECK_OPACITY_RATE);
-  };
-
-  /**
-   * @description Handler for presses of the "Account" button option in the
-   * upper-right toolbar.
-   *
-   * @returns {void}
-   */
-  inaccessible.handleAccountDetailsDisplay = function () {
-    window.alert('Insert account details in some form');
   };
 
   /**
@@ -3275,17 +3268,17 @@ const BookkeepingProjectModule = (function () {
   inaccessible.main = function () {
 
     // Declarations
-    let userInterface;
+    let loginScreen;
 
     // Apply body identifier
     document.body.setAttribute('id', Identifiers.ID_GENERAL_BODY);
 
     // Assemble the user interface dynamically
-    userInterface = this.buildLoginModule(this.buildLoginContent(
+    loginScreen = this.buildLoginModule(this.buildLoginContent(
       [ModuleButtons.CREATE_ACCOUNT, ModuleButtons.LOGIN]));
 
     // Populate DOM body with assembled interface
-    document.body.appendChild(userInterface);
+    document.body.appendChild(loginScreen);
 
     // Fade in on the scene
     this.fade('in', Identifiers.ID_LOGIN_CONTAINER);
@@ -3303,7 +3296,7 @@ const BookkeepingProjectModule = (function () {
    * @returns {enum} Utility
    */
   accessible.getUtility = function () {
-    return Utility;
+    return inaccessible.extend({}, Utility);
   };
 
   /**
@@ -3312,7 +3305,7 @@ const BookkeepingProjectModule = (function () {
    * @returns {enum} Utility
    */
   accessible.getScenes = function () {
-    return Scenes;
+    return inaccessible.extend({}, Scenes);
   };
 
   /**
@@ -3321,7 +3314,7 @@ const BookkeepingProjectModule = (function () {
    * @returns {enum} Identifiers
    */
   accessible.getIdentifiers = function () {
-    return Identifiers;
+    return inaccessible.extend({}, Identifiers);
   };
 
   /**
@@ -3330,7 +3323,7 @@ const BookkeepingProjectModule = (function () {
    * @returns {enum} Text
    */
   accessible.getText = function () {
-    return Text;
+    return inaccessible.extend({}, Text);
   };
 
   /**
@@ -3339,7 +3332,7 @@ const BookkeepingProjectModule = (function () {
    * @returns {enum} Operations
    */
   accessible.getOperations = function () {
-    return Operations;
+    return inaccessible.extend({}, Operations);
   };
 
   /**
@@ -3348,7 +3341,7 @@ const BookkeepingProjectModule = (function () {
    * @returns {enum} ModalButtons
    */
   accessible.getModalButtons = function () {
-    return ModalButtons;
+    return inaccessible.extend({}, ModalButtons);
   };
 
   /**
@@ -3357,7 +3350,7 @@ const BookkeepingProjectModule = (function () {
    * @returns {enum} ModalButtons
    */
   accessible.getModuleButtons = function () {
-    return ModuleButtons;
+    return inaccessible.extend({}, ModuleButtons);
   };
 
   /**
@@ -3366,7 +3359,7 @@ const BookkeepingProjectModule = (function () {
    * @returns {enum} TableHeaders
    */
   accessible.getTableHeaders = function () {
-    return TableHeaders;
+    return inaccessible.extend({}, TableHeaders);
   };
 
   /**
