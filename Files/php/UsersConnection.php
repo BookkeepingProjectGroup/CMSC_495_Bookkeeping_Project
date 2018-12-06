@@ -3,7 +3,7 @@
 /*
  * File: UsersConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 2018-12-04
+ * Date modified: 2018-12-05
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
@@ -44,11 +44,11 @@ class UsersConnection extends DatabaseConnection {
 
         // Query the database for the given username; if that does not return
         // FALSE, a user already exists with that username, so return NULL.
-        if(!$this->getUserID($username)) return NULL;
+        if($this->getUserID($username) !== FALSE) return NULL;
 
         // Insert the new user into the database.
         $this->runQuery(
-            'INSERT INTO BooksDB.Users (username) VALUES (?)',
+            'INSERT INTO UsersDB.Users (username) VALUES (?)',
             's',
             $username);
 
