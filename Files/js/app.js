@@ -2363,7 +2363,10 @@ const BookkeepingProjectModule = (function () {
       paramButtonsArray = [], paramHandlerName = null) {
 
     // Declarations
-    let innerContent, submitButtonCopy, buttons;
+    let that, innerContent, submitButtonCopy, buttons, modal, modalMain;
+
+    // Preserve scope
+    that = this;
 
     // Inner modal mini-scene
     innerContent = this[paramMiniSceneBuilder]();
@@ -2384,6 +2387,7 @@ const BookkeepingProjectModule = (function () {
       buttons.push(submitButtonCopy);
     }
 
+    // Add buttons if param buttons array is not empty
     if (paramButtonsArray.length > 0) {
       paramButtonsArray.forEach(function (button) {
         buttons.push(button);
@@ -2393,9 +2397,21 @@ const BookkeepingProjectModule = (function () {
     // Modal close button must always be present
     buttons.push(ModalButtons.CLOSE);
 
+    // Build modal using config
+    modal = this.buildModal(paramModalTitle, innerContent, buttons);
+
+    // Add event listener for clicks outside main modal window
+    modal.addEventListener('click', function handleOutsideClicks (event) {
+      modalMain = document.getElementById(Identifiers.ID_MODAL_MAIN);
+
+      if (!modalMain.contains(event.target)) {
+        that.handleModalClose();
+        modal.removeEventListener('click', handleOutsideClicks);
+      }
+    });
+
     // Build and add the modal to the body at the bottom
-    document.body.appendChild(
-      this.buildModal(paramModalTitle, innerContent, buttons));
+    document.body.appendChild(modal);
   };
 
   /**
