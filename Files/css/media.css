@@ -30,7 +30,8 @@
          width:100%;
     }
      #dashboard-ledger{
-         max-height: 500px
+         max-height: 500px;
+		 overflow-y: auto;
     }
     /* Remove Title*/
      #dashboard-topbar-meta{
@@ -124,6 +125,16 @@
      td:nth-of-type(8):before {
          content: "Date";
     }
+	
+	/*Revert Scrollbar*/
+	
+	#dashboard-ledger-table tbody{
+		overflow: hidden;
+		height: auto;
+	}
+	#dashboard-ledger-table td{
+		width: auto;
+	}
     /*Change Table Colors*/
      #dashboard-ledger-table tr:nth-child(even) {
          background-color:#ffffff;
@@ -319,9 +330,16 @@
          height:auto;
          overflow: visible;
     }
+	
+	#dashboard-ledger-table tbody{
+		height: auto;
+		overflow: visible;
+		display: table-row-group;
+	}
     /*set table row colors */
      #dashboard-ledger-table thead{
          background-color: gray;
+		 display: table-header-group;
     }
      #dashboard-ledger-table tbody tr:nth-child(odd){
          background-color: white;
@@ -334,6 +352,7 @@
          border:1px solid black;
          font-size: 10pt;
          page-break-inside: auto;
+		 width: 100%;
     }
      tr{
          page-break-inside: avoid;
