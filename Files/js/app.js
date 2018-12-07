@@ -1508,7 +1508,7 @@ const BookkeepingProjectModule = (function () {
     // Declaration
     let ledger, thead, tbody, newRow, newCell, configRowHeader, configTable,
       ledgerHeaders;
-
+	  
     // Grab string headers from enum
     ledgerHeaders = TableHeaders.LEDGER;
 

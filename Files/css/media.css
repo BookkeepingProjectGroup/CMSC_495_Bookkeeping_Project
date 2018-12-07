@@ -216,7 +216,7 @@
          padding:5px;
     }
 }
- @media only screen and (min-width: 576px) and (max-width:767px) {
+ @media only screen and (min-width: 576px) and (max-width:768px) {
      #application-body{
          margin:0;
          background-image: none;
@@ -226,8 +226,15 @@
          margin-top:0;
     }
      #dashboard-container {
-         width: 750px;
+         width: 550px;
     }
+	#dashboard-ledger-table {
+		 font-size: x-small;
+	}
+	#dashboard-ledger-table td{
+		width: 48px;
+		
+	}
      #login-container{
          margin-top:auto;
     }
@@ -241,8 +248,15 @@
          background-image: none;
     }
      #dashboard-container {
-         width: 750px;
+         width: 650px;
     }
+	 #dashboard-ledger-table {
+		 font-size: x-small;
+	 }
+	 
+	 #dashboard-ledger-table td{
+		 width: 52px;
+	 }
      #login-container{
          margin-top:auto;
     }
@@ -258,10 +272,12 @@
          margin:0;
          background-image: none;
     }
+	
+	
 }
  @media only screen and (min-width: 1199px) {
      #dashboard-container {
-         width: 1170px;
+         width: 1024px;
     }
 }
 /*Print Ledger Table only*/

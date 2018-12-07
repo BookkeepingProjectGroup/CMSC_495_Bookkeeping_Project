@@ -146,14 +146,27 @@
      margin-top: 10px;
      float: left;
      margin-left: 20px;
-     overflow: auto;
 }
  #dashboard-ledger-table {
-     width: 100%;
+     width: 95%;
 }
  #dashboard-ledger-table thead{
+	 border-radius: 3px;
      background-color: #8f9c9a;
+	 display: block;
 }
+
+ #dashboard-ledger-table tbody{
+	 display: block;
+	 height: 400px;	
+	 overflow-y: auto;
+ }
+ 
+ #dashboard-ledger-table td{
+	 text-align: left;
+	 width: 90px;
+	 
+ }
  #dashboard-ledger-table tbody tr:nth-child(even) {
      background-color:#c5d6d4;
 }
