@@ -125,11 +125,9 @@
      td:nth-of-type(8):before {
          content: "Date";
     }
-	
-	/*Revert Scrollbar*/
-	
+	/*Revert from fixed header scroll properties*/
 	#dashboard-ledger-table tbody{
-		overflow: hidden;
+		overflow: visible;
 		height: auto;
 	}
 	#dashboard-ledger-table td{
