@@ -1,4 +1,8 @@
-/* * Name: : styles.css * Date : 12/2/2018 * Author : Andrew Eissen, Jennifer Brady */
+/*
+ * Name: : styles.css
+ * Date : 12/2/2018
+ * Author : Andrew Eissen, Jennifer Brady
+ */
  :root {
      --bpg-gold: #e9d787;
      --bpg-offwhite: #f6f6f6;
@@ -277,4 +281,40 @@
      margin-top: 5px;
      margin-bottom: 10px;
      width: 100%;
+}
+
+.modal-dropdown {
+  width: 95%;
+  margin: 10px 10px;
+  padding: 10px;
+  border:inset;
+  border-color:#c5d6d4;
+}
+
+#modal-document-table {
+  text-align:center;
+  width: 98%;
+
+  /* Required to faciliate status notice additions */
+  margin-bottom: 10px;
+  margin-top: 5px;
+
+  /* Make sure new entries don't overly-expand modal */
+  max-height: 75px;
+  overflow-y: scroll;
+}
+
+.modal-document-table-cell {
+  width: 5%;
+}
+
+.modal-document-table-dropdown {
+  width: 15%;
+
+  /* Same as for input fields */
+  padding: 1px 0px;
+}
+
+.modal-document-table-input {
+  width: 18%;
 }
