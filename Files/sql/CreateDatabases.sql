@@ -1,7 +1,7 @@
 /*
  * File: CreateDatabases.sql
  * Author(s): Matthew Dobson
- * Date modified: 11-10-2018
+ * Date modified: 2018-12-04
  *
  * Description: A SQL script to setup the MariaDB SQL databases.
  *
@@ -164,6 +164,13 @@ CREATE TABLE BooksDB.GeneralLedger(
 CREATE USER 'admin'@'localhost' IDENTIFIED BY '***INSERT PASSWORD HERE***';
 GRANT ALL ON BooksDB.* TO 'admin'@'localhost';
 GRANT ALL ON UsersDB.* TO 'admin'@'localhost';
+
+/*
+ * The account the user administrator (a program) will use to setup and delete
+ * user accounts; has complete access to UsersDB.
+ */
+CREATE USER 'users'@'localhost' IDENTIFIED BY '***INSERT PASSWORD HERE***';
+GRANT ALL ON UsersDB.* TO 'users'@'localhost';
 
 /*
  * The account the password administrator (a program) will use to setup and
