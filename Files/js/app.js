@@ -1380,6 +1380,9 @@ const BookkeepingProjectModule = (function () {
         // Build new content
         parent.appendChild(that[paramBuilderName](...paramBuilderArgs));
 
+        // Make any scene-specific adjustments post-addition to page
+        that.handlePostLoadAdjustments();
+
         // Fade in on the scene
         that.fade('in', parent.id);
         return;
@@ -2379,6 +2382,8 @@ const BookkeepingProjectModule = (function () {
       that.displayTableRow(row, newTable, paramTableConfig);
     });
 
+    this.scene = Scenes.DASHBOARD;
+
     return newTable;
   };
 
@@ -2910,6 +2915,41 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
+   * @description This handler is called by <code>inaccessible.tinderize</code>
+   * after the completion of the builder assembly and addition operations to
+   * complete any remaining post-load operations necessary to the proper display
+   * of the page content. Post-load adjustments are scene specific.
+   * <br />
+   * <br />
+   * For the dashboard table scenes, this function is used to manually adjust
+   * the width of each table cell depending on the number of headers present in
+   * that table. For instance, the accounts table has a total of four headers,
+   * thus, the width of each column would be the width of the table divided by
+   * the number of headers.
+   *
+   * @returns {void}
+   */
+  inaccessible.handlePostLoadAdjustments = function () {
+
+    let table, rows;
+
+    switch (this.scene) {
+      case 2: // Dashboard
+        table = document.getElementById(Identifiers.ID_DASHBOARD_LEDGER_TABLE);
+        rows = table.rows;
+
+        for (let row of rows) {
+          for (let cell of row.cells) {
+            cell.style.width = `${table.offsetWidth / row.cells.length}px`;
+          }
+        }
+        break;
+      default:
+        return;
+    }
+  };
+
+  /**
    * @description This presently noop'ed function will be used to toggle between
    * the documents overview table and the general ledger table on the press of
    * the appropriate sidebar button.
@@ -2963,6 +3003,8 @@ const BookkeepingProjectModule = (function () {
         params: {},
       }
     };
+
+    this.scene = Scenes.DASHBOARD;
 
     selectedTable = requestDataOptions[paramTable];
 
