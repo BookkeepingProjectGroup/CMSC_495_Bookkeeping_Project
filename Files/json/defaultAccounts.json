@@ -1,0 +1,32 @@
+[
+    {
+        "code": "1000",
+        "name": "Cash",
+        "type": "ASSET"
+    },
+    {
+        "code": "1500",
+        "name": "Accounts Receivable",
+        "type": "ASSET"
+    },
+    {
+        "code": "2000",
+        "name": "Accounts Payable",
+        "type": "LIABILITY"
+    },
+    {
+        "code": "3000",
+        "name": "Retained Earnings",
+        "type": "EQUITY"
+    },
+    {
+        "code": "4000",
+        "name": "General Revenue",
+        "type": "REVENUE"
+    },
+    {
+        "code": "5000",
+        "name": "Uncategorized Expense",
+        "type": "EXPENSE"
+    }
+]
