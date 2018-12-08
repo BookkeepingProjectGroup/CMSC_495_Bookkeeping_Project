@@ -104,6 +104,19 @@ const BookkeepingProjectModule = (function () {
   const DEBUG = false;
 
   /**
+   * @description This constant is used to allow the program to run in a test
+   * capacity divorced from the use of the database. Instead of making calls to
+   * the server for data via the PHP endpoints, it instead queries a set of
+   * static JSON files containing test JSON data related to accounts, documents,
+   * vendors, customers, and ledger entries. This assists the front-end team in
+   * debugging of default display behavior and styling elements as they would
+   * appear in the production build.
+   *
+   * @const
+   */
+  const TESTING = true;
+
+  /**
    * @description Enum for assorted utility constants. Herein are set assorted
    * default values of helper constants required in various contexts. These
    * values are included in an object-global private enum to assist in ease of
@@ -202,19 +215,20 @@ const BookkeepingProjectModule = (function () {
     ID_DASHBOARD_TOPBAR_META_SUBTITLE: 'dashboard-topbar-meta-subtitle',
     ID_DASHBOARD_TOPBAR_NAVLINKS: 'dashboard-topbar-navlinks',
     ID_DASHBOARD_TOPBAR_NAVLINKS_HOLDER: 'dashboard-topbar-navlinks-holder',
-    ID_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT: 'dashboard-topbar-navlinks-account',
+    ID_DASHBOARD_TOPBAR_NAVLINKS_CHANGEP: 'dashboard-topbar-navlinks-changep',
     ID_DASHBOARD_TOPBAR_NAVLINKS_PRINT: 'dashboard-topbar-navlinks-print',
     ID_DASHBOARD_TOPBAR_NAVLINKS_LOGOUT: 'dashboard-topbar-navlinks-logout',
     ID_DASHBOARD_SECTION: 'dashboard-section',
     ID_DASHBOARD_SIDEBAR: 'dashboard-sidebar',
     ID_DASHBOARD_SIDEBAR_BUTTONS: 'dashboard-sidebar-buttons',
-    ID_DASHBOARD_SIDEBAR_BUTTONS_TOGGLE: 'dashboard-sidebar-buttons-toggle',
-    ID_DASHBOARD_SIDEBAR_BUTTONS_CHANGEP: 'dashboard-sidebar-buttons-changep',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_VIEW_D: 'dashboard-sidebar-buttons-view-d',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_VIEW_A: 'dashboard-sidebar-buttons-view-a',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_VIEW_C: 'dashboard-sidebar-buttons-view-c',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_ViEW_V: 'dashboard-sidebar-buttons-view-v',
     ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT: 'dashboard-sidebar-buttons-document',
     ID_DASHBOARD_SIDEBAR_BUTTONS_CUSTOMER: 'dashboard-sidebar-buttons-customer',
     ID_DASHBOARD_SIDEBAR_BUTTONS_VENDOR: 'dashboard-sidebar-buttons-vendor',
     ID_DASHBOARD_SIDEBAR_BUTTONS_DELETE: 'dashboard-sidebar-buttons-delete',
-    ID_DASHBOARD_SIDEBAR_BUTTONS_TEST: 'dashboard-sidebar-buttons-test',
     ID_DASHBOARD_LEDGER: 'dashboard-ledger',
     ID_DASHBOARD_LEDGER_TABLE: 'dashboard-ledger-table',
     ID_DASHBOARD_FOOTER: 'dashboard-footer',
@@ -331,8 +345,8 @@ const BookkeepingProjectModule = (function () {
     // Buttons
     BUTTON_LOGIN_FOOTER_CREATE: 'Create',
     BUTTON_LOGIN_FOOTER_SUBMIT: 'Login',
-    BUTTON_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT: 'Account',
-    BUTTON_DASHBOARD_TOPBAR_PRINT: 'Print ledger',
+    BUTTON_DASHBOARD_TOPBAR_NAVLINKS_CHANGEP: 'Change password',
+    BUTTON_DASHBOARD_TOPBAR_NAVLINKS_PRINT: 'Print ledger',
     BUTTON_DASHBOARD_TOPBAR_NAVLINKS_LOGOUT: 'Logout',
     BUTTON_MODAL_FOOTER_SUBMIT: 'Submit',
     BUTTON_MODAL_FOOTER_CLEAR: 'Clear',
@@ -347,12 +361,14 @@ const BookkeepingProjectModule = (function () {
     DIV_LOGIN_BODY_HEADER: 'Login or create account',
     DIV_GENERAL_TOGGLE: 'Toggle views',
     DIV_GENERAL_ADD: 'Add $1',
-    DIV_GENERAL_CHANGEP: 'Change password',
-    DIV_GENERAL_DELETE_ROW: 'Delete ledger entry',
+    DIV_GENERAL_TOGGLE_DOCS: 'View documents',
+    DIV_GENERAL_TOGGLE_ACCOUNTS: 'View accounts',
+    DIV_GENERAL_TOGGLE_CUSTOMERS: 'View customers',
+    DIV_GENERAL_TOGGLE_VENDORS: 'View vendors',
+    DIV_GENERAL_DELETE_ROW: 'Delete entry',
     DIV_GENERAL_TOPBAR_TITLE: 'Keep Dem Books Y\'all', // Need some title
     DIV_GENERAL_TOPBAR_SUBTITLE: 'A bookkeeping application for CMSC 495',
     DIV_CHANGEP_INFORMATION: 'Please note that password entries must match',
-    DIV_CHANGEP_TITLE: 'Change password',
     DIV_CORV_INFORMATION: 'Please input an entry name and address',
     DIV_DOCUMENT_INFORMATION: 'Please select document type & associated party',
 
@@ -361,6 +377,7 @@ const BookkeepingProjectModule = (function () {
     ERROR_ILLEGITIMATE_INPUT: 'Input content must be alphanumeric',
     ERROR_MISMATCHING_PASSWORDS: 'Passwords do not match',
     ERROR_FAILED_PASSWORD_RESET: 'Password reset unsuccessful',
+    ERROR_LOGIN_FAILED: 'Login failed. Please check login details',
     ERROR_CORV_DUPLICATE: 'An entry with that name or address already exists',
     ERROR_CORV_OTHERERROR: 'An error was encountered. Please try again',
     ERROR_DOCU_PARTY_DISPLAY: 'Could not display extant $1',
@@ -597,11 +614,17 @@ const BookkeepingProjectModule = (function () {
    * @const
    */
   const TableHeaders = Object.freeze({
+    ACCOUNTS: [
+      'delete',          // Checkbox for deletion
+      'code',            // Int code number
+      'name',            // Account name
+      'type',            // Account type
+    ],
     DOCUMENTS: [
+      'delete',          // Checkbox for deletion
       'name',            // Document name
       'type',            // Type of document
       'vendor/customer', // If applicable
-      'posted',          // If doc is finished
     ],
     LEDGER: [
       'delete',          // Checkbox for deletion
@@ -612,6 +635,11 @@ const BookkeepingProjectModule = (function () {
       'memo',            // Description of transaction
       'name',            // Individual in question
       'date',            // Recorded date
+    ],
+    PARTIES: [
+      'delete',          // Checkbox for deletion
+      'name',            // Vendor/customer name
+      'address',         // Vendor/customer address
     ],
   });
 
@@ -658,11 +686,11 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.sidebarButtonData = [
     {
-      buttonType: Text.DIV_GENERAL_TOGGLE,
-      functionName: 'handleDashboardViewsToggle',
-      functionArguments: [],
+      buttonType: Text.DIV_GENERAL_TOGGLE_DOCS,
+      functionName: 'handleTableDataLoading',
+      functionArguments: ['documents'],
       requiresWrapper: true,
-      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_TOGGLE,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VIEW_D,
       elementClasses: [
         Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
         Identifiers.CLASS_GENERAL_ACTION_BUTTON,
@@ -670,16 +698,35 @@ const BookkeepingProjectModule = (function () {
       ],
     },
     {
-      buttonType: Text.DIV_GENERAL_CHANGEP,
-      functionName: 'displayModal',
-      functionArguments: [
-        Text.DIV_CHANGEP_TITLE,
-        'buildPasswordChangeModal',
-        [ModalButtons.CLEAR],
-        'handlePasswordChange',
-      ],
+      buttonType: Text.DIV_GENERAL_TOGGLE_ACCOUNTS,
+      functionName: 'handleTableDataLoading',
+      functionArguments: ['accounts'],
       requiresWrapper: true,
-      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_CHANGEP,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VIEW_A,
+      elementClasses: [
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
+      buttonType: Text.DIV_GENERAL_TOGGLE_CUSTOMERS,
+      functionName: 'handleTableDataLoading',
+      functionArguments: ['customers'],
+      requiresWrapper: true,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VIEW_C,
+      elementClasses: [
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
+      buttonType: Text.DIV_GENERAL_TOGGLE_VENDORS,
+      functionName: 'handleTableDataLoading',
+      functionArguments: ['vendors'],
+      requiresWrapper: true,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VIEW_V,
       elementClasses: [
         Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
         Identifiers.CLASS_GENERAL_ACTION_BUTTON,
@@ -694,6 +741,23 @@ const BookkeepingProjectModule = (function () {
         'buildDocumentAdditionModal',
         [ModalButtons.NEW_ROW, ModalButtons.DELETE_ROW],
         'handleDocumentAddition',
+      ],
+      requiresWrapper: true,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT,
+      elementClasses: [
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
+      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'account'),
+      functionName: 'displayModal',
+      functionArguments: [
+        Text.DIV_GENERAL_ADD.replace('$1', 'account'),
+        'buildAccountAdditionModal',
+        [ModalButtons.CLEAR],
+        'handleAccountAddition',
       ],
       requiresWrapper: true,
       elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT,
@@ -749,18 +813,6 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    { // REMOVE ROW ONCE ACCOUNTS WORK
-      buttonType: 'Test - Add JSON row',
-      functionName: 'handleTestGetRequest',
-      functionArguments: [],
-      requiresWrapper: true,
-      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_TEST,
-      elementClasses: [
-        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        Identifiers.CLASS_GENERAL_OPENSANS,
-      ],
-    },
   ];
 
   /**
@@ -777,23 +829,23 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.navlinksButtonData = [
     {
-      buttonType: Text.BUTTON_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT,
+      buttonType: Text.BUTTON_DASHBOARD_TOPBAR_NAVLINKS_CHANGEP,
       functionName: 'displayModal',
       functionArguments: [
-        Text.DIV_CHANGEP_TITLE,
+        Text.BUTTON_DASHBOARD_TOPBAR_NAVLINKS_CHANGEP,
         'buildPasswordChangeModal',
         [ModalButtons.CLEAR],
         'handlePasswordChange',
       ],
       requiresWrapper: false,
-      elementId: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_ACCOUNT,
+      elementId: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_CHANGEP,
       elementClasses: [
         Identifiers.CLASS_GENERAL_LINK_BUTTON,
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
     {
-      buttonType: Text.BUTTON_DASHBOARD_TOPBAR_PRINT,
+      buttonType: Text.BUTTON_DASHBOARD_TOPBAR_NAVLINKS_PRINT,
       functionName: 'handlePagePrinting',
       functionArguments: [],
       requiresWrapper: false,
@@ -845,7 +897,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.sendRequest = function (paramType, paramUrl, paramData = null) {
 
     // Declarations
-    let that, request;
+    let that, request, params;
 
     // Preserve scope context
     that = this;
@@ -857,20 +909,19 @@ const BookkeepingProjectModule = (function () {
       request.open(paramType, paramUrl);
 
       if (paramType === 'POST' && paramData != null) {
-        if (that.isJSON(paramData)) {
+        if (paramData.encode === true) {
           // If data is passed as JSON string, we can use JSON REST method
           request.setRequestHeader('Content-Type', 'application/json');
-          paramData = JSON.stringify(paramData);
+          params = JSON.stringify(paramData.params);
         } else {
           // Query string implementation
           request.setRequestHeader('Content-Type',
             'application/x-www-form-urlencoded');
-          paramData = that.serialize(paramData);
+          params = that.serialize(paramData.params);
         }
       }
 
       request.onload = function () {
-        console.warn(request.responseText);
         if (request.status == 200) {
           resolve(request.response);
         } else {
@@ -884,7 +935,7 @@ const BookkeepingProjectModule = (function () {
       };
 
       // Make request (data will be either null or a stringified object)
-      request.send(paramData);
+      request.send(params);
     });
   };
 
@@ -995,7 +1046,7 @@ const BookkeepingProjectModule = (function () {
    * @returns {boolean} Returns <code>true</code> if input is alphanumeric
    */
   inaccessible.isLegalInput = function (paramInput) {
-    return /^[a-z0-9]+$/i.test(paramInput);
+    return /^[a-z\d\-_\s]+$/i.test(paramInput);
   };
 
   /**
@@ -1102,10 +1153,6 @@ const BookkeepingProjectModule = (function () {
     target = document.querySelector(paramSelector);
 
     if (target != null) {
-      if (DEBUG) {
-        console.log('Element found');
-      }
-
       target.focus();
       return;
     } else {
@@ -1234,10 +1281,6 @@ const BookkeepingProjectModule = (function () {
           fadeTypeObject.operator
         );
       } else {
-        if (DEBUG) {
-          console.log('Fading complete');
-        }
-
         clearInterval(interval);
         return;
       }
@@ -1279,10 +1322,6 @@ const BookkeepingProjectModule = (function () {
       timePassed = Date.now() - startTime;
 
       if (timePassed >= Utility.SWIPE_INTERVAL_TIME) {
-        if (DEBUG) {
-          console.log('Swiping complete');
-        }
-
         clearInterval(interval);
         return;
       }
@@ -1501,16 +1540,13 @@ const BookkeepingProjectModule = (function () {
    * replaced with a better method; this is a bit janked at the moment, but it's
    * good enough for a v.1 build.
    *
+   * @param {!Array<string>} paramHeaders
    * @returns {HTMLElement} ledger The formed ledger DOM element
    */
-  inaccessible.assembleLedger = function () {
+  inaccessible.assembleDashboardTable = function (paramHeaders) {
 
     // Declaration
-    let ledger, thead, tbody, newRow, newCell, configRowHeader, configTable,
-      ledgerHeaders;
-
-    // Grab string headers from enum
-    ledgerHeaders = TableHeaders.LEDGER;
+    let ledger, thead, tbody, newRow, newCell, configRowHeader, configTable;
 
     configTable = {
       id: Identifiers.ID_DASHBOARD_LEDGER_TABLE,
@@ -1531,10 +1567,10 @@ const BookkeepingProjectModule = (function () {
     // New first row
     newRow = thead.insertRow(0);
 
-    for (let i = 0; i < ledgerHeaders.length; i++) {
+    for (let i = 0; i < paramHeaders.length; i++) {
       newCell = newRow.insertCell(i);
       newCell.appendChild(
-        this.assembleElement(['th', configRowHeader, ledgerHeaders[i]])
+        this.assembleElement(['th', configRowHeader, paramHeaders[i]])
       );
     }
 
@@ -1903,7 +1939,7 @@ const BookkeepingProjectModule = (function () {
               this.sidebarButtonData),
           ],
           ['main', configLedger,
-            this.assembleLedger(),
+            this.assembleDashboardTable(TableHeaders.DOCUMENTS),
           ],
         ],
       ],
@@ -2310,6 +2346,43 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
+   * @description Noop'd builder for addition of accounts modal content.
+   *
+   * @returns {void}
+   */
+  inaccessible.buildAccountAdditionModal = function () {
+    console.warn('Noop\'d');
+  };
+
+  /**
+   * @description This function is used to build one of the user-selected HTML
+   * tables in the dashboard, either the documents overview table, the vendor or
+   * customer tables, the accounts table, or the general ledger table. It works
+   * by assembling a new table, adding rows listed in <code>paramRows</code>,
+   * and finally returning the table to be appended by the fading utility
+   * function <code>inaccessible.tinderize</code>.
+   *
+   * @param {object} paramTableConfig
+   * @param {!Array<object>} paramRows
+   * @returns {HTMLElement} newTable
+   */
+  inaccessible.buildTable = function (paramTableConfig, paramRows) {
+
+    // Declarations
+    let that, newTable;
+
+    // Definitions
+    that = this;
+    newTable = this.assembleDashboardTable(paramTableConfig.headers);
+
+    paramRows.forEach(function (row) {
+      that.displayTableRow(row, newTable, paramTableConfig);
+    });
+
+    return newTable;
+  };
+
+  /**
    * @description This simple builder function is used specifically as a fast,
    * convenient way of assembling a wrapper <code>div</code> and the buttons
    * denoted in one of the script-global namespace arrays, either
@@ -2407,11 +2480,14 @@ const BookkeepingProjectModule = (function () {
     modal.addEventListener('click', function handleOutsideClicks (event) {
       modalMain = document.getElementById(Identifiers.ID_MODAL_MAIN);
 
-      if (!modalMain.contains(event.target)) {
-        that.handleModalClose();
+      if (modalMain == null || !modalMain.contains(event.target)) {
+        if (modalMain != null) {
+          that.handleModalClose();
+        }
+
         modal.removeEventListener('click', handleOutsideClicks);
       }
-    });
+    }, false);
 
     // Build and add the modal to the body at the bottom
     document.body.appendChild(modal);
@@ -2426,37 +2502,31 @@ const BookkeepingProjectModule = (function () {
    * handle addition of user data in some form.
    *
    * @param {object} paramRowObject
-   * @param {!Array<string>} paramHeaders
+   * @param {HTMLElement} paramTable
+   * @param {object} paramTableConfig
    * @returns {void}
    */
-  inaccessible.displayTableRow = function (paramRowObject, paramHeaders) {
+  inaccessible.displayTableRow = function (paramRowObject, paramTable,
+      paramTableConfig) {
 
-    // Declaration
-    let table, tbody, rowCount, newRow, newCell, valuesArray, configCheckbox,
-      location;
+    // Declarations
+    let that, tbody, rowCount, columnCount, newRow, newCell, valuesArray,
+      newButton, configCheckbox, configButton;
+
+    // Preserve scope
+    that = this;
 
     // For storage of values associated with object property keys
     valuesArray = [];
 
-    switch (this.scene) {
-      case 0: // MODAL
-        location = Identifiers.ID_DOCUMENT_TABLE;
-        break;
-      case 1: // LOGIN
-      case 2: // DASHBOARD
-      default:
-        location = Identifiers.ID_DASHBOARD_LEDGER_TABLE;
-        break;
-    }
-
-    // The ledger itself
-    table = document.getElementById(location);
-
     // Table body
-    tbody = table.getElementsByTagName('tbody')[0];
+    tbody = paramTable.getElementsByTagName('tbody')[0];
 
     // Number of current rows in tbody, figure out where to put the new one
     rowCount = tbody.rows.length;
+
+    // Number of header columns
+    columnCount = paramTable.rows[0].cells.length;
 
     // Insert a new row
     newRow = tbody.insertRow(rowCount);
@@ -2472,19 +2542,36 @@ const BookkeepingProjectModule = (function () {
       class: Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_CHECKBOX,
     };
 
-    for (let i = 0; i < paramHeaders.length; i++) {
+    configButton = {
+      class: Identifiers.CLASS_GENERAL_LINK_BUTTON,
+    };
 
-      // First cell should be a deletion checkbox
-      if (i == 0) {
-        newCell = newRow.insertCell(i);
-        newCell.appendChild(this.assembleElement(['input', configCheckbox]));
-      } else {
-        newCell = newRow.insertCell(i);
-        newCell.appendChild(
-          (this.scene === Scenes.DASHBOARD)
-            ? document.createTextNode(valuesArray[i - 1])
-            : valuesArray[i - 1]
-        );
+    for (let i = 0; i < columnCount; i++) {
+      newCell = newRow.insertCell(i);
+
+      if (paramTableConfig.useTextNodesOnly && i > 0) {
+        newCell.appendChild(document.createTextNode(valuesArray[i - 1]));
+        continue;
+      }
+
+      switch (i) {
+        case 0: // Deletion checkbox
+          newCell.appendChild(this.assembleElement(['input', configCheckbox]));
+          break;
+        case 1: // Add link button in certain contexts
+          newButton = this.assembleElement(['button', configButton,
+            valuesArray[i - 1]]);
+
+          newButton.addEventListener('click', function () {
+            window.alert("Note: This functionality is not yet complete.");
+            that.handleTableDataLoading('ledger_rows', valuesArray[i - 1]);
+          }, false);
+
+          newCell.appendChild(newButton);
+          break;
+        default:
+          newCell.appendChild(document.createTextNode(valuesArray[i - 1]));
+          break;
       }
     }
   };
@@ -2503,7 +2590,7 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.displayStatusNotice = function (paramIsSuccess, paramMessage) {
 
-    // Declaration
+    // Declarations
     let configStatusDiv, location, status, statusDiv, extantNotice;
 
     // Choose class name fragment based on success of action
@@ -2573,7 +2660,7 @@ const BookkeepingProjectModule = (function () {
       document.getElementById(Identifiers.ID_LOGIN_BODY_INPUT_REENTER).value;
 
     // Alphanumeric data only
-    if (!this.isLegalInput(username) ||!this.isLegalInput(password) ||
+    if (!this.isLegalInput(username) || !this.isLegalInput(password) ||
         !this.isLegalInput(passwordReenter)) {
 
       this.displayStatusNotice(false, Text.ERROR_ILLEGITIMATE_INPUT);
@@ -2588,13 +2675,19 @@ const BookkeepingProjectModule = (function () {
 
     // Send POST request
     this.sendRequest('POST', 'php/create_user.php', {
-      username: username,
-      password: password,
+      encode: false,
+      params: {
+        username: username,
+        password: password,
+      },
     }).then(function (response) {
 
       // Parse the JSON response into a usable object
       data = JSON.parse(response);
-      console.log(data);
+
+      if (DEBUG) {
+        console.log(data);
+      }
 
       if (data.success) {
         that.displayStatusNotice(true, Text.SUCCESS_ACCOUNT_CREATED);
@@ -2671,33 +2764,38 @@ const BookkeepingProjectModule = (function () {
       return;
     }
 
+    if (TESTING) {
+      this.tinderize(true, Identifiers.ID_LOGIN_CONTAINER,
+        'buildUserInterface');
+      return;
+    }
+
     this.sendRequest('POST', 'php/login.php', {
-      username: username,
-      password: password,
+      encode: false,
+      params: {
+        username: username,
+        password: password,
+      },
     }).then(function (response) {
 
       // Parse JSON into object
       data = JSON.parse(response);
-      console.log(data);
+
+      if (DEBUG) {
+        console.log(data);
+      }
 
       if (data.isLogonSuccessful) {
-        console.log('TINDERIZE HERE');
-
-        /* UNCOMMENT ONCE ACCOUNT CREATION IS ENABLED
-        // Fade out and remove content prior to rebuilding of main interface
         that.tinderize(true, Identifiers.ID_LOGIN_CONTAINER,
           'buildUserInterface');
-        */
       } else {
-        console.warn('DISPLAY ERROR MESSAGE IN SCENE');
+        that.displayStatusNotice(false, Text.ERROR_LOGIN_FAILED);
         return;
       }
     }, function (error) {
       console.warn(error);
+      that.displayStatusNotice(false, Text.ERROR_NETWORK);
     });
-
-    /* REMOVE ALL BEYOND THIS POINT ONCE ACCOUNT CREATION WORKS */
-    this.tinderize(true, Identifiers.ID_LOGIN_CONTAINER, 'buildUserInterface');
   };
 
   /**
@@ -2709,6 +2807,11 @@ const BookkeepingProjectModule = (function () {
    * @returns {void}
    */
   inaccessible.handleLogout = function () {
+
+    if (!TESTING) {
+      this.sendRequest('POST', 'php/logout.php');
+    }
+
     this.tinderize(true, Identifiers.ID_DASHBOARD_CONTAINER,
       'buildLoginModule', [this.buildLoginContent(
       [ModuleButtons.CREATE_ACCOUNT, ModuleButtons.LOGIN])]);
@@ -2811,10 +2914,86 @@ const BookkeepingProjectModule = (function () {
    * the documents overview table and the general ledger table on the press of
    * the appropriate sidebar button.
    *
+   * @param {string} paramTable Either "documents," "ledger," or "accounts"
+   * @param {!string=} paramDoc Document whose ledger rows are requested
    * @returns {void}
    */
-  inaccessible.handleDashboardViewsToggle = function () {
-    this.tinderize(false, 'dashboard-ledger-table', 'assembleLedger');
+  inaccessible.handleTableDataLoading = function (paramTable, paramDoc = null) {
+
+    let that, requestDataOptions, selectedTable, data;
+
+    that = this;
+
+    requestDataOptions = {
+      documents: {
+        name: 'documents',
+        endpoint: 'get_documents',
+        headers: TableHeaders.DOCUMENTS,
+        useTextNodesOnly: false,
+        params: {},
+      },
+      ledger_rows: {
+        name: 'ledger_rows',
+        endpoint: 'get_general_ledger_rows',
+        headers: TableHeaders.LEDGER,
+        useTextNodesOnly: true,
+        params: {
+          documentName: paramDoc,
+        },
+      },
+      accounts: {
+        name: 'accounts',
+        endpoint: 'get_accounts',
+        headers: TableHeaders.ACCOUNTS,
+        useTextNodesOnly: true,
+        params: {},
+      },
+      vendors: {
+        name: 'vendors',
+        endpoint: 'get_vendors',
+        headers: TableHeaders.PARTIES,
+        useTextNodesOnly: true,
+        params: {},
+      },
+      customers: {
+        name: 'customers',
+        endpoint: 'get_customers',
+        headers: TableHeaders.PARTIES,
+        useTextNodesOnly: true,
+        params: {},
+      }
+    };
+
+    selectedTable = requestDataOptions[paramTable];
+
+    this.sendRequest(
+      'GET',
+      (TESTING)
+        ? `json/${selectedTable.endpoint}.json`
+        : `php/${selectedTable.endpoint}.php`,
+      {
+        encode: false,
+        params: selectedTable.params,
+      },
+    ).then(function (response) {
+
+      // Parse JSON into object
+      data = JSON.parse(response);
+
+      if (DEBUG) {
+        console.log(data);
+      }
+
+      if (data.success) {
+        that.tinderize(false, Identifiers.ID_DASHBOARD_LEDGER_TABLE,
+          'buildTable', [selectedTable, data[paramTable]]);
+      } else {
+        console.warn('DISPLAY ERROR MESSAGE VIA window.alert');
+        return;
+      }
+    }, function (error) {
+      console.warn(error);
+    });
   };
 
   /**
@@ -2859,11 +3038,18 @@ const BookkeepingProjectModule = (function () {
 
     // Send POST request
     this.sendRequest('POST', 'php/set_password.php', {
-      password: passwordReenter,
+      encode: false,
+      params: {
+        password: passwordReenter,
+      },
     }).then(function (response) {
 
       // Parse the JSON response into a usable object
       data = JSON.parse(response);
+
+      if (DEBUG) {
+        console.log(data);
+      }
 
       // Check server response data for successful password reset
       if (data.isPasswordSetSuccessful) {
@@ -3011,20 +3197,27 @@ const BookkeepingProjectModule = (function () {
 
     // If we break'd (lulz) from the outer loop, we don't want to proceed
     if (wasProblemDetected) {
+      if (DEBUG) {
+        console.warn('Problem was detected - [handleDocumentAddition]');
+      }
       return;
     }
 
-    console.log(input);
+    if (DEBUG) {
+      console.log(input);
+    }
 
-    this.sendRequest(
-      'POST',
-      'php/add_document.php',
-      JSON.stringify(input), // Tells request func to use JSON REST approach
-    ).then(function (response) {
+    this.sendRequest('POST', 'php/add_document.php', {
+      encode: true,
+      params: input,
+    }).then(function (response) {
 
       // Parse the JSON response into a usable object
       data = JSON.parse(response);
-      console.log(data);
+
+      if (DEBUG) {
+        console.log(data);
+      }
 
       if (data.success) {
         that.displayStatusNotice(true, Text.SUCCESS_DOCU_CREATED);
@@ -3035,6 +3228,15 @@ const BookkeepingProjectModule = (function () {
       console.warn(error);
       that.displayStatusNotice(false, Text.ERROR_NETWORK);
     });
+  };
+
+  /**
+   * @description Noop'd handler for the addition of new accounts.
+   *
+   * @returns {void}
+   */
+  inaccessible.handleAccountAddition = function () {
+    console.warn('Noop\'d');
   };
 
   /**
@@ -3058,7 +3260,7 @@ const BookkeepingProjectModule = (function () {
 
     // Declarations
     let that, selectedOption, endpoint, partyType, data, partyDropdown,
-      extantParties;
+      extantParties, dropdownElementConfig;
 
     // Definitions
     that = this;
@@ -3085,7 +3287,9 @@ const BookkeepingProjectModule = (function () {
     }
 
     // Either get_vendors or get_customers
-    endpoint = `php/get_${partyType}.php`;
+    endpoint = (TESTING)
+      ? `json/get_${partyType}.json`
+      : `php/get_${partyType}.php`;
 
     this.sendRequest('GET', endpoint).then(function (response) {
 
@@ -3099,10 +3303,15 @@ const BookkeepingProjectModule = (function () {
       partyDropdown =
         document.getElementById(Identifiers.ID_DOCUMENT_DROPDOWN_PARTY);
 
-      console.log(data);
+      if (DEBUG) {
+        console.log(data);
+      }
 
       if (data.success) {
         if (extantParties.length > 0) {
+
+          // Remove all but the first
+          partyDropdown.options.length = 1;
 
           // This approach will need some refactoring in future
           extantParties.forEach(function (party) {
@@ -3166,12 +3375,19 @@ const BookkeepingProjectModule = (function () {
     }
 
     this.sendRequest('POST', `php/${endpoint}.php`, {
-      name: name,
-      address: address,
+      encode: false,
+      params: {
+        name: name,
+        address: address,
+      },
     }).then(function (response) {
 
       // Parse JSON into object
       data = JSON.parse(response);
+
+      if (DEBUG) {
+        console.log(data);
+      }
 
       // If successful, no need to examine response further
       if (data.success) {
@@ -3188,35 +3404,6 @@ const BookkeepingProjectModule = (function () {
     }, function (error) {
       console.warn(error);
       that.displayStatusNotice(false, Text.ERROR_NETWORK);
-    });
-  };
-
-  /**
-   * @description This handler is just a test handler attached to a number of
-   * the space-filling buttons contained on the lefthand sidebar. It calls the
-   * main <code>inaccessible.api.get</code> function used to make GET requests
-   * and simply loads some test <code>json</code> data for now.
-   *
-   * @returns {void}
-   */
-  inaccessible.handleTestGetRequest = function () {
-
-    // Declaration
-    let that, returnedData;
-
-    // Preserve scope
-    that = this;
-
-    this.sendRequest('GET', 'json/testData.json').then(function (response) {
-
-      // Parse JSON for use in loop
-      returnedData = JSON.parse(response);
-
-      for (let i = 0; i < returnedData.data.length; i++) {
-        that.displayTableRow(returnedData.data[i], TableHeaders.LEDGER);
-      }
-    }, function (error) {
-      console.warn(error);
     });
   };
 
