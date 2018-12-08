@@ -30,7 +30,7 @@
 
 require_once('PhpConnection.php');
 
-start_session();
+session_start();
 
 $replyObject = array('success' => FALSE);
 
