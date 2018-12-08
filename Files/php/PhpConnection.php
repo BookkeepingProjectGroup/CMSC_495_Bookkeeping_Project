@@ -3,14 +3,14 @@
 /*
  * File: PhpConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 11-29-2018
+ * Date modified: 2018-12-07
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
  * MariaDB SQL database through user php.
  */
 
-include_once 'DatabaseConnection.php';
+require_once 'DatabaseConnection.php';
 
 /** A class representing a connection MariaDB SQL database as user php. */
 class PhpConnection extends DatabaseConnection {
@@ -19,6 +19,9 @@ class PhpConnection extends DatabaseConnection {
 
     /** The credentials file for user php. */
     const USER_PHP_CREDENTIALS_FILENAME = '../json/phpLogon.json';
+
+    /** The default accounts file. */
+    const DEFAULT_ACCOUNTS_FILENAME = '../json/defaultAccounts.json';
 
     /**
      * addDocument(string,string,string,array[,string[,string]]) error codes.
@@ -43,6 +46,92 @@ class PhpConnection extends DatabaseConnection {
     }
 
     /**
+     * A method to add an account to the database.
+     *
+     * @param $userID the ID of the user with which the new account is to be
+     * associated.
+     * @param $code the four-digit code the the new account; each user may have
+     * at most only one account with each possible code.
+     * @param $name the name of the new account.
+     * @param $type the type of the new account; must be one of "ASSET",
+     * "LIABILITY", "EQUITY", "REVENUE" or "EXPENSE".
+     *
+     * @returns TRUE if the new account was successfully added; FALSE otherwise.
+     */
+    public function addAccount(
+        string $userID,
+        string $code,
+        string $name,
+        string $type
+    ) {
+        // Query the database for any currently existing accounts belonging to
+        // the given user and having the given code.
+        $accountAlreadyExistsID = $this->runQuery(
+            'SELECT ID FROM BooksDB.Accounts WHERE (userID = ?) AND (code = ?)',
+            'ss',
+            $userID,
+            $code
+        );
+
+        // If DatabaseConnection::runQuery(string,string,...mixed) returns false
+        // for a SELECT statement, an error occurred, so throw a
+        // DatabaseException.
+        if($accountAlreadyExistsID === FALSE) {
+            throw new DatabaseException(
+                'DatabaseConnection::runQuery(string,string,...mixed) failed.'
+            );
+        }
+
+        // Count the number of account IDs returned by the query.
+        $accountAlreadyExistsIDCount = count($accountAlreadyExistsID);
+
+        // If any account IDs were returned, this user already has one or more
+        // accounts with the given code, so return FALSE.
+        if($accountAlreadyExistsIDCount > 0) {
+            return FALSE;
+        }
+
+        // Insert the new account into the database.
+        $this->runQuery(
+            'INSERT INTO BooksDB.Accounts (userID, code, name, type) '
+                . 'VALUES (?, ?, ?, ?)',
+            'ssss',
+            $userID,
+            $code,
+            $name,
+            $type
+        );
+
+        // Query the database to see if it was added successfully.
+        $newAccountID = $this->runQuery(
+            'SELECT ID FROM BooksDB.Accounts WHERE (userID = ?) AND (code = ?)',
+            'ss',
+            $userID,
+            $code
+        );
+
+        // If DatabaseConnection::runQuery(string,string,...mixed) returns false
+        // for a SELECT statement, an error occurred, so throw a
+        // DatabaseException.
+        if($newAccountID === FALSE) {
+            throw new DatabaseException(
+                'DatabaseConnection::runQuery(string,string,...mixed) failed.'
+            );
+        }
+
+        // If there are not more account IDs in the database now than when we
+        // started, the account was not added successfully, so throw a
+        // DatabaseException.
+        if(count($newAccountID) <= $accountAlreadyExistsIDCount) {
+            throw new DatabaseException('A new account could not be added.');
+        }
+
+        // If we make it here, the new account was added successfully, so return
+        // TRUE.
+        return TRUE;
+    }
+
+    /**
      * A method to add a customer to the database.
      *
      * @param $userID the ID of the user with whom this customer is associated.
@@ -54,6 +143,54 @@ class PhpConnection extends DatabaseConnection {
      */
     public function addCustomer(string $userID, string $name, string $address) {
         return $this->addCustomerOrVendor(TRUE, $userID, $name, $address);
+    }
+
+    /**
+     * A method for adding a group of default accounts to the database for a
+     * specified user.
+     *
+     * If any of the default accounts' codes have already been taken in the
+     * user's database, they are skipped. The path to the file containing the
+     * information of the default accounts is in
+     * self::DEFAULT_ACCOUNTS_FILENAME.
+     *
+     * @param $userID the ID of the user for which the accounts are to be added.
+     *
+     * @return an array of associative arrays containing the "code", "name" and
+     * "type" of each account added.
+     */
+    public function addDefaultAccounts(string $userID) {
+        return array_map(
+            function(array $defaultAccount) {
+                $outputKeys = array(
+                    'code' => NULL,
+                    'name' => NULL,
+                    'type' => NULL
+                );
+
+                return(
+                    $this->addAccount(
+                        $userID,
+                        $defaultAccount['code'],
+                        $defaultAccount['name'],
+                        $defaultAccount['type']
+                    )
+                    ? array_intersect_key($defaultAccount, $outputKeys)
+                    : NULL
+                );
+            },
+            json_decode(
+                file_get_contents(
+                    self::DEFAULT_ACCOUNTS_FILENAME,
+                    FALSE,
+                    NULL,
+                    0,
+                    1024
+                ),
+                TRUE,
+                2
+            )
+        );
     }
 
     /**
