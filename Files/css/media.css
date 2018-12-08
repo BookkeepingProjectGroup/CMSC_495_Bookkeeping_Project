@@ -1,6 +1,6 @@
 /* * Name: media.css * Date:November 24, 2018 * Author: Jennifer Brady * /
 /* Illustration of @media query for break points */
-/*small mobile screen size*/
+/*medium mobile screen size*/
  @media only screen and (max-width: 575px) and (orientation:portrait){
     /* remove formatting & set container as flex table */
      #dashboard-container{
@@ -24,7 +24,7 @@
      #application-body{
          margin:0;
          background-image: none;
-         font-size: x-small;
+         font-size: medium;
     }
      .general-topbar-div {
          width:100%;
@@ -168,7 +168,7 @@
      #application-body{
          margin:0;
          background-image: none;
-         font-size: x-small;
+         font-size: medium;
     }
     /* Remove Title*/
      #dashboard-topbar-meta{
@@ -228,8 +228,8 @@
  @media only screen and (min-width: 576px) and (max-width:768px) {
      #application-body{
          margin:0;
-         background-image: none;
-         font-size: small;
+
+         font-size: medium;
     }
      .general-container{
          margin-top:0;
@@ -238,11 +238,11 @@
          width: 550px;
     }
 	#dashboard-ledger-table {
-		 font-size: x-small;
+		 font-size: medium;
 	}
 	#dashboard-ledger-table td{
 		width: 48px;
-		
+
 	}
      #login-container{
          margin-top:auto;
@@ -254,15 +254,15 @@
  @media only screen and (min-width: 768px) and (max-width: 990px) {
      #application-body{
          margin:0;
-         background-image: none;
+
     }
      #dashboard-container {
          width: 650px;
     }
 	 #dashboard-ledger-table {
-		 font-size: x-small;
+		 font-size: medium;
 	 }
-	 
+
 	 #dashboard-ledger-table td{
 		 width: 52px;
 	 }
@@ -279,10 +279,10 @@
     }
      #application-body{
          margin:0;
-         background-image: none;
+         
     }
-	
-	
+
+
 }
  @media only screen and (min-width: 1199px) {
      #dashboard-container {
@@ -328,7 +328,7 @@
          height:auto;
          overflow: visible;
     }
-	
+
 	#dashboard-ledger-table tbody{
 		height: auto;
 		overflow: visible;
