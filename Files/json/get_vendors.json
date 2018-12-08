@@ -1,0 +1,25 @@
+{
+    "success": true,
+    "vendors": [
+        {
+            "name": "UMUC",
+            "address": "1616 McCormick Dr, Largo, MD 20774"
+        },
+        {
+            "name": "Baltimore Gas and Electric",
+            "address": "110 W Fayette St, Baltimore, MD 21201"
+        },
+        {
+            "name": "Verizon",
+            "address": "1002 Fleet St, Baltimore, MD 21202"
+        },
+        {
+            "name": "Walmart",
+            "address": "112 Carroll Island Rd, Baltimore, MD 21220"
+        },
+        {
+            "name": "Staples",
+            "address": "5835 York Rd, Baltimore, MD 21212"
+        }
+    ]
+}

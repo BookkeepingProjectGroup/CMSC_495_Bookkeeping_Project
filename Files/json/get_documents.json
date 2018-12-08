@@ -1,0 +1,25 @@
+{
+    "success": true,
+    "documents": [
+        {
+          "name": "Electricity bill",
+          "type": "Accounts payable invoice",
+          "vendor/customer": "Baltimore Gas and Electricity"
+        },
+        {
+          "name": "Electricity payment",
+          "type": "Accounts payable disbursement",
+          "vendor/customer": "Baltimore Gas and Electricity"
+        },
+        {
+          "name": "Product payment due",
+          "type": "Accounts receivable invoice",
+          "vendor/customer": "John Howell"
+        },
+        {
+          "name": "Deposit of customer check",
+          "type": "Accounts receivable receipt",
+          "vendor/customer": "Sergio Carroll"
+        }
+    ]
+}

@@ -1,0 +1,25 @@
+{
+    "success": true,
+    "customers": [
+        {
+            "name": "Linda W Murillo",
+            "address": "1435 Clarksburg Park Road, Mesquite, AZ 89027"
+        },
+        {
+            "name": "Sergio Carroll",
+            "address": "1837 Joyce Street, Bay Minette, AL 36507"
+        },
+        {
+            "name": "Jose Y Mansfield",
+            "address": "5017 Green Street, Pickens, OK 74752"
+        },
+        {
+            "name": "John Howell",
+            "address": "4152 Gladwell Street, Millington, TN 38053"
+        },
+        {
+            "name": "Deborah M Wiles",
+            "address": "2556 Butternut Lane, Belleville, IL 62220"
+        }
+    ]
+}

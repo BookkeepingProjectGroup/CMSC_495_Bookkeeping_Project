@@ -1,0 +1,17 @@
+{
+    "success": true,
+    "ledger_rows": [
+        {
+            "code": 1500,
+            "date": "2018-12-08",
+            "debit": "10000.00",
+            "description": "Purchase of land"
+        },
+        {
+            "code": 1000,
+            "date": "2018-12-08",
+            "credit": "10000.00",
+            "description": "Purchase of land"
+        }
+    ]
+}
