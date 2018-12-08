@@ -3,7 +3,7 @@
 /*
  * File: PhpConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 2018-12-07
+ * Date modified: 2018-12-08
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
@@ -135,7 +135,7 @@ class PhpConnection extends DatabaseConnection {
      * A method to add a customer to the database.
      *
      * @param $userID the ID of the user with whom this customer is associated.
-     * @param $name the name of the customer.
+     * @param $name the name of the customer.demolition ranch
      * @param $address the address of the customer.
      *
      * @return TRUE if the customer was added successfully; FALSE if the user
@@ -160,35 +160,37 @@ class PhpConnection extends DatabaseConnection {
      * "type" of each account added.
      */
     public function addDefaultAccounts(string $userID) {
-        return array_map(
-            function(array $defaultAccount) {
-                $outputKeys = array(
-                    'code' => NULL,
-                    'name' => NULL,
-                    'type' => NULL
-                );
+        return array_filter(
+            array_map(
+                function(array $defaultAccount) use ($userID) {
+                    $outputKeys = array(
+                        'code' => NULL,
+                        'name' => NULL,
+                        'type' => NULL
+                    );
 
-                return(
-                    $this->addAccount(
-                        $userID,
-                        $defaultAccount['code'],
-                        $defaultAccount['name'],
-                        $defaultAccount['type']
-                    )
-                    ? array_intersect_key($defaultAccount, $outputKeys)
-                    : NULL
-                );
-            },
-            json_decode(
-                file_get_contents(
-                    self::DEFAULT_ACCOUNTS_FILENAME,
-                    FALSE,
-                    NULL,
-                    0,
-                    1024
-                ),
-                TRUE,
-                2
+                    return(
+                        $this->addAccount(
+                            $userID,
+                            $defaultAccount['code'],
+                            $defaultAccount['name'],
+                            $defaultAccount['type']
+                        )
+                        ? array_intersect_key($defaultAccount, $outputKeys)
+                        : array()
+                    );
+                },
+                json_decode(
+                    file_get_contents(
+                        self::DEFAULT_ACCOUNTS_FILENAME,
+                        FALSE,
+                        NULL,
+                        0,
+                        1024
+                    ),
+                    TRUE,
+                    3
+                )
             )
         );
     }
