@@ -333,7 +333,9 @@
   border: inset #88aaa5;
 }
 
-
+.modal-document-table-cell:hover{
+  transform: scale(2.0);
+}
 
 .modal-document-table-dropdown {
   width: 15%;
