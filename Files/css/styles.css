@@ -319,9 +319,10 @@
   margin-bottom: 10px;
   margin-top: 5px;
 
-  /* Make sure new entries don't overly-expand modal */
+   /* Make sure new entries don't overly-expand modal */
   max-height: 75px;
   overflow-y: scroll;
+  overflow-x: hidden;
 /* separate rows*/
   border-collapse: separate;
   border-bottom: 5px;
@@ -331,10 +332,11 @@
   width: 5%;
   margin-bottom: 5px;
   border: inset #88aaa5;
+
 }
 
 .modal-document-table-cell:hover{
-  transform: scale(2.0);
+  transform: scale(1.5, 1.25);
 }
 
 .modal-document-table-dropdown {
