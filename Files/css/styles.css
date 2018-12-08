@@ -17,7 +17,7 @@
      position:relative;
      margin:15px 15px;
     /* to add gradient color background*/
-     background-image: linear-gradient(135deg, #c5d6d4, black);
+     background-image: linear-gradient(135deg, #88aaa5, black);
      background-repeat: no-repeat;
      background-size: cover;
      background-attachment: fixed;
@@ -148,24 +148,31 @@
      margin-left: 20px;
 }
  #dashboard-ledger-table {
-     width: 95%;
+     width: 100%;
+     table-layout: fixed;
+
 }
  #dashboard-ledger-table thead{
 	 border-radius: 3px;
-     background-color: #8f9c9a;
-	 display: block;
+     background-color: #88aaa5;
+	 display: table;
+   width:100%
 }
 
- #dashboard-ledger-table tbody{
+ #dashboard-ledger-table tbody {
 	 display: block;
-	 height: 400px;	
+	 height: 400px;
 	 overflow-y: auto;
+   width:100%
+
  }
- 
+
  #dashboard-ledger-table td{
 	 text-align: left;
-	 width: 90px;
-	 
+}
+
+ #dashboard-ledger-table tr:first-child{
+   width: 100px;
  }
  #dashboard-ledger-table tbody tr:nth-child(even) {
      background-color:#c5d6d4;
@@ -180,11 +187,7 @@
  #login-container {
      width:405px;
      border-radius: 15px;
-    /*background image with stitched outline background-image:url(../images/white_leather.jpg);
-     outline: 2px dashed #c5d6d4;
-     outline-offset: -10px;
-     position:relative;
-    */
+
 }
  #login-topbar {
      border-bottom: 1px dashed;
@@ -232,7 +235,7 @@
      overflow: hidden;
      padding: 0;
      position: relative;
-     width: 500px;
+     width: 600px;
      z-index: 10001;
 }
  #modal-blackout {
@@ -258,10 +261,14 @@
      -webkit-transition: display 0.2s ease-in-out;
 }
  #modal-section, #modal-header {
-     border-bottom: 1px dashed;
-     border-color: #c5d6d4;
+     border-bottom: 1.5px dashed;
+     border-color: #88aaa5;
     /*center Header*/
      text-align:center;
+}
+
+#modal-header{
+  text-shadow: 4px 4px 4px #c5d6d4;
 }
  .modal-major-section {
      padding: 15px 15px 15px 15px;
@@ -281,7 +288,7 @@
      margin: 10px 10px;
      padding: 10px;
      border:inset;
-     border-color:#c5d6d4;
+     border-color:#88aaa5;
 }
 /*center footer buttons*/
  #modal-footer{
@@ -301,7 +308,7 @@
   margin: 10px 10px;
   padding: 10px;
   border:inset;
-  border-color:#c5d6d4;
+  border-color:#88aaa5;
 }
 
 #modal-document-table {
@@ -312,13 +319,24 @@
   margin-bottom: 10px;
   margin-top: 5px;
 
-  /* Make sure new entries don't overly-expand modal */
+   /* Make sure new entries don't overly-expand modal */
   max-height: 75px;
   overflow-y: scroll;
+  overflow-x: hidden;
+/* separate rows*/
+  border-collapse: separate;
+  border-bottom: 5px;
 }
 
 .modal-document-table-cell {
   width: 5%;
+  margin-bottom: 5px;
+  border: inset #88aaa5;
+
+}
+
+.modal-document-table-cell:hover{
+  transform: scale(1.5, 1.25);
 }
 
 .modal-document-table-dropdown {
