@@ -61,6 +61,7 @@
  *   - ModalButtons             Line xxxx
  *   - ModuleButtons            Line xxxx
  *   - TableHeaders             Line xxxx
+ *   - Types                    Line xxxx
  * - Data arrays
  *   - ledgerHeaders            Line xxxx
  *   - sidebarButtonData        Line xxxx
@@ -229,6 +230,7 @@ const BookkeepingProjectModule = (function () {
     ID_DASHBOARD_SIDEBAR_BUTTONS_CUSTOMER: 'dashboard-sidebar-buttons-customer',
     ID_DASHBOARD_SIDEBAR_BUTTONS_VENDOR: 'dashboard-sidebar-buttons-vendor',
     ID_DASHBOARD_SIDEBAR_BUTTONS_DELETE: 'dashboard-sidebar-buttons-delete',
+    ID_DASHBOARD_SIDEBAR_BUTTONS_DEFAULT: 'dashboard-sidebar-buttons-default',
     ID_DASHBOARD_LEDGER: 'dashboard-ledger',
     ID_DASHBOARD_LEDGER_TABLE: 'dashboard-ledger-table',
     ID_DASHBOARD_FOOTER: 'dashboard-footer',
@@ -268,6 +270,22 @@ const BookkeepingProjectModule = (function () {
     ID_DOCUMENT_TABLE_HOLDER: 'modal-document-table-holder',
     ID_DOCUMENT_TABLE: 'modal-document-table',
 
+    // Add account
+    ID_ADDACC_CONTAINER: 'modal-addacc-container',
+    ID_ADDACC_INFORMATION: 'modal-addacc-information',
+    ID_ADDACC_FORM: 'modal-addacc-form',
+    ID_ADDACC_INPUT_HOLDER: 'modal-addacc-input-holder',
+    ID_ADDACC_INPUT_CODE: 'modal-addacc-input-code',
+    ID_ADDACC_INPUT_NAME: 'modal-addacc-input-name',
+    ID_ADDACC_DROPDOWN_HOLDER: 'modal-addacc-dropdown-holder',
+    ID_ADDACC_DROPDOWN_TYPE: 'modal-addacc-dropdown-type',
+
+    // Add default accounts
+    ID_DEFAULT_CONTAINER: 'modal-default-container',
+    ID_DEFAULT_INFORMATION: 'modal-default-information',
+    ID_DEFAULT_LIST_HOLDER: 'modal-default-list-holder',
+    ID_DEFAULT_LIST: 'modal-default-list',
+
     // General purpose ids that show up on multiple modules
     ID_GENERAL_BODY: 'application-body',
     ID_GENERAL_TOPBAR_META_HOLDER: 'general-topbar-meta-holder',
@@ -297,6 +315,9 @@ const BookkeepingProjectModule = (function () {
     CLASS_DOCUMENT_TABLE_ROW_INPUT: 'modal-document-table-input',
     CLASS_DOCUMENT_TABLE_ROW_WRAPPER: 'modal-document-table-row',
     CLASS_DOCUMENT_TABLE_ROW_DROPDOWN: 'modal-document-table-dropdown',
+
+    // Add default accounts
+    CLASS_DEFAULT_LIST_ELEMENT: 'modal-default-list-element',
 
     // General scene usage classes
     CLASS_GENERAL_CONTAINER: 'general-container',
@@ -341,6 +362,8 @@ const BookkeepingProjectModule = (function () {
     INPUT_DOCUMENT_DESCRIPTION_PLACEHOLDER: 'Description',
     INPUT_DOCUMENT_OPTION_CREDIT: 'Credit',
     INPUT_DOCUMENT_OPTION_DEBIT: 'Debit',
+    INPUT_ADDACC_CODE_PLACEHOLDER:'Code',
+    INPUT_ADDACC_NAME_PLACEHOLDER: 'Name',
 
     // Buttons
     BUTTON_LOGIN_FOOTER_CREATE: 'Create',
@@ -366,11 +389,16 @@ const BookkeepingProjectModule = (function () {
     DIV_GENERAL_TOGGLE_CUSTOMERS: 'View customers',
     DIV_GENERAL_TOGGLE_VENDORS: 'View vendors',
     DIV_GENERAL_DELETE_ROW: 'Delete entry',
+    DIV_GENERAL_DEFAULT_ACCOUNTS: 'Add default accounts',
     DIV_GENERAL_TOPBAR_TITLE: 'Keep Dem Books Y\'all', // Need some title
     DIV_GENERAL_TOPBAR_SUBTITLE: 'A bookkeeping application for CMSC 495',
     DIV_CHANGEP_INFORMATION: 'Please note that password entries must match',
     DIV_CORV_INFORMATION: 'Please input an entry name and address',
     DIV_DOCUMENT_INFORMATION: 'Please select document type & associated party',
+    DIV_ADDACC_INFORMATION: 'Please input account numeric code and name',
+    DIV_DEFAULT_SUMMARY: '"#2" (code #1) of type "#3"',
+    DIV_DEFAULT_INFORMATION_SUCCESS: 'The following accounts have been added:',
+    DIV_DEFAULT_INFORMATION_FAILURE: 'Default accounts already exist',
 
     // Error and success status text entries
     ERROR_NETWORK: 'A network error has been encountered',
@@ -390,10 +418,13 @@ const BookkeepingProjectModule = (function () {
     ERROR_DOCU_OTHERERROR: 'An error was encountered. Please try again',
     ERROR_ACCOUNT_EXISTS: 'An account with this name already exists',
     ERROR_ACCOUNT_OTHERERROR: 'An error was encountered. Please try again',
+    ERROR_ADDACC_DUPLICATE: 'An account with these details already exists',
+    ERROR_ADDACC_OTHERERROR: 'An error was encountered. Please try again',
     SUCCESS_ACCOUNT_CREATED: 'Account successfully created',
     SUCCESS_PASSWORD_RESET: 'Password successfully reset',
     SUCCESS_CORV_SUBMIT: 'New entry successfully added',
     SUCCESS_DOCU_CREATED: 'New document successfully created',
+    SUCCESS_ADDACC_SUBMIT: 'New account successfully created',
   });
 
   /**
@@ -643,38 +674,66 @@ const BookkeepingProjectModule = (function () {
     ],
   });
 
-  // Data arrays
-
   /**
-   * @description This array of objects is used to temporarily store the names
-   * and dropdown menu option values for each of the five supported document
-   * types available to the user. This approach, like that of
-   * <code>inaccessible.ledgerHeaders</code> above, will probably be revamped in
-   * the near future during the codebase cleanup phase, but it is acceptable for
-   * now.
+   * @description This enum is used to store several arrays of configuration
+   * objects used to construct new dropdown menu options related to the types of
+   * document and account available for creation by the user. They are iterated
+   * over by a <code>forEach</code> loop function, their data sent to
+   * <code>inaccessible.assembleDropdownElement</code> for construction of a new
+   * dropdown <code>option</code> element.
+   *
+   * @readonly
+   * @enum {!Array<object>}
+   * @const
    */
-  inaccessible.documentTypes = [
-    {
-      name: 'Journal entry',
-      value: 'JE',
-    },
-    {
-      name: 'Accounts payable invoice',
-      value: 'API',
-    },
-    {
-      name: 'Accounts payable disbursement',
-      value: 'APD',
-    },
-    {
-      name: 'Accounts receivable invoice',
-      value: 'ARI',
-    },
-    {
-      name: 'Accounts receivable receipt',
-      value: 'ARR',
-    },
-  ];
+  const Types = Object.freeze({
+    ACCOUNT: [
+      {
+        name: 'Asset',
+        value: 'ASSET',
+      },
+      {
+        name: 'Equity',
+        value: 'EQUITY',
+      },
+      {
+        name: 'Liability',
+        value: 'LIABILITY',
+      },
+      {
+        name: 'Revenue',
+        value: 'REVENUE',
+      },
+      {
+        name: 'Expense',
+        value: 'EXPENSE',
+      },
+    ],
+    DOCUMENT: [
+      {
+        name: 'Journal entry',
+        value: 'JE',
+      },
+      {
+        name: 'Accounts payable invoice',
+        value: 'API',
+      },
+      {
+        name: 'Accounts payable disbursement',
+        value: 'APD',
+      },
+      {
+        name: 'Accounts receivable invoice',
+        value: 'ARI',
+      },
+      {
+        name: 'Accounts receivable receipt',
+        value: 'ARR',
+      },
+    ],
+  });
+
+  // Data arrays
 
   /**
    * @description This array of objects is used to store data pertaining to the
@@ -686,11 +745,95 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.sidebarButtonData = [
     {
-      buttonType: Text.DIV_GENERAL_TOGGLE_DOCS,
-      functionName: 'handleTableDataLoading',
-      functionArguments: ['documents'],
+      buttonType: Text.DIV_GENERAL_DELETE_ROW,
+      functionName: 'handleRowRemoval',
+      functionArguments: [],
       requiresWrapper: true,
-      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VIEW_D,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DELETE,
+      elementClasses: [
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
+      buttonType: Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
+      functionName: 'handleDefaultAccountsAddition',
+      functionArguments: [],
+      requiresWrapper: true,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DEFAULT,
+      elementClasses: [
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
+      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'account'),
+      functionName: 'displayModal',
+      functionArguments: [
+        Text.DIV_GENERAL_ADD.replace('$1', 'account'),
+        'buildAccountAdditionModal',
+        [],
+        [ModalButtons.CLEAR],
+        'handleAccountAddition',
+      ],
+      requiresWrapper: true,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT,
+      elementClasses: [
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
+      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'document'),
+      functionName: 'displayModal',
+      functionArguments: [
+        Text.DIV_GENERAL_ADD.replace('$1', 'document'),
+        'buildDocumentAdditionModal',
+        [],
+        [ModalButtons.NEW_ROW, ModalButtons.DELETE_ROW],
+        'handleDocumentAddition',
+      ],
+      requiresWrapper: true,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT,
+      elementClasses: [
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
+      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
+      functionName: 'displayModal',
+      functionArguments: [
+        Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
+        'buildCustomerOrVendorAdditionModal',
+        [],
+        [ModalButtons.CLEAR],
+        'handleCustomerOrVendorAddition',
+      ],
+      requiresWrapper: true,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_CUSTOMER,
+      elementClasses: [
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
+      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
+      functionName: 'displayModal',
+      functionArguments: [
+        Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
+        'buildCustomerOrVendorAdditionModal',
+        [],
+        [ModalButtons.CLEAR],
+        'handleCustomerOrVendorAddition',
+      ],
+      requiresWrapper: true,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VENDOR,
       elementClasses: [
         Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
         Identifiers.CLASS_GENERAL_ACTION_BUTTON,
@@ -703,6 +846,18 @@ const BookkeepingProjectModule = (function () {
       functionArguments: ['accounts'],
       requiresWrapper: true,
       elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VIEW_A,
+      elementClasses: [
+        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
+        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
+        Identifiers.CLASS_GENERAL_OPENSANS,
+      ],
+    },
+    {
+      buttonType: Text.DIV_GENERAL_TOGGLE_DOCS,
+      functionName: 'handleTableDataLoading',
+      functionArguments: ['documents'],
+      requiresWrapper: true,
+      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VIEW_D,
       elementClasses: [
         Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
         Identifiers.CLASS_GENERAL_ACTION_BUTTON,
@@ -733,86 +888,6 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
-      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'document'),
-      functionName: 'displayModal',
-      functionArguments: [
-        Text.DIV_GENERAL_ADD.replace('$1', 'document'),
-        'buildDocumentAdditionModal',
-        [ModalButtons.NEW_ROW, ModalButtons.DELETE_ROW],
-        'handleDocumentAddition',
-      ],
-      requiresWrapper: true,
-      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT,
-      elementClasses: [
-        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        Identifiers.CLASS_GENERAL_OPENSANS,
-      ],
-    },
-    {
-      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'account'),
-      functionName: 'displayModal',
-      functionArguments: [
-        Text.DIV_GENERAL_ADD.replace('$1', 'account'),
-        'buildAccountAdditionModal',
-        [ModalButtons.CLEAR],
-        'handleAccountAddition',
-      ],
-      requiresWrapper: true,
-      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DOCUMENT,
-      elementClasses: [
-        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        Identifiers.CLASS_GENERAL_OPENSANS,
-      ],
-    },
-    {
-      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
-      functionName: 'displayModal',
-      functionArguments: [
-        Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
-        'buildCustomerOrVendorAdditionModal',
-        [ModalButtons.CLEAR],
-        'handleCustomerOrVendorAddition',
-      ],
-      requiresWrapper: true,
-      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_CUSTOMER,
-      elementClasses: [
-        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        Identifiers.CLASS_GENERAL_OPENSANS,
-      ],
-    },
-    {
-      buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
-      functionName: 'displayModal',
-      functionArguments: [
-        Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
-        'buildCustomerOrVendorAdditionModal',
-        [ModalButtons.CLEAR],
-        'handleCustomerOrVendorAddition',
-      ],
-      requiresWrapper: true,
-      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_VENDOR,
-      elementClasses: [
-        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        Identifiers.CLASS_GENERAL_OPENSANS,
-      ],
-    },
-    {
-      buttonType: Text.DIV_GENERAL_DELETE_ROW,
-      functionName: 'handleRowRemoval',
-      functionArguments: [],
-      requiresWrapper: true,
-      elementId: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS_DELETE,
-      elementClasses: [
-        Identifiers.CLASS_DASHBOARD_SIDEBAR_BUTTONS_ELEMENT,
-        Identifiers.CLASS_GENERAL_ACTION_BUTTON,
-        Identifiers.CLASS_GENERAL_OPENSANS,
-      ],
-    },
   ];
 
   /**
@@ -834,6 +909,7 @@ const BookkeepingProjectModule = (function () {
       functionArguments: [
         Text.BUTTON_DASHBOARD_TOPBAR_NAVLINKS_CHANGEP,
         'buildPasswordChangeModal',
+        [],
         [ModalButtons.CLEAR],
         'handlePasswordChange',
       ],
@@ -1209,6 +1285,26 @@ const BookkeepingProjectModule = (function () {
     while (element.firstChild) {
       element.removeChild(element.firstChild);
     }
+  };
+
+  /**
+   * @description As the name implies, this utility function is used to replace
+   * a number of instances in a parameter string at once without the need for
+   * compound <code>replace()</code> invocations. The map of extracts to be
+   * replaced and their desired replacements is notated by the object parameter
+   * <code>paramMap</code>.
+   *
+   * @param {string} paramString String to be manipulated
+   * @param {object} paramMap Map of strings to be replaced & their replacements
+   * @returns {string} Adjusted string
+   */
+  inaccessible.replaceAll = function (paramString, paramMap) {
+    return paramString.replace(
+      new RegExp(Object.keys(paramMap).join("|"), "gi"),
+      function (matched) {
+        return paramMap[matched];
+      }
+    );
   };
 
   /**
@@ -2231,7 +2327,7 @@ const BookkeepingProjectModule = (function () {
     }, false);
 
     // Build all five document type options
-    this.documentTypes.forEach(function (doctype) {
+    Types.DOCUMENT.forEach(function (doctype) {
       typeDropdown.appendChild(that.assembleDropdownElement(doctype));
     });
 
@@ -2349,12 +2445,164 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description Noop'd builder for addition of accounts modal content.
+   * @description This builder is built according to the framework provided by
+   * the builder <code>inaccessible.buildCustomerOrVendorAdditionModal</code>.
+   * It handles the construction of the modal body of the popup window
+   * associated with the "Add account" sidebar button.
    *
    * @returns {void}
    */
   inaccessible.buildAccountAdditionModal = function () {
-    console.warn('Noop\'d');
+
+    // Declarations
+    let that, configContainer, configInformation, configInputHolder,
+      configInputForm, configInputCode, configInputName, configDropdownHolder,
+      configTypeDropdown, typeDropdown;
+
+    that = this;
+
+    configContainer = {
+      id: Identifiers.ID_ADDACC_CONTAINER,
+    };
+
+    configInformation = {
+      id: Identifiers.ID_ADDACC_INFORMATION,
+      class: Identifiers.CLASS_GENERAL_OPENSANS,
+    };
+
+    configInputHolder= {
+      id: Identifiers.ID_ADDACC_INPUT_HOLDER,
+    };
+
+    configInputForm = {
+      id: Identifiers.ID_ADDACC_FORM,
+    };
+
+    configInputCode = {
+      id: Identifiers.ID_ADDACC_INPUT_CODE,
+      class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
+      placeholder: Text.INPUT_ADDACC_CODE_PLACEHOLDER,
+      type: 'text',
+    };
+
+    configInputName = {
+      id: Identifiers.ID_ADDACC_INPUT_NAME,
+      class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
+      placeholder: Text.INPUT_ADDACC_NAME_PLACEHOLDER,
+      type: 'text',
+    };
+
+    configDropdownHolder ={
+      id: Identifiers.ID_ADDACC_DROPDOWN_HOLDER,
+    };
+
+    configTypeDropdown = {
+      id: Identifiers.ID_ADDACC_DROPDOWN_TYPE,
+      class: Identifiers.CLASS_MODAL_DROPDOWN,
+    };
+
+    typeDropdown = this.assembleElement(['select', configTypeDropdown])
+
+    // Build all five account type options
+    Types.ACCOUNT.forEach(function (accountType) {
+      typeDropdown.appendChild(that.assembleDropdownElement(accountType));
+    });
+
+    this.scene = Scenes.MODAL;
+
+    // Return assembled interface
+    return this.assembleElement(
+      ['div', configContainer,
+        ['div', configInformation,
+          Text.DIV_ADDACC_INFORMATION,
+        ],
+        ['div', configInputHolder,
+          ['form', configInputForm,
+            ['input', configInputCode],
+            ['input', configInputName],
+          ],
+        ],
+        ['div', configDropdownHolder,
+          typeDropdown,
+        ],
+      ],
+    );
+  };
+
+  /**
+   * @description This parameter-accepting builder function is simply used to
+   * indicate to the user whether or not the default account creation process
+   * undertaken by means of presses to the "Add default accounts" button was
+   * successful or unsuccessful.
+   *
+   * @param {!Array<object>} paramAccountsAdded
+   * @returns {HTMLElement}
+   */
+  inaccessible.buildDefaultAccountsModal = function (paramAccountsAdded) {
+
+    // Declarations
+    let that, accountsListHolder, accountsList, accountListElement,
+      singleAccountSummary, configContainer, configInformation,
+      configListHolder, configList, configListElement, success;
+
+    // Preserve scope
+    that = this;
+
+    success = false;
+
+    configContainer = {
+      id: Identifiers.ID_DEFAULT_CONTAINER,
+      class: Identifiers.CLASS_GENERAL_OPENSANS,
+    };
+
+    configInformation = {
+      id: Identifiers.ID_DEFAULT_INFORMATION,
+    };
+
+    configListHolder = {
+      id: Identifiers.ID_DEFAULT_LIST_HOLDER,
+    };
+
+    configList = {
+      id: Identifiers.ID_DEFAULT_LIST,
+    };
+
+    configListElement = {
+      class: Identifiers.CLASS_DEFAULT_LIST_ELEMENT,
+    };
+
+    if (paramAccountsAdded != null && paramAccountsAdded.length) {
+      success = true;
+
+      // Build unorder list and holder
+      accountsListHolder = this.assembleElement(['div', configListHolder]);
+      accountsList = this.assembleElement(['ul', configList]);
+
+      // Create a new list element for each account added
+      paramAccountsAdded.forEach(function (account) {
+        singleAccountSummary = that.replaceAll(Text.DIV_DEFAULT_SUMMARY, {
+          '#1': account.code,
+          '#2': account.name,
+          '#3': account.type.toLowerCase(),
+        });
+
+        accountsList.appendChild(
+          that.assembleElement(['li', configListElement, singleAccountSummary])
+        );
+      });
+
+      // Add completed list to holder
+      accountsListHolder.appendChild(accountsList);
+    }
+
+    return this.assembleElement(
+      ['div', configContainer,
+        ['div', configInformation,
+          Text[`DIV_DEFAULT_INFORMATION_${(success) ? 'SUCCESS' : 'FAILURE'}`],
+        ],
+        (success) ? accountsListHolder : '',
+      ],
+    );
   };
 
   /**
@@ -2436,12 +2684,14 @@ const BookkeepingProjectModule = (function () {
    *
    * @param {string} paramModalTitle
    * @param {string} paramMiniSceneBuilder
+   * @param {!Array<>} paramMiniSceneBuilderArgs
    * @param {!Array<object>=} paramButtonsArray Optional buttons array
    * @param {!string=} paramHandlerName The optional submission handler string
    * @returns {void}
    */
   inaccessible.displayModal = function (paramModalTitle, paramMiniSceneBuilder,
-      paramButtonsArray = [], paramHandlerName = null) {
+      paramMiniSceneBuilderArgs = [], paramButtonsArray = [],
+      paramHandlerName = null) {
 
     // Declarations
     let that, innerContent, submitButtonCopy, buttons, modal, modalMain;
@@ -2450,7 +2700,7 @@ const BookkeepingProjectModule = (function () {
     that = this;
 
     // Inner modal mini-scene
-    innerContent = this[paramMiniSceneBuilder]();
+    innerContent = this[paramMiniSceneBuilder](...paramMiniSceneBuilderArgs);
 
     // Define array for button configs
     buttons = [];
@@ -3004,9 +3254,9 @@ const BookkeepingProjectModule = (function () {
       }
     };
 
-    this.scene = Scenes.DASHBOARD;
-
     selectedTable = requestDataOptions[paramTable];
+
+    this.scene = Scenes.DASHBOARD;
 
     this.sendRequest(
       'GET',
@@ -3273,15 +3523,6 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description Noop'd handler for the addition of new accounts.
-   *
-   * @returns {void}
-   */
-  inaccessible.handleAccountAddition = function () {
-    console.warn('Noop\'d');
-  };
-
-  /**
    * @description This function is the main handler associated with the first
    * dropdown of the "Add document" modal, the menu providing the user with a
    * listing of the five major document types. This handler is called by the
@@ -3401,7 +3642,7 @@ const BookkeepingProjectModule = (function () {
       document.getElementById(Identifiers.ID_CORV_INPUT_NAME).value;
     address =
       document.getElementById(Identifiers.ID_CORV_INPUT_ADDRESS).value;
-    headerText = //innerText?
+    headerText =
       document.getElementById(Identifiers.ID_MODAL_HEADER_TITLE).textContent;
 
     // Either 'customer' or 'vendor'
@@ -3446,6 +3687,124 @@ const BookkeepingProjectModule = (function () {
     }, function (error) {
       console.warn(error);
       that.displayStatusNotice(false, Text.ERROR_NETWORK);
+    });
+  };
+
+  /**
+   * @description Like the rest of the modal handlers, this handler is used to
+   * collect and collate user input. In particular, it handles attempts by the
+   * user to pass new account data off to the back-end, ensuring that account
+   * code is numeric and name input is alphanumeric before passing code, name,
+   * and type off to the <code>add_account</code> PHP endpoint.
+   *
+   * @returns {void}
+   */
+  inaccessible.handleAccountAddition = function () {
+
+    // Declarations
+    let that, code, name, type;
+
+    // Preserve scope
+    that = this;
+
+    // Grab input field values
+    code = document.getElementById(Identifiers.ID_ADDACC_INPUT_CODE).value;
+    name = document.getElementById(Identifiers.ID_ADDACC_INPUT_NAME).value;
+    type = document.getElementById(Identifiers.ID_ADDACC_DROPDOWN_TYPE).value;
+
+    if (isNaN(code)) {
+      this.displayStatusNotice(false, Text.ERROR_DOCU_CODE_NUMER);
+      return;
+    }
+
+    // Alphanumeric data only for name
+    if (!this.isLegalInput(name)) {
+      this.displayStatusNotice(false, Text.ERROR_ILLEGITIMATE_INPUT);
+      return;
+    }
+
+    this.sendRequest('POST', 'php/add_account.php', {
+      encode: false,
+      params: {
+        code: code,
+        name: name,
+        type: type,
+      },
+    }).then(function (response) {
+
+      // Parse JSON into object
+      data = JSON.parse(response);
+
+      if (DEBUG) {
+        console.log(data);
+      }
+
+      // If successful, no need to examine response further
+      if (data.success) {
+        that.displayStatusNotice(true, Text.SUCCESS_ADDACC_SUBMIT);
+      } else {
+
+        // Entry already exists
+        if (data.duplicate) {
+          that.displayStatusNotice(false, Text.ERROR_ADDACC_DUPLICATE);
+        } else {
+          that.displayStatusNotice(false, Text.ERROR_ADDACC_OTHERERROR);
+        }
+      }
+    }, function (error) {
+      console.warn(error);
+      that.displayStatusNotice(false, Text.ERROR_NETWORK);
+    });
+  };
+
+  /**
+   * @description This handler deals with presses of the "Add default accounts"
+   * sidebar button, used to automatically create some default accounts for the
+   * user. Depending on whether or not the user has already created a set of
+   * default accounts before, the handler will build and display a different
+   * status modal informing the user of the success of the operation.
+   *
+   * @returns {void}
+   */
+  inaccessible.handleDefaultAccountsAddition = function () {
+
+    // Declarations
+    let that, data;
+
+    // Preserve scope
+    that = this;
+
+    this.sendRequest(
+      'GET',
+      (TESTING)
+        ? 'json/defaultAccounts.json'
+        : 'php/create_default_accounts.php'
+    ).then(function (response) {
+
+      // Parse JSON into object
+      data = JSON.parse(response);
+
+      if (DEBUG) {
+        console.log(data);
+      }
+
+      if (TESTING) {
+        that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
+          'buildDefaultAccountsModal', [data]);
+        return;
+      }
+
+      if (data.success) {
+        that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
+          'buildDefaultAccountsModal', [data.accountsAdded]);
+      } else {
+        if (data.userLoggedIn) {
+          that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
+            'buildDefaultAccountsModal', []);
+        }
+      }
+    }, function (error) {
+      console.warn(error);
     });
   };
 
@@ -3589,6 +3948,15 @@ const BookkeepingProjectModule = (function () {
    */
   accessible.getTableHeaders = function () {
     return inaccessible.extend({}, TableHeaders);
+  };
+
+  /**
+   * @description External getter for immutable <code>Types</code>
+   *
+   * @returns {enum} Types
+   */
+  accessible.getTypes = function () {
+    return inaccessible.extend({}, Types);
   };
 
   /**

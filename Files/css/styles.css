@@ -349,3 +349,7 @@
 .modal-document-table-input {
   width: 18%;
 }
+
+#modal-default-container {
+  text-align: left;
+}
