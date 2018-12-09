@@ -658,6 +658,26 @@ class PhpConnection extends DatabaseConnection {
         return $getCustomersOrVendorsResult;
     }
 
+    public function getDocuments(string $userID) {
+        $getDocumentsResult = $this->runQuery(
+            'SELECT '
+                    . 'Documents.name AS documentName, '
+                    . 'Documents.type AS documentType, '
+                    . 'Customers.name AS customerName, '
+                    . 'Vendors.name AS vendorName '
+                . 'FROM ('
+                    . '(BooksDB.Documents '
+                        . 'LEFT JOIN '
+                            . 'BooksDB.Customers '
+                            . 'ON Documents.customerID = Customers.ID) '
+                    . 'LEFT JOIN '
+                        . 'BooksDB.Vendors ON Documents.vendorID = Vendors.ID) '
+                . 'WHERE Documents.userID = ?',
+            's',
+            $userID
+        );
+    }
+
     /**
      * A method to get all of the vendors of a user.
      *
