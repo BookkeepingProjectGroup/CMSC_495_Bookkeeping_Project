@@ -3513,6 +3513,12 @@ const BookkeepingProjectModule = (function () {
       console.log(input);
     }
 
+    if (TESTING) {
+      this.displayStatusNotice(true, Text.SUCCESS_DOCU_CREATED);
+      this.handleTableDataLoading('documents');
+      return;
+    }
+
     this.sendRequest('POST', 'php/add_document.php', {
       encode: true,
       params: input,
@@ -3527,6 +3533,7 @@ const BookkeepingProjectModule = (function () {
 
       if (data.success) {
         that.displayStatusNotice(true, Text.SUCCESS_DOCU_CREATED);
+        that.handleTableDataLoading('documents');
       } else {
         that.displayStatusNotice(false, Text.ERROR_DOCU_OTHERERROR);
       }
