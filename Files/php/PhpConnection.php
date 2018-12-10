@@ -56,7 +56,8 @@ class PhpConnection extends DatabaseConnection {
      * @param $type the type of the new account; must be one of "ASSET",
      * "LIABILITY", "EQUITY", "REVENUE" or "EXPENSE".
      *
-     * @returns TRUE if the new account was successfully added; FALSE otherwise.
+     * @returns TRUE if the new account was successfully added; NULL if the user
+     * already had an account with the given code; FALSE otherwise.
      */
     public function addAccount(
         string $userID,
@@ -86,9 +87,9 @@ class PhpConnection extends DatabaseConnection {
         $accountAlreadyExistsIDCount = count($accountAlreadyExistsID);
 
         // If any account IDs were returned, this user already has one or more
-        // accounts with the given code, so return FALSE.
+        // accounts with the given code, so return NULL.
         if($accountAlreadyExistsIDCount > 0) {
-            return FALSE;
+            return NULL;
         }
 
         // Insert the new account into the database.
