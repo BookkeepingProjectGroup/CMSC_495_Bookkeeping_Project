@@ -42,6 +42,13 @@
      font-family: "Open Sans";
      letter-spacing: -0.6px;
 }
+
+.general-arial {
+  font-family: "Arial";
+  font-weight: 700;
+  font-size: 13.33333px;
+}
+
  .general-action-button {
      text-align: center;
      background-color: #424874;

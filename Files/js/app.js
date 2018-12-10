@@ -63,7 +63,6 @@
  *   - TableHeaders             Line xxxx
  *   - Types                    Line xxxx
  * - Data arrays
- *   - ledgerHeaders            Line xxxx
  *   - sidebarButtonData        Line xxxx
  *   - navlinksButtonData       Line xxxx
  * - Function groups
@@ -137,6 +136,7 @@ const BookkeepingProjectModule = (function () {
     SWIPE_DISTANCE_VALUE: 250,
     SWIPE_INTERVAL_TIME: 2000,
     CHECK_OPACITY_RATE: 500,
+    DELETE_CHECKBOX_CELL_WIDTH: 75,
   });
 
   /**
@@ -329,6 +329,7 @@ const BookkeepingProjectModule = (function () {
     CLASS_GENERAL_FLEX_JUSTIFY: 'general-flex-justify',
     CLASS_GENERAL_OPENSANS: 'general-opensans',
     CLASS_GENERAL_MONTSERRAT: 'general-montserrat',
+    CLASS_GENERAL_ARIAL: 'general-arial',
     CLASS_GENERAL_BUTTONS_HOLDER: 'general-buttons-holder',
     CLASS_GENERAL_STATUS_SUCCESS: 'general-status-success',
     CLASS_GENERAL_STATUS_FAILURE: 'general-status-failure',
@@ -683,54 +684,24 @@ const BookkeepingProjectModule = (function () {
    * dropdown <code>option</code> element.
    *
    * @readonly
-   * @enum {!Array<object>}
+   * @enum {object}
    * @const
    */
   const Types = Object.freeze({
-    ACCOUNT: [
-      {
-        name: 'Asset',
-        value: 'ASSET',
-      },
-      {
-        name: 'Equity',
-        value: 'EQUITY',
-      },
-      {
-        name: 'Liability',
-        value: 'LIABILITY',
-      },
-      {
-        name: 'Revenue',
-        value: 'REVENUE',
-      },
-      {
-        name: 'Expense',
-        value: 'EXPENSE',
-      },
-    ],
-    DOCUMENT: [
-      {
-        name: 'Journal entry',
-        value: 'JE',
-      },
-      {
-        name: 'Accounts payable invoice',
-        value: 'API',
-      },
-      {
-        name: 'Accounts payable disbursement',
-        value: 'APD',
-      },
-      {
-        name: 'Accounts receivable invoice',
-        value: 'ARI',
-      },
-      {
-        name: 'Accounts receivable receipt',
-        value: 'ARR',
-      },
-    ],
+    ACCOUNT: {
+      ASSET: 'Asset',
+      EQUITY: 'Equity',
+      LIABILITY: 'Liability',
+      REVENUE: 'Revenue',
+      EXPENSE: 'Expense',
+    },
+    DOCUMENT: {
+      JE: 'Journal entry',
+      API: 'Accounts payable invoice',
+      APD: 'Accounts payable disbursement',
+      ARI: 'Accounts receivable invoice',
+      ARR: 'Accounts receivable receipt',
+    },
   });
 
   // Data arrays
@@ -1649,6 +1620,7 @@ const BookkeepingProjectModule = (function () {
 
     configTable = {
       id: Identifiers.ID_DASHBOARD_LEDGER_TABLE,
+      class: Identifiers.CLASS_GENERAL_ARIAL,
       style: 'table-layout: fixed;',
     };
 
@@ -2326,10 +2298,12 @@ const BookkeepingProjectModule = (function () {
       that.handleDocumentDropdownChange.call(that, typeDropdown);
     }, false);
 
-    // Build all five document type options
-    Types.DOCUMENT.forEach(function (doctype) {
-      typeDropdown.appendChild(that.assembleDropdownElement(doctype));
-    });
+    for (let type in Types.DOCUMENT) {
+      typeDropdown.appendChild(that.assembleDropdownElement({
+        name: Types.DOCUMENT[type],
+        value: type
+      }));
+    }
 
     // Return assembled interface
     return this.assembleElement(
@@ -2504,9 +2478,12 @@ const BookkeepingProjectModule = (function () {
     typeDropdown = this.assembleElement(['select', configTypeDropdown])
 
     // Build all five account type options
-    Types.ACCOUNT.forEach(function (accountType) {
-      typeDropdown.appendChild(that.assembleDropdownElement(accountType));
-    });
+    for (let type in Types.ACCOUNT) {
+      typeDropdown.appendChild(that.assembleDropdownElement({
+        name: Types.ACCOUNT[type],
+        value: type
+      }));
+    }
 
     this.scene = Scenes.MODAL;
 
@@ -2615,9 +2592,11 @@ const BookkeepingProjectModule = (function () {
    *
    * @param {object} paramTableConfig
    * @param {!Array<object>} paramRows
+   * @param {boolean} paramIsDocumentTable
    * @returns {HTMLElement} newTable
    */
-  inaccessible.buildTable = function (paramTableConfig, paramRows) {
+  inaccessible.buildTable = function (paramTableConfig, paramRows,
+      paramIsDocumentTable) {
 
     // Declarations
     let that, newTable;
@@ -2625,6 +2604,13 @@ const BookkeepingProjectModule = (function () {
     // Definitions
     that = this;
     newTable = this.assembleDashboardTable(paramTableConfig.headers);
+
+    if (paramIsDocumentTable) {
+      for (let row in paramRows) {
+        paramRows[row].documentType =
+          Types.DOCUMENT[paramRows[row].documentType];
+      }
+    }
 
     paramRows.forEach(function (row) {
       that.displayTableRow(row, newTable, paramTableConfig);
@@ -2804,6 +2790,11 @@ const BookkeepingProjectModule = (function () {
     for (let i = 0; i < columnCount; i++) {
       newCell = newRow.insertCell(i);
 
+      // Journal Entries will have no party, so set as N/A
+      if (valuesArray[i - 1] == null && i > 0) {
+        valuesArray[i - 1] = 'N/A';
+      }
+
       if (paramTableConfig.useTextNodesOnly && i > 0) {
         newCell.appendChild(document.createTextNode(valuesArray[i - 1]));
         continue;
@@ -2818,7 +2809,7 @@ const BookkeepingProjectModule = (function () {
             valuesArray[i - 1]]);
 
           newButton.addEventListener('click', function () {
-            window.alert("Note: This functionality is not yet complete.");
+            console.warn(`Not yet complete: ${valuesArray[i - 1]}`);
             that.handleTableDataLoading('ledger_rows', valuesArray[i - 1]);
           }, false);
 
@@ -3181,7 +3172,7 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.handlePostLoadAdjustments = function () {
 
-    let table, rows;
+    let table, rows, index;
 
     switch (this.scene) {
       case 2: // Dashboard
@@ -3189,8 +3180,15 @@ const BookkeepingProjectModule = (function () {
         rows = table.rows;
 
         for (let row of rows) {
+          index = 0;
           for (let cell of row.cells) {
-            cell.style.width = `${table.offsetWidth / row.cells.length}px`;
+            if (index++ === 0) {
+              cell.style.width = `${Utility.DELETE_CHECKBOX_CELL_WIDTH}px`;
+            } else {
+              cell.style.width =
+                `${(table.offsetWidth - Utility.DELETE_CHECKBOX_CELL_WIDTH) /
+                  (row.cells.length - 1)}px`;
+            }
           }
         }
         break;
@@ -3278,7 +3276,8 @@ const BookkeepingProjectModule = (function () {
 
       if (data.success) {
         that.tinderize(false, Identifiers.ID_DASHBOARD_LEDGER_TABLE,
-          'buildTable', [selectedTable, data[paramTable]]);
+          'buildTable', [selectedTable, data[paramTable],
+          (paramTable === 'documents') ? true : false]);
       } else {
         console.warn('DISPLAY ERROR MESSAGE VIA window.alert');
         return;
@@ -3499,6 +3498,12 @@ const BookkeepingProjectModule = (function () {
       console.log(input);
     }
 
+    if (TESTING) {
+      this.displayStatusNotice(true, Text.SUCCESS_DOCU_CREATED);
+      this.handleTableDataLoading('documents');
+      return;
+    }
+
     this.sendRequest('POST', 'php/add_document.php', {
       encode: true,
       params: input,
@@ -3513,6 +3518,7 @@ const BookkeepingProjectModule = (function () {
 
       if (data.success) {
         that.displayStatusNotice(true, Text.SUCCESS_DOCU_CREATED);
+        that.handleTableDataLoading('documents');
       } else {
         that.displayStatusNotice(false, Text.ERROR_DOCU_OTHERERROR);
       }
@@ -3657,6 +3663,12 @@ const BookkeepingProjectModule = (function () {
       return;
     }
 
+    if (TESTING) {
+      this.displayStatusNotice(true, Text.SUCCESS_CORV_SUBMIT);
+      this.handleTableDataLoading(`${partyType}s`);
+      return;
+    }
+
     this.sendRequest('POST', `php/${endpoint}.php`, {
       encode: false,
       params: {
@@ -3675,6 +3687,7 @@ const BookkeepingProjectModule = (function () {
       // If successful, no need to examine response further
       if (data.success) {
         that.displayStatusNotice(true, Text.SUCCESS_CORV_SUBMIT);
+        that.handleTableDataLoading(`${partyType}s`);
       } else {
 
         // Entry already exists
@@ -3791,12 +3804,14 @@ const BookkeepingProjectModule = (function () {
       if (TESTING) {
         that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
           'buildDefaultAccountsModal', [data]);
+        that.handleTableDataLoading('accounts');
         return;
       }
 
       if (data.success) {
         that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
           'buildDefaultAccountsModal', [data.accountsAdded]);
+        that.handleTableDataLoading('accounts');
       } else {
         if (data.userLoggedIn) {
           that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,

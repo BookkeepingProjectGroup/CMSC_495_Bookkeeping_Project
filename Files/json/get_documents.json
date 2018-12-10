@@ -2,24 +2,38 @@
     "success": true,
     "documents": [
         {
-          "name": "Electricity bill",
-          "type": "Accounts payable invoice",
-          "vendor/customer": "Baltimore Gas and Electricity"
+          "documentName": "Electricity bill",
+          "documentType": "API",
+          "vendorName": "Baltimore Gas and Electricity"
         },
         {
-          "name": "Electricity payment",
-          "type": "Accounts payable disbursement",
-          "vendor/customer": "Baltimore Gas and Electricity"
+          "documentName": "Electricity payment",
+          "documentType": "APD",
+          "vendorName": "Baltimore Gas and Electricity"
         },
         {
-          "name": "Product payment due",
-          "type": "Accounts receivable invoice",
-          "vendor/customer": "John Howell"
+          "documentName": "Product payment due",
+          "documentType": "ARI",
+          "customerName": "John Howell"
         },
         {
-          "name": "Deposit of customer check",
-          "type": "Accounts receivable receipt",
-          "vendor/customer": "Sergio Carroll"
+          "documentName": "Deposit of customer check",
+          "documentType": "ARR",
+          "customerName": "Sergio Carroll"
+        },
+        {
+          "documentName": "JournalEntry1",
+          "documentType": "JE"
+        },
+        {
+          "documentName": "APInvoice1",
+          "documentType": "API",
+          "vendorName": "Example, Inc."
+        },
+        {
+          "documentName": "ARReceipt1",
+          "documentType": "ARR",
+          "customerName": "Joe Blow"
         }
     ]
 }
