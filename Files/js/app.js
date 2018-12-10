@@ -63,7 +63,6 @@
  *   - TableHeaders             Line xxxx
  *   - Types                    Line xxxx
  * - Data arrays
- *   - ledgerHeaders            Line xxxx
  *   - sidebarButtonData        Line xxxx
  *   - navlinksButtonData       Line xxxx
  * - Function groups
@@ -137,6 +136,7 @@ const BookkeepingProjectModule = (function () {
     SWIPE_DISTANCE_VALUE: 250,
     SWIPE_INTERVAL_TIME: 2000,
     CHECK_OPACITY_RATE: 500,
+    DELETE_CHECKBOX_CELL_WIDTH: 75,
   });
 
   /**
@@ -329,6 +329,7 @@ const BookkeepingProjectModule = (function () {
     CLASS_GENERAL_FLEX_JUSTIFY: 'general-flex-justify',
     CLASS_GENERAL_OPENSANS: 'general-opensans',
     CLASS_GENERAL_MONTSERRAT: 'general-montserrat',
+    CLASS_GENERAL_ARIAL: 'general-arial',
     CLASS_GENERAL_BUTTONS_HOLDER: 'general-buttons-holder',
     CLASS_GENERAL_STATUS_SUCCESS: 'general-status-success',
     CLASS_GENERAL_STATUS_FAILURE: 'general-status-failure',
@@ -1649,6 +1650,7 @@ const BookkeepingProjectModule = (function () {
 
     configTable = {
       id: Identifiers.ID_DASHBOARD_LEDGER_TABLE,
+      class: Identifiers.CLASS_GENERAL_ARIAL,
       style: 'table-layout: fixed;',
     };
 
@@ -2804,6 +2806,11 @@ const BookkeepingProjectModule = (function () {
     for (let i = 0; i < columnCount; i++) {
       newCell = newRow.insertCell(i);
 
+      // Journal Entries will have no party, so set as N/A
+      if (valuesArray[i - 1] == null && i > 0) {
+        valuesArray[i - 1] = 'N/A';
+      }
+
       if (paramTableConfig.useTextNodesOnly && i > 0) {
         newCell.appendChild(document.createTextNode(valuesArray[i - 1]));
         continue;
@@ -2818,7 +2825,7 @@ const BookkeepingProjectModule = (function () {
             valuesArray[i - 1]]);
 
           newButton.addEventListener('click', function () {
-            window.alert("Note: This functionality is not yet complete.");
+            console.warn(`Not yet complete: ${valuesArray[i - 1]}`);
             that.handleTableDataLoading('ledger_rows', valuesArray[i - 1]);
           }, false);
 
@@ -3181,7 +3188,7 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.handlePostLoadAdjustments = function () {
 
-    let table, rows;
+    let table, rows, index;
 
     switch (this.scene) {
       case 2: // Dashboard
@@ -3189,8 +3196,15 @@ const BookkeepingProjectModule = (function () {
         rows = table.rows;
 
         for (let row of rows) {
+          index = 0;
           for (let cell of row.cells) {
-            cell.style.width = `${table.offsetWidth / row.cells.length}px`;
+            if (index++ === 0) {
+              cell.style.width = `${Utility.DELETE_CHECKBOX_CELL_WIDTH}px`;
+            } else {
+              cell.style.width =
+                `${(table.offsetWidth - Utility.DELETE_CHECKBOX_CELL_WIDTH) /
+                  (row.cells.length - 1)}px`;
+            }
           }
         }
         break;
@@ -3657,6 +3671,12 @@ const BookkeepingProjectModule = (function () {
       return;
     }
 
+    if (TESTING) {
+      this.displayStatusNotice(true, Text.SUCCESS_CORV_SUBMIT);
+      this.handleTableDataLoading(`${partyType}s`);
+      return;
+    }
+
     this.sendRequest('POST', `php/${endpoint}.php`, {
       encode: false,
       params: {
@@ -3675,6 +3695,7 @@ const BookkeepingProjectModule = (function () {
       // If successful, no need to examine response further
       if (data.success) {
         that.displayStatusNotice(true, Text.SUCCESS_CORV_SUBMIT);
+        that.handleTableDataLoading(`${partyType}s`);
       } else {
 
         // Entry already exists
