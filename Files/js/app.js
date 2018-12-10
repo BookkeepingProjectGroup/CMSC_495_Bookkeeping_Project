@@ -684,54 +684,24 @@ const BookkeepingProjectModule = (function () {
    * dropdown <code>option</code> element.
    *
    * @readonly
-   * @enum {!Array<object>}
+   * @enum {object}
    * @const
    */
   const Types = Object.freeze({
-    ACCOUNT: [
-      {
-        name: 'Asset',
-        value: 'ASSET',
-      },
-      {
-        name: 'Equity',
-        value: 'EQUITY',
-      },
-      {
-        name: 'Liability',
-        value: 'LIABILITY',
-      },
-      {
-        name: 'Revenue',
-        value: 'REVENUE',
-      },
-      {
-        name: 'Expense',
-        value: 'EXPENSE',
-      },
-    ],
-    DOCUMENT: [
-      {
-        name: 'Journal entry',
-        value: 'JE',
-      },
-      {
-        name: 'Accounts payable invoice',
-        value: 'API',
-      },
-      {
-        name: 'Accounts payable disbursement',
-        value: 'APD',
-      },
-      {
-        name: 'Accounts receivable invoice',
-        value: 'ARI',
-      },
-      {
-        name: 'Accounts receivable receipt',
-        value: 'ARR',
-      },
-    ],
+    ACCOUNT: {
+      ASSET: 'Asset',
+      EQUITY: 'Equity',
+      LIABILITY: 'Liability',
+      REVENUE: 'Revenue',
+      EXPENSE: 'Expense',
+    },
+    DOCUMENT: {
+      JE: 'Journal entry',
+      API: 'Accounts payable invoice',
+      APD: 'Accounts payable disbursement',
+      ARI: 'Accounts receivable invoice',
+      ARR: 'Accounts receivable receipt',
+    },
   });
 
   // Data arrays
@@ -2328,10 +2298,12 @@ const BookkeepingProjectModule = (function () {
       that.handleDocumentDropdownChange.call(that, typeDropdown);
     }, false);
 
-    // Build all five document type options
-    Types.DOCUMENT.forEach(function (doctype) {
-      typeDropdown.appendChild(that.assembleDropdownElement(doctype));
-    });
+    for (let type in Types.DOCUMENT) {
+      typeDropdown.appendChild(that.assembleDropdownElement({
+        name: Types.DOCUMENT[type],
+        value: type
+      }));
+    }
 
     // Return assembled interface
     return this.assembleElement(
@@ -2506,9 +2478,12 @@ const BookkeepingProjectModule = (function () {
     typeDropdown = this.assembleElement(['select', configTypeDropdown])
 
     // Build all five account type options
-    Types.ACCOUNT.forEach(function (accountType) {
-      typeDropdown.appendChild(that.assembleDropdownElement(accountType));
-    });
+    for (let type in Types.ACCOUNT) {
+      typeDropdown.appendChild(that.assembleDropdownElement({
+        name: Types.ACCOUNT[type],
+        value: type
+      }));
+    }
 
     this.scene = Scenes.MODAL;
 
@@ -2617,9 +2592,11 @@ const BookkeepingProjectModule = (function () {
    *
    * @param {object} paramTableConfig
    * @param {!Array<object>} paramRows
+   * @param {boolean} paramIsDocumentTable
    * @returns {HTMLElement} newTable
    */
-  inaccessible.buildTable = function (paramTableConfig, paramRows) {
+  inaccessible.buildTable = function (paramTableConfig, paramRows,
+      paramIsDocumentTable) {
 
     // Declarations
     let that, newTable;
@@ -2627,6 +2604,13 @@ const BookkeepingProjectModule = (function () {
     // Definitions
     that = this;
     newTable = this.assembleDashboardTable(paramTableConfig.headers);
+
+    if (paramIsDocumentTable) {
+      for (let row in paramRows) {
+        paramRows[row].documentType =
+          Types.DOCUMENT[paramRows[row].documentType];
+      }
+    }
 
     paramRows.forEach(function (row) {
       that.displayTableRow(row, newTable, paramTableConfig);
@@ -3292,7 +3276,8 @@ const BookkeepingProjectModule = (function () {
 
       if (data.success) {
         that.tinderize(false, Identifiers.ID_DASHBOARD_LEDGER_TABLE,
-          'buildTable', [selectedTable, data[paramTable]]);
+          'buildTable', [selectedTable, data[paramTable],
+          (paramTable === 'documents') ? true : false]);
       } else {
         console.warn('DISPLAY ERROR MESSAGE VIA window.alert');
         return;
@@ -3819,12 +3804,14 @@ const BookkeepingProjectModule = (function () {
       if (TESTING) {
         that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
           'buildDefaultAccountsModal', [data]);
+        that.handleTableDataLoading('accounts');
         return;
       }
 
       if (data.success) {
         that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
           'buildDefaultAccountsModal', [data.accountsAdded]);
+        that.handleTableDataLoading('accounts');
       } else {
         if (data.userLoggedIn) {
           that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
