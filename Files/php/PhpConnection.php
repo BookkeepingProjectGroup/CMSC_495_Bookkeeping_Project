@@ -631,6 +631,37 @@ class PhpConnection extends DatabaseConnection {
     }
 
     /**
+     * A method which fetches all of a given user's accounts.
+     *
+     * @param $userID the ID of the user.
+     *
+     * @return a numeric array of associative arrays containing the "code",
+     * "name" and "type" of each of the user's accounts.
+     */
+    public function getAccounts(string $userID) {
+        // Fetch the "code", "name" and "type" of each of $userID's accounts
+        // from the database.
+        $getAccountsResult = $this->runQuery(
+            'SELECT code, name, type FROM BooksDB.Accounts WHERE userID = ?',
+            's',
+            $userID
+        );
+
+        if($getAccountsResult === FALSE) {
+            // If DatabaseConnection::runQuery(string,string[,mixed...]) returns
+            // FALSE on a SELECT statement, an error occurred, so ...
+
+            // Throw a DatabaseException.
+            throw new DatabaseException(
+                'DatabaseConnection::runQuery(string,string[,mixed...]) failed.'
+            );
+        }
+
+        // Return the result of the query.
+        return $getAccountsResult;
+    }
+
+    /**
      * A method to get all of the customers or vendors of a user.
      *
      * @param $userID the ID of the user.
