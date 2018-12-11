@@ -3228,7 +3228,7 @@ const BookkeepingProjectModule = (function () {
 
     builderConfig = {
       name: paramBuilder,
-      args: buttonsArray,
+      args: [buttonsArray],
     };
 
     this.tinderize(false, Identifiers.ID_LOGIN_CONTENT, builderConfig, true);
