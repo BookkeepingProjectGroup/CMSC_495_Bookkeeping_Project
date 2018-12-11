@@ -3333,10 +3333,6 @@ const BookkeepingProjectModule = (function () {
     // Fade out and create login interface again
     this.tinderize(true, Identifiers.ID_DASHBOARD_CONTAINER, builderConfig,
       true);
-
-    // Focus on the username field for mobile viewers once created
-    //this.focusOnLoad(`#${Identifiers.ID_LOGIN_BODY_INPUT_USERNAME}`,
-    //  Utility.CHECK_OPACITY_RATE);
   };
 
   /**
@@ -4128,14 +4124,19 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleRowRemoval = function () {
 
     // Declarations
-    let checkedInputs, table, tableBody, target;
+    let checkedInputs, table, tableBody;
 
-    if (this.scene === Scenes.DASHBOARD) {
-      table = document.getElementById(Identifiers.ID_DASHBOARD_WRAPPER);
-      tableBody = table.querySelector("tbody");
-    } else {
-      table = document.getElementById(Identifiers.ID_DOCUMENT_TABLE);
-      tableBody = table;
+    switch (this.scene) {
+      case 2: // DASHBOARD
+        table = document.getElementById(Identifiers.ID_DASHBOARD_WRAPPER);
+        tableBody = table.querySelector("tbody");
+        break;
+      case 0: // MODAL
+      case 1: // LOGIN
+      default:
+        table = document.getElementById(Identifiers.ID_DOCUMENT_TABLE);
+        tableBody = table;
+        break;
     }
 
     checkedInputs = document.querySelectorAll("input[type='checkbox']:checked");
