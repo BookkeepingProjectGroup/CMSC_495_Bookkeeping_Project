@@ -232,7 +232,7 @@ const BookkeepingProjectModule = (function () {
     ID_DASHBOARD_SIDEBAR_BUTTONS_DELETE: 'dashboard-sidebar-buttons-delete',
     ID_DASHBOARD_SIDEBAR_BUTTONS_DEFAULT: 'dashboard-sidebar-buttons-default',
     ID_DASHBOARD_LEDGER: 'dashboard-ledger',
-    ID_DASHBOARD_LEDGER_TABLE: 'dashboard-ledger-table',
+    ID_DASHBOARD_WRAPPER: 'dashboard-ledger-table',
     ID_DASHBOARD_FOOTER: 'dashboard-footer',
 
     // Modal framework ids
@@ -271,7 +271,6 @@ const BookkeepingProjectModule = (function () {
     ID_DOCUMENT_TABLE: 'modal-document-table',
 
     // Add account
-    ID_ADDACC_CONTAINER: 'modal-addacc-container',
     ID_ADDACC_INFORMATION: 'modal-addacc-information',
     ID_ADDACC_FORM: 'modal-addacc-form',
     ID_ADDACC_INPUT_HOLDER: 'modal-addacc-input-holder',
@@ -285,6 +284,18 @@ const BookkeepingProjectModule = (function () {
     ID_DEFAULT_INFORMATION: 'modal-default-information',
     ID_DEFAULT_LIST_HOLDER: 'modal-default-list-holder',
     ID_DEFAULT_LIST: 'modal-default-list',
+
+    // Masthead ids
+    ID_MASTHEAD_CONTAINER: 'masthead-container',
+    ID_MASTHEAD_HEADER: 'masthead-header',
+    ID_MASTHEAD_HEADER_TITLE: 'masthead-header-title',
+    ID_MASTHEAD_MAIN: 'masthead-main',
+    ID_MASTHEAD_MAIN_ABOUT: 'masthead-main-about',
+    ID_MASTHEAD_MAIN_ABOUT_TITLE: 'masthead-main-about-title',
+    ID_MASTHEAD_MAIN_ABOUT_TEXT: 'masthead-main-about-text',
+    ID_MASTHEAD_MAIN_AUTHORS: 'masthead-main-authors',
+    ID_MASTHEAD_MAIN_AUTHORS_TITLE: 'masthead-main-authors-title',
+    ID_MASTHEAD_MAIN_AUTHORS_TEXT: 'masthead-main-authors-text',
 
     // General purpose ids that show up on multiple modules
     ID_GENERAL_BODY: 'application-body',
@@ -318,6 +329,12 @@ const BookkeepingProjectModule = (function () {
 
     // Add default accounts
     CLASS_DEFAULT_LIST_ELEMENT: 'modal-default-list-element',
+
+    // Masthead module classes
+    CLASS_MASTHEAD_H2: 'masthead-title-h2',
+    CLASS_MASTHEAD_H3: 'masthead-title-h3',
+    CLASS_MASTHEAD_SECTION: 'masthead-section',
+    CLASS_MASTHEAD_TEXT_CONTAINER: 'masthead-text-container',
 
     // General scene usage classes
     CLASS_GENERAL_CONTAINER: 'general-container',
@@ -357,10 +374,10 @@ const BookkeepingProjectModule = (function () {
     INPUT_CORV_ADDRESS_PLACEHOLDER: 'Address',
     INPUT_DOCUMENT_PARTY_OPTION: 'Add associated party',
     INPUT_DOCUMENT_NAME_PLACEHOLDER: 'Add document name',
-    INPUT_DOCUMENT_CODE_PLACEHOLDER: 'Code',
     INPUT_DOCUMENT_DATE_PLACEHOLDER: 'Date',
     INPUT_DOCUMENT_AMOUNT_PLACEHOLDER: 'Amount',
     INPUT_DOCUMENT_DESCRIPTION_PLACEHOLDER: 'Description',
+    INPUT_DOCUMENT_OPTION_CODE: 'Code',
     INPUT_DOCUMENT_OPTION_CREDIT: 'Credit',
     INPUT_DOCUMENT_OPTION_DEBIT: 'Debit',
     INPUT_ADDACC_CODE_PLACEHOLDER:'Code',
@@ -383,6 +400,7 @@ const BookkeepingProjectModule = (function () {
 
     // Paragraphs, div content, etc.
     DIV_LOGIN_BODY_HEADER: 'Login or create account',
+    DIV_GENERAL_DASH: '—',
     DIV_GENERAL_TOGGLE: 'Toggle views',
     DIV_GENERAL_ADD: 'Add $1',
     DIV_GENERAL_TOGGLE_DOCS: 'View documents',
@@ -426,6 +444,33 @@ const BookkeepingProjectModule = (function () {
     SUCCESS_CORV_SUBMIT: 'New entry successfully added',
     SUCCESS_DOCU_CREATED: 'New document successfully created',
     SUCCESS_ADDACC_SUBMIT: 'New account successfully created',
+
+    // Intro text
+    MASTHEAD_HEADER_TITLE: 'Welcome to the Bookkeeping Project application!',
+    MASTHEAD_ABOUT_HEADER: 'About',
+    MASTHEAD_ABOUT_TEXT: 'Welcome to Group 4\'s final project submission for ' +
+      'CMSC 495, a bookkeeping web application for small business owners ' +
+      'capable of collecting, collating, and displaying basic financial ' +
+      'data in a series of tables. Through the use of the sidebar buttons, ' +
+      'users may open modal windows used to input new accounts, customers, ' +
+      'vendors, or documents; view relevant tables in the dashboard; or ' +
+      'delete entries at will. Additionally, users may interact with the ' +
+      'topbar navigation links to change their account passwords, print out ' +
+      'the currently-viewed table for their personal records, or sign out ' +
+      'and return to the login screen.',
+    MASTHEAD_AUTHORS_HEADER: 'Authors',
+    MASTHEAD_AUTHORS_TEXT: 'This web application was constructed using a ' +
+      'combination of PHP and SQL on the back-end and pure ES6 JavaScript ' +
+      'on the front-end, with styling applied through the use of CSS3. The ' +
+      'team responsible for its construction consists of six individuals ' +
+      'organized into two main teams. The back-end team, consisting of ' +
+      'Matthew Dobson and Kevin Ramirez, handled the development of the ' +
+      'bookkeeping application logic and REST-compliant endpoints. The ' +
+      'front-end team, consisting of Andrew Eissen, Jennifer Brady, and ' +
+      'Christian Rondon, handled the construction and styling of the ' +
+      'user interface. Both teams were assisted by generalist developer ' +
+      'Steven Wu as needed in the implementation and unit testing of the ' +
+      'application codebase.',
   });
 
   /**
@@ -1415,12 +1460,11 @@ const BookkeepingProjectModule = (function () {
    *
    * @param {boolean} paramCanSwipeRight Use <code>swipeRight()</code>
    * @param {string} paramElementId Present container id
-   * @param {string} paramBuilderName Builder name
-   * @param {!Array<object>=} paramBuilderArgs Function arguments
+   * @param {object} paramBuilder Obj containing function name & optional args
    * @returns {void}
    */
   inaccessible.tinderize = function (paramCanSwipeRight, paramElementId,
-      paramBuilderName, paramBuilderArgs = []) {
+      paramBuilder, paramCanAdjustPostLoad = false) {
 
     // Declaration
     let that, interval, container, parent;
@@ -1445,10 +1489,13 @@ const BookkeepingProjectModule = (function () {
         that.emptyElementOfContent(parent.id);
 
         // Build new content
-        parent.appendChild(that[paramBuilderName](...paramBuilderArgs));
+        parent.appendChild(that[paramBuilder.name](
+          ...(paramBuilder.args != null) ? paramBuilder.args : []));
 
         // Make any scene-specific adjustments post-addition to page
-        that.handlePostLoadAdjustments();
+        if (paramCanAdjustPostLoad) {
+          that.handlePostLoadAdjustments();
+        }
 
         // Fade in on the scene
         that.fade('in', parent.id);
@@ -1619,7 +1666,7 @@ const BookkeepingProjectModule = (function () {
     let ledger, thead, tbody, newRow, newCell, configRowHeader, configTable;
 
     configTable = {
-      id: Identifiers.ID_DASHBOARD_LEDGER_TABLE,
+      id: Identifiers.ID_DASHBOARD_WRAPPER,
       class: Identifiers.CLASS_GENERAL_ARIAL,
       style: 'table-layout: fixed;',
     };
@@ -1669,7 +1716,6 @@ const BookkeepingProjectModule = (function () {
   inaccessible.assembleDropdownElement = function (paramObject) {
     return this.assembleElement('option', {
       value: paramObject.value,
-      id: Identifiers.ID_DOCUMENT_DROPDOWN_OPTION + '-' + paramObject.value,
       class: Identifiers.CLASS_MODAL_DROPDOWN_OPTION,
     }, paramObject.name);
   };
@@ -2010,7 +2056,104 @@ const BookkeepingProjectModule = (function () {
               this.sidebarButtonData),
           ],
           ['main', configLedger,
-            this.assembleDashboardTable(TableHeaders.DOCUMENTS),
+            this.buildMasthead(),
+          ],
+        ],
+      ],
+    );
+  };
+
+  /**
+   * @description This builder function constructs the informative masthead
+   * module that is built on the user's login to the application. This module
+   * displays information related to the application's essential functions and
+   * a brief summary of the authors and their associated teams. It is replaced
+   * upon the loading of a new table via the sidebar buttons and does not appear
+   * again until the user logs out and logs back in.
+   *
+   * @returns {HTMLElement}
+   */
+  inaccessible.buildMasthead = function () {
+
+    // Declarations
+    let configContainer, configHeader, configHeaderTitle, configMain,
+      configMainAbout, configMainAboutTitle, configMainAboutText,
+      configMainAuthors, configMainAuthorsTitle, configMainAuthorsText;
+
+    configContainer = {
+      id: Identifiers.ID_DASHBOARD_WRAPPER,
+    };
+
+    configHeader = {
+      id: Identifiers.ID_MASTHEAD_HEADER,
+    };
+
+    configHeaderTitle = {
+      id: Identifiers.ID_MASTHEAD_HEADER_TITLE,
+      class: Identifiers.CLASS_MASTHEAD_H2 + ' ' +
+        Identifiers.CLASS_GENERAL_MONTSERRAT,
+    };
+
+    configMain = {
+      id: Identifiers.ID_MASTHEAD_MAIN,
+    };
+
+    configMainAbout = {
+      id: Identifiers.ID_MASTHEAD_MAIN_ABOUT,
+      class: Identifiers.CLASS_MASTHEAD_SECTION,
+    };
+
+    configMainAboutTitle = {
+      id: Identifiers.ID_MASTHEAD_MAIN_ABOUT_TITLE,
+      class: Identifiers.CLASS_MASTHEAD_H3 + ' ' +
+        Identifiers.CLASS_GENERAL_MONTSERRAT,
+    };
+
+    configMainAboutText = {
+      id: Identifiers.ID_MASTHEAD_MAIN_ABOUT_TEXT,
+      class: Identifiers.CLASS_MASTHEAD_TEXT_CONTAINER,
+    };
+
+    configMainAuthors = {
+      id: Identifiers.ID_MASTHEAD_MAIN_AUTHORS,
+      class: Identifiers.CLASS_MASTHEAD_SECTION,
+    };
+
+    configMainAuthorsTitle = {
+      id: Identifiers.ID_MASTHEAD_MAIN_AUTHORS_TITLE,
+      class: Identifiers.CLASS_MASTHEAD_H3 + ' ' +
+        Identifiers.CLASS_GENERAL_MONTSERRAT,
+    };
+
+    configMainAuthorsText = {
+      id: Identifiers.ID_MASTHEAD_MAIN_AUTHORS_TEXT,
+      class: Identifiers.CLASS_MASTHEAD_TEXT_CONTAINER,
+    };
+
+    // Return assembled interface
+    return this.assembleElement(
+      ['div', configContainer,
+        ['header', configHeader,
+          ['h2', configHeaderTitle,
+            Text.MASTHEAD_HEADER_TITLE,
+          ],
+        ],
+        ['main', configMain,
+          ['section', configMainAbout,
+            ['h3', configMainAboutTitle,
+              Text.MASTHEAD_ABOUT_HEADER,
+            ],
+            ['div', configMainAboutText,
+              Text.MASTHEAD_ABOUT_TEXT,
+            ],
+          ],
+          ['section', configMainAuthors,
+            ['h3', configMainAuthorsTitle,
+              Text.MASTHEAD_AUTHORS_HEADER,
+            ],
+            ['div', configMainAuthorsText,
+              Text.MASTHEAD_AUTHORS_TEXT,
+            ],
           ],
         ],
       ],
@@ -2289,6 +2432,10 @@ const BookkeepingProjectModule = (function () {
 
     this.scene = Scenes.MODAL;
 
+    if (this.userAccounts != null && this.userAccounts.length) {
+      this.userAccounts = [];
+    }
+
     // Document type dropdown menu
     documentName = this.assembleElement(['input', configDocName]);
     typeDropdown = this.assembleElement(['select', configTypeDropdown]);
@@ -2324,7 +2471,7 @@ const BookkeepingProjectModule = (function () {
         ],
         ['div', configEntriesHolder,
           ['form', configEntriesForm,
-            this.buildDocumentAdditionTableRow()
+            this.buildDocumentAdditionTableRow(),
           ],
         ],
       ],
@@ -2343,10 +2490,13 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.buildDocumentAdditionTableRow = function () {
 
-    let that, configWrapper, configDelete, configCode, configDate,
-      configDropdown, configDropdownOptionCredit, configDropdownOptionDebit,
-      configAmount, configDescription;
+    // Declarations
+    let that, data, configWrapper, configDelete, configCodeDropdown, configDate,
+      configCodeDropdownOption, configCredebitDropdown, codeDropdown,
+      codeDropdownDefault, codeDropdownOption, configAmount, configDescription,
+      configCredebitDropdownOptionCredit, configCredebitDropdownOptionDebit;
 
+    // Preserve scope
     that = this;
 
     configWrapper = {
@@ -2358,11 +2508,13 @@ const BookkeepingProjectModule = (function () {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL,
     };
 
-    configCode = {
+    configCodeDropdown = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
-        Identifiers.CLASS_DOCUMENT_TABLE_ROW_INPUT,
-      placeholder: Text.INPUT_DOCUMENT_CODE_PLACEHOLDER,
-      type: 'text',
+        Identifiers.CLASS_DOCUMENT_TABLE_ROW_DROPDOWN,
+    };
+
+    configCodeDropdownOption = {
+      class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL,
     };
 
     configDate = {
@@ -2372,16 +2524,16 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
-    configDropdown = {
+    configCredebitDropdown = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
         Identifiers.CLASS_DOCUMENT_TABLE_ROW_DROPDOWN,
     };
 
-    configDropdownOptionCredit = {
+    configCredebitDropdownOptionCredit = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL,
     };
 
-    configDropdownOptionDebit = {
+    configCredebitDropdownOptionDebit = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL,
     };
 
@@ -2399,16 +2551,63 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
+    // Create new code dropdown and default entry and add entry to menu
+    codeDropdown = this.assembleElement('select', configCodeDropdown);
+    codeDropdownDefault = this.assembleElement('option',
+      configCodeDropdownOption, Text.INPUT_DOCUMENT_OPTION_CODE);
+    codeDropdown.appendChild(codeDropdownDefault);
+
+    /**
+     * This <code>if...else</code> statement block is used to populate the
+     * account code dropdown menus with entries related to the user's accounts.
+     * Since the user cannot add a new account while in the document addition
+     * modal, a single request for user accounts is all that is needed to
+     * populate the dropdowns of multiple new pseudo-rows. The data from the
+     * first request is stored as an <code>inaccessible</code> property array
+     * named <code>userAccounts</code> which is used by subsequent dropdown
+     * pseudo-rows to create new dropdown elements. Its contents are cleared on
+     * the creation of a new documents modal to deal with cases wherein the user
+     * may have added a new account since last opening the doc modal.
+     */
+    if (this.userAccounts == null || !this.userAccounts.length) {
+      this.userAccounts = [];
+
+      this.sendRequest(
+        'GET',
+        (TESTING)
+          ? 'json/get_accounts.json'
+          : 'php/get_accounts.php',
+      ).then(function (response) {
+
+        // Parse the JSON response into a usable object
+        data = JSON.parse(response);
+
+        if (DEBUG) {
+          console.log(data);
+        }
+
+        if (data.success) {
+          that.userAccounts = data.accounts;
+          that.displayAccountDropdownElements(codeDropdown);
+        }
+      }, function (error) {
+        console.warn(error);
+        that.displayStatusNotice(false, Text.ERROR_NETWORK);
+      });
+    } else {
+      this.displayAccountDropdownElements(codeDropdown);
+    }
+
     return this.assembleElement(
       ['div', configWrapper,
         ['input', configDelete],
-        ['input', configCode],
+        codeDropdown,
         ['input', configDate],
-        ['select', configDropdown,
-          ['option', configDropdownOptionCredit,
+        ['select', configCredebitDropdown,
+          ['option', configCredebitDropdownOptionCredit,
             Text.INPUT_DOCUMENT_OPTION_CREDIT,
           ],
-          ['option', configDropdownOptionDebit,
+          ['option', configCredebitDropdownOptionDebit,
             Text.INPUT_DOCUMENT_OPTION_DEBIT,
           ],
         ],
@@ -2592,11 +2791,9 @@ const BookkeepingProjectModule = (function () {
    *
    * @param {object} paramTableConfig
    * @param {!Array<object>} paramRows
-   * @param {boolean} paramIsDocumentTable
    * @returns {HTMLElement} newTable
    */
-  inaccessible.buildTable = function (paramTableConfig, paramRows,
-      paramIsDocumentTable) {
+  inaccessible.buildTable = function (paramTableConfig, paramRows) {
 
     // Declarations
     let that, newTable;
@@ -2605,7 +2802,7 @@ const BookkeepingProjectModule = (function () {
     that = this;
     newTable = this.assembleDashboardTable(paramTableConfig.headers);
 
-    if (paramIsDocumentTable) {
+    if (paramTableConfig.name === 'documents') {
       for (let row in paramRows) {
         paramRows[row].documentType =
           Types.DOCUMENT[paramRows[row].documentType];
@@ -2742,9 +2939,9 @@ const BookkeepingProjectModule = (function () {
    * present table listing. Required: Addition of relevant back-end code to
    * handle addition of user data in some form.
    *
-   * @param {object} paramRowObject
-   * @param {HTMLElement} paramTable
-   * @param {object} paramTableConfig
+   * @param {object} paramRowObject Object of element row cell data
+   * @param {HTMLElement} paramTable HTML table element
+   * @param {object} paramTableConfig Config obj related to the specific table
    * @returns {void}
    */
   inaccessible.displayTableRow = function (paramRowObject, paramTable,
@@ -2772,9 +2969,20 @@ const BookkeepingProjectModule = (function () {
     // Insert a new row
     newRow = tbody.insertRow(rowCount);
 
-    // This is a messy step assuming the row data is in object & not array form
     for (let key in paramRowObject) {
+
+      // If the table is the general ledger and the key is credit...
+      if (paramTableConfig.name === 'ledger_rows' && key === 'credit') {
+        valuesArray.push(Text.DIV_GENERAL_DASH);
+      }
+
+      // A new row cell is added to the values array regardless
       valuesArray.push(paramRowObject[key]);
+
+      // If the table is the general ledger and the key is debit...
+      if (paramTableConfig.name === 'ledger_rows' && key === 'debit') {
+        valuesArray.push(Text.DIV_GENERAL_DASH);
+      }
     }
 
     // Individual config for this checkbox
@@ -2783,40 +2991,53 @@ const BookkeepingProjectModule = (function () {
       class: Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_CHECKBOX,
     };
 
+    // Config object for optional cell button elements
     configButton = {
       class: Identifiers.CLASS_GENERAL_LINK_BUTTON,
     };
 
     for (let i = 0; i < columnCount; i++) {
+
+      // Create new cell
       newCell = newRow.insertCell(i);
 
-      // Journal Entries will have no party, so set as N/A
-      if (valuesArray[i - 1] == null && i > 0) {
-        valuesArray[i - 1] = 'N/A';
-      }
-
-      if (paramTableConfig.useTextNodesOnly && i > 0) {
-        newCell.appendChild(document.createTextNode(valuesArray[i - 1]));
-        continue;
-      }
-
+      /**
+       * This <code>switch</code> statement is used to determine what element to
+       * build in the table depending on the column in which the cell is to
+       * appear. The first cell in the row is reserved for deletion checkboxes,
+       * used to allow the user to delete entries at will. The second cell may
+       * be a link button used to navigate to a clicked document's individual
+       * ledger entries, but this is optional and may be switched off (get it?
+       * switched off in a <code>switch</code> block? heh) via the boolean
+       * <code>useTextNodesOnly</code>. If it is set to text ndoes only, the
+       * statement does not break but instead falls through into the
+       * <code>default</code> case and just creates a text node cell.
+       */
       switch (i) {
         case 0: // Deletion checkbox
           newCell.appendChild(this.assembleElement(['input', configCheckbox]));
           break;
-        case 1: // Add link button in certain contexts
-          newButton = this.assembleElement(['button', configButton,
-            valuesArray[i - 1]]);
+        case 1:
+          if (!paramTableConfig.useTextNodesOnly) {
 
-          newButton.addEventListener('click', function () {
-            console.warn(`Not yet complete: ${valuesArray[i - 1]}`);
-            that.handleTableDataLoading('ledger_rows', valuesArray[i - 1]);
-          }, false);
+            // Create a new link button element
+            newButton = this.assembleElement(['button', configButton,
+              valuesArray[i - 1]]);
 
-          newCell.appendChild(newButton);
-          break;
+            // Event listener -> load document's individual ledger entries
+            newButton.addEventListener('click', function () {
+              that.handleTableDataLoading('ledger_rows', valuesArray[i - 1]);
+            }, false);
+
+            newCell.appendChild(newButton);
+            break;
+          }
         default:
-          newCell.appendChild(document.createTextNode(valuesArray[i - 1]));
+          newCell.appendChild(document.createTextNode(
+            (valuesArray[i - 1] == null)
+              ? Text.DIV_GENERAL_DASH
+              : valuesArray[i - 1]
+          ));
           break;
       }
     }
@@ -2875,6 +3096,37 @@ const BookkeepingProjectModule = (function () {
 
     // Add the bottom of body and above buttons
     this.append(location, statusDiv);
+  };
+
+  /**
+   * @description This display function is used specifically by
+   * <code>inaccessible.buildDocumentAdditionTableRow</code> to construct and
+   * add a set of dropdown menu options related to the user's accounts. It
+   * simply calls <code>inaccessible.assembleDropdownElement</code> for as many
+   * times as there user accounts and appends the option to the container.
+   *
+   * @param {HTMLElement} paramContainer The target dropdown menu element itself
+   * @returns {void}
+   */
+  inaccessible.displayAccountDropdownElements = function (paramContainer) {
+
+    // Declarations
+    let that, dropdownOption;
+
+    // Preserve scope
+    that = this;
+
+    this.userAccounts.forEach(function (account) {
+
+      // 1000-Cash
+      dropdownOption = that.assembleDropdownElement({
+        name: `${account.code}-${account.name}`,
+        value: account.code,
+      });
+
+      // Add to dropdown menu
+      paramContainer.appendChild(dropdownOption);
+    });
   };
 
   // Handler functions
@@ -2965,7 +3217,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleLoginSceneChanges = function (paramBuilder, paramButtons) {
 
     // Declaration
-    let buttonsArray;
+    let buttonsArray, builderConfig;
 
     // Definition
     buttonsArray = [];
@@ -2974,8 +3226,12 @@ const BookkeepingProjectModule = (function () {
       buttonsArray.push(ModuleButtons[buttonString]);
     });
 
-    this.tinderize(false, Identifiers.ID_LOGIN_CONTENT, paramBuilder,
-      [buttonsArray]);
+    builderConfig = {
+      name: paramBuilder,
+      args: [buttonsArray],
+    };
+
+    this.tinderize(false, Identifiers.ID_LOGIN_CONTENT, builderConfig, true);
   };
 
   /**
@@ -2993,7 +3249,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleLogin = function () {
 
     // Declarations
-    let that, username, password, data;
+    let that, username, password, data, builderConfig;
 
     // Preserve scope context
     that = this;
@@ -3010,9 +3266,13 @@ const BookkeepingProjectModule = (function () {
       return;
     }
 
+    builderConfig = {
+      name: 'buildUserInterface',
+    };
+
     if (TESTING) {
-      this.tinderize(true, Identifiers.ID_LOGIN_CONTAINER,
-        'buildUserInterface');
+      this.tinderize(true, Identifiers.ID_LOGIN_CONTAINER, builderConfig,
+        false);
       return;
     }
 
@@ -3032,11 +3292,10 @@ const BookkeepingProjectModule = (function () {
       }
 
       if (data.isLogonSuccessful) {
-        that.tinderize(true, Identifiers.ID_LOGIN_CONTAINER,
-          'buildUserInterface');
+        that.tinderize(true, Identifiers.ID_LOGIN_CONTAINER, builderConfig,
+          false);
       } else {
         that.displayStatusNotice(false, Text.ERROR_LOGIN_FAILED);
-        return;
       }
     }, function (error) {
       console.warn(error);
@@ -3054,16 +3313,26 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.handleLogout = function () {
 
+    // Declaration
+    let builderConfig;
+
+    builderConfig = {
+      name: 'buildLoginModule',
+      args: [
+        this.buildLoginContent(
+          [ModuleButtons.CREATE_ACCOUNT, ModuleButtons.LOGIN]
+        )
+      ],
+    }
+
+    // Kill session if not in test mode
     if (!TESTING) {
       this.sendRequest('POST', 'php/logout.php');
     }
 
-    this.tinderize(true, Identifiers.ID_DASHBOARD_CONTAINER,
-      'buildLoginModule', [this.buildLoginContent(
-      [ModuleButtons.CREATE_ACCOUNT, ModuleButtons.LOGIN])]);
-
-    this.focusOnLoad(`#${Identifiers.ID_LOGIN_BODY_INPUT_USERNAME}`,
-      Utility.CHECK_OPACITY_RATE);
+    // Fade out and create login interface again
+    this.tinderize(true, Identifiers.ID_DASHBOARD_CONTAINER, builderConfig,
+      true);
   };
 
   /**
@@ -3130,9 +3399,7 @@ const BookkeepingProjectModule = (function () {
    *
    * @returns {void}
    */
-  inaccessible.handleModalFormSubmit = function () {
-    window.alert('Submit data!');
-  };
+  inaccessible.handleModalFormSubmit = function () {};
 
   /**
    * @description This function handler is used to add a new pseudo-table row to
@@ -3141,8 +3408,15 @@ const BookkeepingProjectModule = (function () {
    * @returns {void}
    */
   inaccessible.handleModalFormRowAddition = function () {
-    document.getElementById(Identifiers.ID_DOCUMENT_TABLE)
-      .appendChild(this.buildDocumentAdditionTableRow());
+
+    // Declaration
+    let pseudoTableRow;
+
+    // Build new table row
+    pseudoTableRow = this.buildDocumentAdditionTableRow();
+
+    // Add new pseudo-row to pseudo-table in modal
+    this.append(Identifiers.ID_DOCUMENT_TABLE, pseudoTableRow);
   };
 
   /**
@@ -3159,14 +3433,17 @@ const BookkeepingProjectModule = (function () {
    * @description This handler is called by <code>inaccessible.tinderize</code>
    * after the completion of the builder assembly and addition operations to
    * complete any remaining post-load operations necessary to the proper display
-   * of the page content. Post-load adjustments are scene specific.
+   * of the page content. Post-load adjustments are scene specific and are
+   * optional.
    * <br />
    * <br />
    * For the dashboard table scenes, this function is used to manually adjust
    * the width of each table cell depending on the number of headers present in
    * that table. For instance, the accounts table has a total of four headers,
    * thus, the width of each column would be the width of the table divided by
-   * the number of headers.
+   * the number of headers. For the login module screen, the post-load
+   * adjustment is simply a direction of focus onto the username input textfield
+   * for ease of use by mobile viewers.
    *
    * @returns {void}
    */
@@ -3175,8 +3452,12 @@ const BookkeepingProjectModule = (function () {
     let table, rows, index;
 
     switch (this.scene) {
+      case 1: // Login
+        this.focusOnLoad(`#${Identifiers.ID_LOGIN_BODY_INPUT_USERNAME}`,
+          Utility.CHECK_OPACITY_RATE);
+        break;
       case 2: // Dashboard
-        table = document.getElementById(Identifiers.ID_DASHBOARD_LEDGER_TABLE);
+        table = document.getElementById(Identifiers.ID_DASHBOARD_WRAPPER);
         rows = table.rows;
 
         for (let row of rows) {
@@ -3208,7 +3489,7 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.handleTableDataLoading = function (paramTable, paramDoc = null) {
 
-    let that, requestDataOptions, selectedTable, data;
+    let that, requestDataOptions, selectedTable, data, builderConfig;
 
     that = this;
 
@@ -3274,10 +3555,17 @@ const BookkeepingProjectModule = (function () {
         console.log(data);
       }
 
+      builderConfig = {
+        name: 'buildTable',
+        args: [
+          selectedTable,
+          data[paramTable],
+        ],
+      };
+
       if (data.success) {
-        that.tinderize(false, Identifiers.ID_DASHBOARD_LEDGER_TABLE,
-          'buildTable', [selectedTable, data[paramTable],
-          (paramTable === 'documents') ? true : false]);
+        that.tinderize(false, Identifiers.ID_DASHBOARD_WRAPPER,
+          builderConfig, true);
       } else {
         console.warn('DISPLAY ERROR MESSAGE VIA window.alert');
         return;
@@ -3836,14 +4124,19 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleRowRemoval = function () {
 
     // Declarations
-    let checkedInputs, table, tableBody, target;
+    let checkedInputs, table, tableBody;
 
-    if (this.scene === Scenes.DASHBOARD) {
-      table = document.getElementById(Identifiers.ID_DASHBOARD_LEDGER_TABLE);
-      tableBody = table.querySelector("tbody");
-    } else {
-      table = document.getElementById(Identifiers.ID_DOCUMENT_TABLE);
-      tableBody = table;
+    switch (this.scene) {
+      case 2: // DASHBOARD
+        table = document.getElementById(Identifiers.ID_DASHBOARD_WRAPPER);
+        tableBody = table.querySelector("tbody");
+        break;
+      case 0: // MODAL
+      case 1: // LOGIN
+      default:
+        table = document.getElementById(Identifiers.ID_DOCUMENT_TABLE);
+        tableBody = table;
+        break;
     }
 
     checkedInputs = document.querySelectorAll("input[type='checkbox']:checked");
