@@ -13,7 +13,7 @@
  *         {
  *             "code": "1000",
  *             "name": "Cash",
- *             "type": "ASSET
+ *             "type": "ASSET"
  *         },
  *         ...
  *     ]
