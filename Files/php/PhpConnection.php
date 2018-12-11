@@ -3,7 +3,7 @@
 /*
  * File: PhpConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 2018-12-09
+ * Date modified: 2018-12-11
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
@@ -697,6 +697,55 @@ class PhpConnection extends DatabaseConnection {
 
         // Return the result of the query.
         return $getDocumentsResult;
+    }
+
+    /**
+     * A method which fetches all of the general ledger lines of a given
+     * document.
+     *
+     * @param $userID the ID of the user.
+     * @param $documentName the name of the document.
+     *
+     * @return a numeric array of associative arrays containing the general
+     * ledger lines fetched, each associative array containing parameters
+     * "code", "date", "debit", "credit" and "description".
+     */
+    public function getGeneralLedgerLines(
+        string $userID,
+        string $documentName
+    ) {
+        // Query the database for all general ledger rows belonging to user
+        // $userID and pertaining to document $documentName.
+        $getGeneralLedgerLinesResult = $this->runQuery(
+            'SELECT '
+                    . 'Accounts.code AS code, '
+                    . 'GeneralLedger.lineDate AS date, '
+                    . 'GeneralLedger.debit AS debit, '
+                    . 'GeneralLedger.credit AS credit, '
+                    . 'GeneralLedger.description AS description '
+                . 'FROM '
+                    . '((BooksDB.GeneralLedger '
+                        . 'LEFT JOIN '
+                            . 'BooksDB.Accounts '
+                                . 'ON GeneralLedger.accountID = Accounts.ID) '
+                    . 'LEFT JOIN BooksDB.Documents '
+                        . 'ON GeneralLedger.documentID = Documents.ID) '
+                . 'WHERE (GeneralLedger.userID = ?) AND (Documents.name = ?)',
+            'ss',
+            $userID,
+            $documentName
+        );
+
+        // If DatabaseConnection::runQuery(string,string[,mixed...]) returns
+        // FALSE on a SELECT statement, it failed, so throw a DatabaseException.
+        if($getGeneralLedgerLinesResult === FALSE) {
+            throw new DatabaseException(
+                'DatabaseConnection::runQuery(string,string[,mixed...]) failed.'
+            );
+        }
+
+        // Return the result of the query.
+        return $getGeneralLedgerLinesResult;
     }
 
     /**
