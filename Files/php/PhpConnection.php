@@ -3,7 +3,7 @@
 /*
  * File: PhpConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 2018-12-08
+ * Date modified: 2018-12-09
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
@@ -656,6 +656,47 @@ class PhpConnection extends DatabaseConnection {
         // Return the numeric array of associative arrays containing all of the
         // user's customers/vendors.
         return $getCustomersOrVendorsResult;
+    }
+
+    /**
+     * A method to get all of the documents of a given user.
+     *
+     * @param $userID the ID of the user.
+     *
+     * @return a numeric array of associative arrays containing the
+     * "documentName", "documentType", "customerName" and "vendorName" of each
+     * of the given user's documents.
+     */
+    public function getDocuments(string $userID) {
+        // Query the database for all of the documents of user $userID.
+        $getDocumentsResult = $this->runQuery(
+            'SELECT '
+                    . 'Documents.name AS documentName, '
+                    . 'Documents.type AS documentType, '
+                    . 'Customers.name AS customerName, '
+                    . 'Vendors.name AS vendorName '
+                . 'FROM ('
+                    . '(BooksDB.Documents '
+                        . 'LEFT JOIN '
+                            . 'BooksDB.Customers '
+                            . 'ON Documents.customerID = Customers.ID) '
+                    . 'LEFT JOIN '
+                        . 'BooksDB.Vendors ON Documents.vendorID = Vendors.ID) '
+                . 'WHERE Documents.userID = ?',
+            's',
+            $userID
+        );
+
+        // If DatabaseConnection::runQuery(string,string[,mixed...]) returns
+        // FALSE, an error occurred, so throw a DatabaseException.
+        if($getDocumentsResult === FALSE) {
+            throw new DatabaseException(
+                'DatabaseConnection::runQuery(string,string[,mixed...]) failed.'
+            );
+        }
+
+        // Return the result of the query.
+        return $getDocumentsResult;
     }
 
     /**
