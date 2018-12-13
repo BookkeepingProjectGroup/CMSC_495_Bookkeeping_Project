@@ -92,8 +92,6 @@
         border-radius: 0;
     }
 
-
-
     /* Convert Ledger table to columns with Headers as labels */
     table,
     thead,
@@ -118,10 +116,11 @@
         width: 100% !important;
     }
 
-    td .general-link-button{
+    td .general-link-button {
       padding: unset;
     }
-    td .dashboard-ledger-table-checkbox{
+
+    td .dashboard-ledger-table-checkbox {
       margin: unset;
     }
 
