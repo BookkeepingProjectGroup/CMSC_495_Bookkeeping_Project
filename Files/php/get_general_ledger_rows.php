@@ -3,7 +3,7 @@
 /*
  * File: get_general_ledger_rows.php
  * Author(s): Matthew Dobson
- * Date last modified: 2018-12-11
+ * Date last modified: 2018-12-13
  * Description: An end-point for fetching all of the general ledger rows
  * associated with a given document name.
  *
@@ -50,31 +50,42 @@ require_once('PhpConnection.php');
  * @param $userNotLoggedIn TRUE if no user is logged in, FALSE otherwise.
  * @param $generalLedgerRows (default value: NULL) a numeric array of
  * associative arrays containing the information about the general ledger rows
- * to be sent to the browser.
+ * to be sent to the browser; an empty array (which is not === to NULL) is
+ * interpretted as meaning the document is nonexistent.
  */
 function exitYieldingJSON(
     bool $userNotLoggedIn,
-    array $accounts = NULL
+    array $generalLedgerRows = NULL
 ) {
-    // Compute the value of $success AND $accounts (if $accounts is NULL, it
-    // evaluates to FALSE).
-    $successAndAccounts = $success && $accounts;
+    // Compute the value of response object parameter "success".
+    $success = (!$userNotLoggedIn) && $generalLedgerRows;
 
     // Initialize the response object with parameter "success" equal to
-    // $successAndAccounts.
-    $responseObject = array('success' => $successAndAccounts);
+    // $success.
+    $responseObject = array('success' => $success);
 
-    if($successAndAccounts) {
-        // If $successAndAccounts is TRUE ...
+    if($success) {
+        // If $success is TRUE ...
 
-        // Add $accounts to the response object as parameter "accounts".
-        $responseObject['accounts'] = $accounts;
+        // Add $generalLedgerRows to the response object as parameter
+        // "generalLedgerRows".
+        $responseObject['generalLedgerRows'] = $generalLedgerRows;
     } else {
-        // If $successAndAccounts is FALSE ...
+        // If $success is FALSE ...
 
         // Add $userNotLoggedIn to the response object as parameter
         // "userNotLoggedIn".
         $responseObject['userNotLoggedIn'] = $userNotLoggedIn;
+
+        if(!$userNotLoggedIn) {
+            // If $userNotLoggedIn is FALSE ...
+
+            // Add response object parameter "documentNonexistent", TRUE if 
+            // $generalLedgerRows is not exactly NULL, FALSE otherwise.
+            $responseObject['documentNonexistent'] = (
+                $generalLedgerRows !== NULL
+            );
+        }
     }
 
     // Yield the response object to the browser.
@@ -91,22 +102,36 @@ if(!array_key_exists('userID', $_SESSION)) {
     // If no session "userID" is set ...
 
     // Exit yielding "success": false, "userNotLoggedIn": true.
-    exitYieldingJSON(FALSE, TRUE);
+    exitYieldingJSON(TRUE);
+}
+
+if(!array_key_exists('documentName', $_POST)) {
+    // If no POST "documentName" is set ...
+
+    // Exit yielding "success": false, "userNotLoggedIn": false, 
+    // "documentNonexistent": false.
+    exitYieldingJSON(FALSE);
 }
 
 try {
     // Connect to the database as user "php".
     $phpConnection = new PhpConnection();
 
-    // Fetch the accounts of the logged-in user.
-    $accounts = $phpConnection->getAccounts($_SESSION['userID']);
+    // Fetch the general ledger rows in the logged-in user's document named in
+    // POST parameter "documentName".
+    $generalLedgerRows = $phpConnection->getGeneralLedgerLines(
+        $_SESSION['userID'],
+        $_POST['documentName']
+    );
 
     // Close the database connection.
     $phpConnection->close();
 
-    // Exit yielding "success": true, "userNotLoggedIn": false, "accounts": the
-    // fetched accounts.
-    exitYieldingJSON(TRUE, FALSE, $accounts);
+    // Exit yielding "success": true, "generalLedgerRows": the fetched general
+    // ledger rows. (If $generalLedgerRows is an empty array, exitYieldingJSON(
+    // bool[,array]) will yield "success": false, "userNotLoggedIn": false,
+    // "documentNonexistent": true.)
+    exitYieldingJSON(FALSE, $generalLedgerRows);
 } catch(Throwable $e) {
     // If any exception or error is thrown in the above ...
 
@@ -117,8 +142,9 @@ try {
         $phpConnection->close();
     }
 
-    // Exit yielding "success": false, "userNotLoggedIn": false.
-    exitYieldingJSON(FALSE, FALSE);
+    // Exit yielding "success": false, "userNotLoggedIn": false,
+    // "documentNonexistent": false.
+    exitYieldingJSON(FALSE);
 }
 
 
