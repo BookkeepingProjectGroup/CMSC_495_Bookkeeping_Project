@@ -202,6 +202,7 @@
 #dashboard-ledger-table {
     width: 100%;
     table-layout: fixed;
+
 }
 
 #dashboard-ledger-table thead {
@@ -215,11 +216,12 @@
     display: block;
     height: 400px;
     overflow-y: auto;
-    width: 100%
+    width: 100%;
+
 }
 
-#dashboard-ledger-table td {
-    text-align: left;
+#dashboard-ledger-table td .general-link-button {
+  text-align: left !important;
 }
 
 #dashboard-ledger-table tr:first-child {
