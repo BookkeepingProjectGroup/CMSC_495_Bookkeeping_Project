@@ -1,366 +1,456 @@
-/* * Name: media.css * Date:November 24, 2018 * Author: Jennifer Brady * /
+/*
+ * Name: media.css
+ * Date: 11/24/2018
+ * Author: Jennifer Brady
+ */
+
 /* Illustration of @media query for break points */
+
 /*medium mobile screen size*/
- @media only screen and (max-width: 575px) and (orientation:portrait){
+@media only screen and (max-width: 575px) and (orientation: portrait) {
+
     /* remove formatting & set container as flex table */
-     #dashboard-container{
-         display:flex;
-         flex-direction: column;
-         margin: auto;
-         padding: unset;
-         border: unset;
-         box-shadow: unset;
-         height: auto;
-         border-radius: unset;
+    #dashboard-container {
+        display: flex;
+        flex-direction: column;
+        margin: auto;
+        padding: unset;
+        border: unset;
+        box-shadow: unset;
+        height: auto;
+        border-radius: unset;
     }
+
     /* wrap buttons*/
-     #dashboard-sidebar-buttons{
-         display:flex;
-         flex-wrap:wrap;
+    #dashboard-sidebar-buttons {
+        display: flex;
+        flex-wrap: wrap;
     }
-     #dashboard-sidebar{
-         margin-top: 10px;
+
+    #dashboard-sidebar {
+        margin-top: 10px;
     }
-     #application-body{
-         margin:0;
-         background-image: none;
-         font-size: medium;
+
+    #application-body {
+        margin: 0;
+        background-image: none;
+        font-size: medium;
     }
-     .general-topbar-div {
-         width:100%;
+
+    .general-topbar-div {
+        width: 100%;
     }
-     #dashboard-ledger{
-         max-height: 500px;
-		 overflow-y: auto;
+
+    #dashboard-ledger {
+        max-height: 500px;
+        overflow-y: auto;
     }
+
     /* Remove Title*/
-     #dashboard-topbar-meta{
-         display:none;
+    #dashboard-topbar-meta {
+        display: none;
     }
+
     /* Reorder page */
-     #dashboard-topbar {
-         text-align: center;
+    #dashboard-topbar {
+        text-align: center;
     }
-     #dashboard-topbar-navlinks-holder{
-         float:none;
+
+    #dashboard-topbar-navlinks-holder {
+        float:none;
     }
+
     /* Set ledger container to flex & move buttons to top*/
-     #dashboard-section.general-flex-justify{
-         display:flex;
-         flex-direction: column;
-         margin:unset;
+    #dashboard-section.general-flex-justify {
+        display: flex;
+        flex-direction: column;
+        margin: unset;
     }
-     #dashboard-section.general-flex-justify > #dashboard-sidebar{
-         order:1;
-         border-right:none;
-         width: auto;
+
+    #dashboard-section.general-flex-justify > #dashboard-sidebar {
+        order: 1;
+        border-right: none;
+        width: auto;
     }
-     #dashboard-section.general-flex-justify > #dashboard-ledger {
-         order:2;
-         margin:unset;
+
+    #dashboard-section.general-flex-justify > #dashboard-ledger {
+        order: 2;
+        margin: unset;
     }
-     .general-container{
-         margin-top: 0px;
+
+    .general-container {
+        margin-top: 0px;
     }
-     .general-action-button{
-         font-size: 8pt;
-         border-radius: 0;
+
+    .general-action-button {
+        font-size: 8pt;
+        border-radius: 0;
     }
-     .general-action-button:hover{
-         font-size: 8pt;
-         border-radius: 0;
+
+    .general-action-button:hover {
+        font-size: 8pt;
+        border-radius: 0;
     }
+
     /* Convert Ledger table to columns with Headers as labels */
-     table, thead, tbody, th, td, tr {
-         display:block;
+    table,
+    thead,
+    tbody,
+    th,
+    td,
+    tr {
+        display: block;
     }
-     tr {
-         border: 1px solid #ccc;
+
+    tr {
+        border: 1px solid var(--bpg-mediumgray, #cccccc);
     }
-     td {
-        /* Behave like a "row" */
-         border: none;
-         border-bottom: 1px solid #eee;
-         position: relative;
-         padding-left: 50%;
+
+    /* Behave like a "row" */
+    td {
+        border: none;
+        border-bottom: 1px solid var(--bpg-lightgray, #eeeeee);
+        position: relative;
+        padding-left: 50%;
     }
+
     /*remove 1st table row*/
-     tr:first-child{
-         display:none;
+    tr:first-child {
+        display:none;
     }
-     table{
-         empty-cells: hide;
+
+    table {
+        empty-cells: hide;
     }
-     td:before {
-        /* Now like a table header */
-         position: absolute;
-        /* Top/left values mimic padding */
-         left: 6px;
-         width: 45%;
-         padding-right: 10px;
-         white-space: nowrap;
-         vertical-align: middle;
+
+    /* Now like a table header, top/left values mimic padding */
+    td:before {
+        position: absolute;
+        left: 6px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        vertical-align: middle;
     }
-     td:nth-of-type(1):before {
-         content: "Delete";
+
+    td:nth-of-type(1):before {
+        content: "Delete";
     }
-     td:nth-of-type(2):before {
-         content: "Number";
+
+    td:nth-of-type(2):before {
+        content: "Number";
     }
-     td:nth-of-type(3):before {
-         content: "Account";
+
+    td:nth-of-type(3):before {
+        content: "Account";
     }
-     td:nth-of-type(4):before {
-         content: "Debit";
+
+    td:nth-of-type(4):before {
+        content: "Debit";
     }
-     td:nth-of-type(5):before {
-         content: "Credit";
+
+    td:nth-of-type(5):before {
+        content: "Credit";
     }
-     td:nth-of-type(6):before {
-         content: "Memo";
+
+    td:nth-of-type(6):before {
+        content: "Memo";
     }
-     td:nth-of-type(7):before {
-         content: "Name";
+
+    td:nth-of-type(7):before {
+        content: "Name";
     }
-     td:nth-of-type(8):before {
-         content: "Date";
+
+    td:nth-of-type(8):before {
+        content: "Date";
     }
-	/*Revert from fixed header scroll properties*/
-	#dashboard-ledger-table tbody{
-		overflow: visible;
-		height: auto;
-	}
-	#dashboard-ledger-table td{
-		width: auto;
-	}
+
+    /*Revert from fixed header scroll properties*/
+    #dashboard-ledger-table tbody {
+        overflow: visible;
+        height: auto;
+    }
+
+    #dashboard-ledger-table td {
+        width: auto;
+    }
+
     /*Change Table Colors*/
-     #dashboard-ledger-table tr:nth-child(even) {
-         background-color:#ffffff;
+    #dashboard-ledger-table tr:nth-child(even) {
+        background-color: var(--bpg-stdwhite, #ffffff);
     }
-     #dashboard-ledger-table tr:nth-child(odd) {
-         background-color: #lightgray;
+
+    #dashboard-ledger-table tr:nth-child(odd) {
+        background-color: var(--bpg-stdlightgray, #d3d3d3);
     }
+
     /*resize login container & center/stack buttons*/
-     #login-container{
-         width:95%;
-         margin:auto;
-         padding:0;
+    #login-container {
+        width: 95%;
+        margin: auto;
+        padding: 0;
     }
-     #login-footer-buttons-holder{
-         display:block;
+
+    #login-footer-buttons-holder {
+        display: block;
     }
-     .general-big-button{
-         display:block;
-         margin: auto;
-         margin-bottom: 10px;
+
+    .general-big-button {
+        display: block;
+        margin: auto;
+        margin-bottom: 10px;
     }
 }
- @media only screen and (max-width: 575px) and (orientation:landscape){
-     #dashboard-container{
-         display:flex;
-         flex-direction: column;
-         margin: auto;
-         padding: unset;
-         border: unset;
-         box-shadow: unset;
-         height:auto;
+
+@media only screen and (max-width: 575px) and (orientation: landscape) {
+    #dashboard-container {
+        display: flex;
+        flex-direction: column;
+        margin: auto;
+        padding: unset;
+        border: unset;
+        box-shadow: unset;
+        height: auto;
     }
-     #application-body{
-         margin:0;
-         background-image: none;
-         font-size: medium;
+
+    #application-body {
+        margin: 0;
+        background-image: none;
+        font-size: medium;
     }
+
     /* Remove Title*/
-     #dashboard-topbar-meta{
-         display:none;
+    #dashboard-topbar-meta {
+        display: none;
     }
-     #dashboard-sidebar-buttons{
-         display:flex;
-         flex-wrap:wrap;
+
+    #dashboard-sidebar-buttons {
+        display: flex;
+        flex-wrap: wrap;
     }
-     #dashboard-sidebar{
-         margin-top: 10px;
+
+    #dashboard-sidebar {
+        margin-top: 10px;
     }
+
     /* Reorder page with links on bottom & button selections on top*/
-     #dashboard-container > #dashboard-section{
-         order:1;
+    #dashboard-container > #dashboard-section {
+        order: 1;
     }
-     #dashboard-container > #dashboard-topbar {
-         order:2;
-         text-align: center;
+
+    #dashboard-container > #dashboard-topbar {
+        order: 2;
+        text-align: center;
     }
-     #dashboard-topbar-navlinks-holder{
-         float:none;
+
+    #dashboard-topbar-navlinks-holder {
+        float: none;
     }
+
     /* Set ledger container to flex & move buttons to top*/
-     #dashboard-section.general-flex-justify{
-         display:flex;
-         flex-direction: column;
-         margin:unset;
+    #dashboard-section.general-flex-justify {
+        display: flex;
+        flex-direction: column;
+        margin: unset;
     }
-     #dashboard-section.general-flex-justify > #dashboard-sidebar{
-         order:1;
-         width: auto;
-         padding-right: 5px;
+
+    #dashboard-section.general-flex-justify > #dashboard-sidebar {
+        order: 1;
+        width: auto;
+        padding-right: 5px;
     }
-     #dashboard-section.general-flex-justify > #dashboard-ledger {
-         order:2;
-         margin:unset;
+
+    #dashboard-section.general-flex-justify > #dashboard-ledger {
+        order: 2;
+        margin: unset;
     }
-     .general-container{
-         margin-top: 0px;
+
+    .general-container {
+        margin-top: 0px;
     }
-     .general-action-button{
-         font-size: 8pt;
-         border-radius: 0;
+
+    .general-action-button {
+        font-size: 8pt;
+        border-radius: 0;
     }
-     .general-action-button:hover{
-         font-size: 8pt;
-         border-radius: 0;
+
+    .general-action-button:hover {
+        font-size: 8pt;
+        border-radius: 0;
     }
-     #login-container{
-         margin-top:auto;
+
+    #login-container {
+        margin-top: auto;
     }
-     .login-general-title-extra-padding{
-         padding:5px;
+
+    .login-general-title-extra-padding {
+        padding: 5px;
     }
 }
- @media only screen and (min-width: 576px) and (max-width:768px) {
-     #application-body{
-         margin:0;
 
-         font-size: medium;
+@media only screen and (min-width: 576px) and (max-width: 768px) {
+    #application-body {
+        margin: 0;
+        font-size: medium;
     }
-     .general-container{
-         margin-top:0;
-    }
-     #dashboard-container {
-         width: 550px;
-    }
-	#dashboard-ledger-table {
-		 font-size: medium;
-	}
-	#dashboard-ledger-table td{
-		width: 48px;
 
-	}
-     #login-container{
-         margin-top:auto;
+    .general-container {
+        margin-top: 0;
     }
-     .login-general-title-extra-padding{
-         padding:10px;
+
+    #dashboard-container {
+        width: 550px;
+    }
+
+    #dashboard-ledger-table {
+        font-size: medium;
+    }
+
+    #dashboard-ledger-table td {
+        width: 48px;
+    }
+
+    #login-container {
+        margin-top: auto;
+    }
+
+    .login-general-title-extra-padding {
+        padding: 10px;
     }
 }
- @media only screen and (min-width: 768px) and (max-width: 990px) {
-     #application-body{
-         margin:0;
 
+@media only screen and (min-width: 768px) and (max-width: 990px) {
+    #application-body {
+        margin: 0;
     }
-     #dashboard-container {
-         width: 650px;
-    }
-	 #dashboard-ledger-table {
-		 font-size: medium;
-	 }
 
-	 #dashboard-ledger-table td{
-		 width: 52px;
-	 }
-     #login-container{
-         margin-top:auto;
+    #dashboard-container {
+        width: 650px;
     }
-     .login-general-title-extra-padding{
-         padding:10px;
+
+    #dashboard-ledger-table {
+        font-size: medium;
+    }
+
+    #dashboard-ledger-table td {
+        width: 52px;
+    }
+
+    #login-container {
+        margin-top: auto;
+    }
+
+    .login-general-title-extra-padding {
+        padding: 10px;
     }
 }
- @media only screen and (min-width: 991px) and (max-width: 1198px) {
-     #dashboard-container {
-         width: 950px;
-    }
-     #application-body{
-         margin:0;
-         
+
+@media only screen and (min-width: 991px) and (max-width: 1198px) {
+    #dashboard-container {
+        width: 950px;
     }
 
-
-}
- @media only screen and (min-width: 1199px) {
-     #dashboard-container {
-         width: 1024px;
+    #application-body {
+        margin: 0;
     }
 }
+
+@media only screen and (min-width: 1199px) {
+    #dashboard-container {
+        width: 1024px;
+    }
+}
+
 /*Print Ledger Table only*/
- @media print {
+@media print {
+
     /* Remove sidebar, navlinks, subitle*/
-     #dashboard-sidebar, #general-topbar-meta-subtitle, #dashboard-topbar-navlinks{
-         display:none;
-    }
-    /*center title*/
-     .general-topbar-div{
-         width:100%;
-         text-align:center;
-    }
-     #application-body{
-         color: black;
-         background: white;
-         width:100%;
-         margin:0;
-         padding:0;
-    }
-    /*remove container outlines & effects */
-     .general-container{
-         box-shadow: unset;
-         border:unset;
-    }
-     #dashboard-topbar{
-         border-bottom:unset;
-    }
-     #general-topbar-meta-title{
-         text-shadow: unset;
-    }
-    /*set page size to A4 & landsacpe orientation*/
-     @page{
-         size:A4 landscape;
-         margin: 2cm;
-    }
-    /*remove scroll so table can print full size*/
-     #dashboard-ledger{
-         height:auto;
-         overflow: visible;
+    #dashboard-sidebar,
+    #general-topbar-meta-subtitle,
+    #dashboard-topbar-navlinks {
+        display: none;
     }
 
-	#dashboard-ledger-table tbody{
-		height: auto;
-		overflow: visible;
-		display: table-row-group;
-	}
+    /*center title*/
+    .general-topbar-div {
+        width: 100%;
+        text-align: center;
+    }
+
+    #application-body {
+        color: var(--bpg-stdblack, #000000);
+        background: var(--bpg-stdwhite, #ffffff);
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    /*remove container outlines & effects */
+    .general-container {
+        box-shadow: unset;
+        border: unset;
+    }
+
+    #dashboard-topbar {
+        border-bottom: unset;
+    }
+
+    #general-topbar-meta-title {
+        text-shadow: unset;
+    }
+
+    /*set page size to A4 & landsacpe orientation*/
+    @page {
+        size: A4 landscape;
+        margin: 2cm;
+    }
+
+    /*remove scroll so table can print full size*/
+    #dashboard-ledger {
+        height: auto;
+        overflow: visible;
+    }
+
+    #dashboard-ledger-table tbody {
+        height: auto;
+        overflow: visible;
+        display: table-row-group;
+    }
+
     /*set table row colors */
-     #dashboard-ledger-table thead{
-         background-color: gray;
-		 display: table-header-group;
+    #dashboard-ledger-table thead {
+        background-color: var(--bpg-darkgray, #808080);
+        display: table-header-group;
     }
-     #dashboard-ledger-table tbody tr:nth-child(odd){
-         background-color: white;
+
+    #dashboard-ledger-table tbody tr:nth-child(odd) {
+        background-color: var(--bpg-stdwhite, #ffffff);
     }
-     #dashboard-ledger-table tbody tr:nth-child(even){
-         background-color: lightgray;
+
+    #dashboard-ledger-table tbody tr:nth-child(even) {
+        background-color: var(--bpg-stdlightgray, #d3d3d3);
     }
-     table, td{
-         border-collapse: collapse;
-         border:1px solid black;
-         font-size: 10pt;
-         page-break-inside: auto;
-		 width: 100%;
+
+    table,
+    td {
+        border-collapse: collapse;
+        border: 1px solid var(--bpg-stdblack, #000000);
+        font-size: 10pt;
+        page-break-inside: auto;
+        width: 100%;
     }
-     tr{
-         page-break-inside: avoid;
-         page-break-after: auto;
+
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
     }
-     th{
-         text-align: center;
+
+    th {
+        text-align: center;
     }
+
     /*remove delete column*/
-     td:first-child{
-         display:none;
+    td:first-child {
+        display: none;
     }
 }
