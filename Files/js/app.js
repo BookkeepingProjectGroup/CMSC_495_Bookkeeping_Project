@@ -94,14 +94,20 @@ const BookkeepingProjectModule = (function () {
 
   /**
    * @description This constant is used to test the program and display messages
-   * in the console. Though not a part of the <code>inaccessible</code> object,
-   * it is still contained within the private restricted scope of the
+   * in the console related to the success or failure of operations or GET/POST
+   * requests. Originally, it also handled the toggling of the application test
+   * mode as well, though that functionality was eventually split off and
+   * handled by the related <code>TESTING</code> constant flag.
+   * <br />
+   * <br />
+   * Though not a part of the <code>inaccessible</code> object, the constant is
+   * still contained within the private restricted scope of the
    * <code>BookkeepingProjectModule</code> IIFE and cannot be accessed
    * externally.
    *
    * @const
    */
-  const DEBUG = false;
+  const DEBUG = true;
 
   /**
    * @description This constant is used to allow the program to run in a test
@@ -111,6 +117,12 @@ const BookkeepingProjectModule = (function () {
    * vendors, customers, and ledger entries. This assists the front-end team in
    * debugging of default display behavior and styling elements as they would
    * appear in the production build.
+   * <br />
+   * <br />
+   * Though not a part of the <code>inaccessible</code> object, the constant is
+   * still contained within the private restricted scope of the
+   * <code>BookkeepingProjectModule</code> IIFE and cannot be accessed
+   * externally.
    *
    * @const
    */
@@ -129,25 +141,24 @@ const BookkeepingProjectModule = (function () {
    * @const
    */
   const Utility = Object.freeze({
-    FADE_IN_INTERVAL: 10,
-    OPACITY_INCREASE_AMOUNT: 0.015,
-    ELEMENT_CHECK_INTERVAL: 500,
-    SWIPE_PIXEL_VALUE: 1,
-    SWIPE_DISTANCE_VALUE: 250,
-    SWIPE_INTERVAL_TIME: 2000,
-    CHECK_OPACITY_RATE: 500,
-    DELETE_CHECKBOX_CELL_WIDTH: 75,
+    FADE_IN_INTERVAL: 5,              // Joint fade/swipe right rate (ms)
+    OPACITY_INCREASE_AMOUNT: 0.015,   // Amount to increase/decrease opacity
+    ELEMENT_CHECK_INTERVAL: 500,      // Rate at which to check for element
+    SWIPE_INTERVAL_TIME: 2000,        // Max time permitted for swipe right
+    CHECK_OPACITY_RATE: 500,          // Rate at which we check for opacity == 0
+    DELETE_CHECKBOX_CELL_WIDTH: 75,   // Max pixel count for deletion checkbox
   });
 
   /**
    * @description This enum is used to store integer values associated with the
-   * different possible macro-scenes that can be loaded via user interaction.
+   * different possible macro-scenes that can be loaded via user interactions.
    * These values are the possible values of <code>inaccessible.scene</code>, an
    * object property integer flag that indicates to certain functions what scene
    * is currently being displayed. In some cases, local variable values may
    * differ depending on the scene being displayed, allowing for the removal of
    * some scene-specific redundant code and permitting the use of one-size-fits-
-   * all handlers in some cases.
+   * all handlers in some cases. In effect, the use of this enum allows for the
+   * reduction of duplicate code in most cases.
    *
    * @readonly
    * @enum {integer}
@@ -156,7 +167,7 @@ const BookkeepingProjectModule = (function () {
   const Scenes = Object.freeze({
     MODAL: 0,       // Modal framework
     LOGIN: 1,       // Login module (Login + Create)
-    DASHBOARD: 2,   // Dashboard (Docs + Ledger)
+    DASHBOARD: 2,   // Dashboard (Masthead & various HTML tables)
   });
 
   /**
@@ -170,7 +181,7 @@ const BookkeepingProjectModule = (function () {
    * <br />
    * Additionally, it aids in the dynamic element assembly method via the
    * assembly function <code>inaccessible.assembleElement</code>, the likes of
-   * which will be doing the heavy lifting and will be supplied with the ids and
+   * which handles the heavy lifting of element creation, supplied with ids and
    * class names in this enum for the building of the <code>HTMLElement</code>
    * instances. Object is made immutable via <code>Object.freeze</code>.
    * <br />
@@ -356,7 +367,21 @@ const BookkeepingProjectModule = (function () {
    * @description This enum is used to store all the text <code>String</code>s
    * used in the display of popup <code>window.alert</code>s or error messages
    * to be appended to the main container element, as well as the text nodes of
-   * button or checkbox label elements.
+   * button or checkbox label elements. Additionally, the bulk block text
+   * related to the display of the masthead paragraphs is also contained herein.
+   * Those in particular should have likely been template strings rather than
+   * concatenated string primitives in accordance with the Google styleguide
+   * recommendations, but the author dislikes breaks in formatting so he ignored
+   * their use thereof.
+   * <br />
+   * <br />
+   * These could also be stored externally in a dedicated IIFE module or in a
+   * JSON file that could be loaded asynchronously on DOM creation and document
+   * ready, but I left them in here to reduce overhead on the bandwidth via the
+   * need for another GET request or file import in the HTML file. This is a
+   * pretty short application anyway with only a few long strings that don't
+   * require constant change and alteration, so the need for accessing an
+   * external file that sees frequent change is unnecessary.
    *
    * @readonly
    * @enum {string}
@@ -418,6 +443,7 @@ const BookkeepingProjectModule = (function () {
     DIV_DEFAULT_SUMMARY: '"#2" (code #1) of type "#3"',
     DIV_DEFAULT_INFORMATION_SUCCESS: 'The following accounts have been added:',
     DIV_DEFAULT_INFORMATION_FAILURE: 'Default accounts already exist',
+    DIV_GENERAL_TABLE_BUILD_FAILURE: 'This table could not be built',
 
     // Error and success status text entries
     ERROR_NETWORK: 'A network error has been encountered',
@@ -445,7 +471,7 @@ const BookkeepingProjectModule = (function () {
     SUCCESS_DOCU_CREATED: 'New document successfully created',
     SUCCESS_ADDACC_SUBMIT: 'New account successfully created',
 
-    // Intro text
+    // Masthead text
     MASTHEAD_HEADER_TITLE: 'Welcome to the Bookkeeping Project application!',
     MASTHEAD_ABOUT_HEADER: 'About',
     MASTHEAD_ABOUT_TEXT: 'Welcome to Group 4\'s final project submission for ' +
@@ -542,11 +568,27 @@ const BookkeepingProjectModule = (function () {
    * provide user data to the server, they include input textboxes that will
    * need to be submitted by the user and potentially cleared of previous input.
    * To this end, this enum includes clear, submit, and close modal
-   * configuration data used to build buttons via
+   * configuration button data used to build such buttons via
    * <code>inaccessible.assembleButtonElement</code>. The various in-modal
    * mini-scene constructors are able to denote which default buttons to include
    * and can make shallow copies of some buttons in order to adjust click
    * handlers and the like as required for certain operations.
+   * <br />
+   * <br />
+   * An example ModalButton config object with explanations is as follows:
+   * <br />
+   * <pre>
+   * BUTTON: {
+   *   buttonType: 'Button name',     // Text to appear on the button
+   *   functionName: 'handler',       // Event listener/handler name
+   *   functionArguments: [],         // Any arguments listener func needs
+   *   requiresWrapper: false,        // Is button to be wrapped in a <div>?
+   *   elementId: 'element-id',       // Element id (unique identifier)
+   *   elementClasses: [
+   *     'element-class-1',           // Array of element classes
+   *   ],
+   * },
+   * </pre>
    *
    * @readonly
    * @enum {object}
@@ -625,14 +667,33 @@ const BookkeepingProjectModule = (function () {
    * login module's footer buttons as needed. Since the login scene handles both
    * account login and new account creation responsibilities, buttons related to
    * submission of new account data, navigation between mini-module scenes, and
-   * logging into extant accounts are included herein.
+   * logging into extant accounts are included herein. The button config objects
+   * are built according to the similar style seen in the above enum, namely
+   * <code>ModalButtons</code>, as they make use of the same assembly function
+   * to construct, namely <code>inaccessible.assembleButtonElement</code>.
+   * <br />
+   * <br />
+   * An example ModuleButtons config object with explanations is as follows:
+   * <br />
+   * <pre>
+   * BUTTON: {
+   *   buttonType: 'Button name',     // Text to appear on the button
+   *   functionName: 'handler',       // Event listener/handler name
+   *   functionArguments: [],         // Any arguments listener func needs
+   *   requiresWrapper: false,        // Is button to be wrapped in a <div>?
+   *   elementId: 'element-id',       // Element id (unique identifier)
+   *   elementClasses: [
+   *     'element-class-1',           // Array of element classes
+   *   ],
+   * },
+   * </pre>
    *
    * @readonly
    * @enum {object}
    * @const
    */
   const ModuleButtons = Object.freeze({
-    CREATE_ACCOUNT: { // Login scene
+    CREATE_ACCOUNT: { // Account creation scene
       buttonType: Text.BUTTON_LOGIN_FOOTER_CREATE,
       functionName: 'handleLoginSceneChanges',
       functionArguments: [
@@ -655,7 +716,7 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_BIG_BUTTON,
       ],
     },
-    NEW_ACCOUNT: { // Create account scene
+    NEW_ACCOUNT: { // Submit new account details
       buttonType: Text.BUTTON_LOGIN_FOOTER_NEW,
       functionName: 'handleAccountCreation',
       functionArguments: [],
@@ -665,7 +726,7 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_BIG_BUTTON,
       ],
     },
-    BACK: { // Create account scene
+    BACK: { // Back to login scene
       buttonType: Text.BUTTON_LOGIN_FOOTER_BACK,
       functionName: 'handleLoginSceneChanges',
       functionArguments: [
@@ -682,9 +743,12 @@ const BookkeepingProjectModule = (function () {
 
   /**
    * @description This enum of string arrays is used to store the names of the
-   * two tables' headers. These headers are related to the general ledger (used
-   * to display all the individual transactions that make up a document) and the
-   * document overview table showing the currently posted documents.
+   * HTML tables' headers. These headers are related to the general ledger (used
+   * to display all the individual transactions that make up a document), the
+   * document overview table showing the currently posted documents, the
+   * accounts overview table displaying the extant user accounts, and the
+   * matched customer and vendor tables which, due to their shared properties of
+   * "name" and "address,"" share the <code>PARTIES</code> array of headers.
    *
    * @readonly
    * @enum {!Array<string>}
@@ -705,8 +769,8 @@ const BookkeepingProjectModule = (function () {
     ],
     LEDGER: [
       'delete',          // Checkbox for deletion
-      'number',          // Account number
-      'account',         // Account name
+      'code',            // Account number
+      'name',            // Account name
       'debit',           // Debit
       'credit',          // Credit
       'memo',            // Description of transaction
@@ -721,12 +785,13 @@ const BookkeepingProjectModule = (function () {
   });
 
   /**
-   * @description This enum is used to store several arrays of configuration
+   * @description This enum is used to store several type-based configuration
    * objects used to construct new dropdown menu options related to the types of
    * document and account available for creation by the user. They are iterated
-   * over by a <code>forEach</code> loop function, their data sent to
+   * over by a <code>for...in</code> loop construct, with their data sent to
    * <code>inaccessible.assembleDropdownElement</code> for construction of a new
-   * dropdown <code>option</code> element.
+   * dropdown <code>option</code> element with dedicated <code>name</code> and
+   * <code>value</code> properties.
    *
    * @readonly
    * @enum {object}
@@ -757,10 +822,39 @@ const BookkeepingProjectModule = (function () {
    * object are properties related to name, <code>String</code> representation
    * of the event listener handler function signature associated with that
    * button, and a set of potential arguments to pass as parameters to that
-   * function, among other such properties.
+   * function, among other such properties related to unique and common
+   * identifiers for the HTML elements themselves. Like the enums above, namely
+   * <code>ModalButtons</code> and <code>ModuleButtons</code>, the buttons are
+   * built via the main button creation assembly utility function,
+   * <code>inaccessible.assembleButtonElement</code>, and thus possess the same
+   * set of properties as those enum members.
+   * <br />
+   * <br />
+   * The buttons themselves lack object property names and exist together in an
+   * array instead of an object because they are created at once and do not
+   * appear multiple places depending on the scene or module being viewed by the
+   * user. As such, the use of a simple array to mass-create the buttons and
+   * append them to the sidebar is the best means of displaying them to the user
+   * given the expected circumstances of their appearance in the interface.
+   * <br />
+   * <br />
+   * An example config object with explanations is as follows:
+   * <br />
+   * <pre>
+   * {
+   *   buttonType: 'Button name',     // Text to appear on the button
+   *   functionName: 'handler',       // Event listener/handler name
+   *   functionArguments: [],         // Any arguments listener func needs
+   *   requiresWrapper: false,        // Is button to be wrapped in a <div>?
+   *   elementId: 'element-id',       // Element id (unique identifier)
+   *   elementClasses: [
+   *     'element-class-1',           // Array of element classes
+   *   ],
+   * },
+   * </pre>
    */
   inaccessible.sidebarButtonData = [
-    {
+    { // Delete row
       buttonType: Text.DIV_GENERAL_DELETE_ROW,
       functionName: 'handleRowRemoval',
       functionArguments: [],
@@ -772,7 +866,7 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
+    { // Create default accounts
       buttonType: Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
       functionName: 'handleDefaultAccountsAddition',
       functionArguments: [],
@@ -784,13 +878,12 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
+    { // Add account
       buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'account'),
       functionName: 'displayModal',
       functionArguments: [
         Text.DIV_GENERAL_ADD.replace('$1', 'account'),
-        'buildAccountAdditionModal',
-        [],
+        {name: 'buildAccountAdditionModal'},
         [ModalButtons.CLEAR],
         'handleAccountAddition',
       ],
@@ -802,13 +895,12 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
+    { // Add document
       buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'document'),
       functionName: 'displayModal',
       functionArguments: [
         Text.DIV_GENERAL_ADD.replace('$1', 'document'),
-        'buildDocumentAdditionModal',
-        [],
+        {name: 'buildDocumentAdditionModal'},
         [ModalButtons.NEW_ROW, ModalButtons.DELETE_ROW],
         'handleDocumentAddition',
       ],
@@ -820,13 +912,12 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
+    { // Add customer
       buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
       functionName: 'displayModal',
       functionArguments: [
         Text.DIV_GENERAL_ADD.replace('$1', 'customer'),
-        'buildCustomerOrVendorAdditionModal',
-        [],
+        {name: 'buildCustomerOrVendorAdditionModal'},
         [ModalButtons.CLEAR],
         'handleCustomerOrVendorAddition',
       ],
@@ -838,13 +929,12 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
+    { // Add vendor
       buttonType: Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
       functionName: 'displayModal',
       functionArguments: [
         Text.DIV_GENERAL_ADD.replace('$1', 'vendor'),
-        'buildCustomerOrVendorAdditionModal',
-        [],
+        {name: 'buildCustomerOrVendorAdditionModal'},
         [ModalButtons.CLEAR],
         'handleCustomerOrVendorAddition',
       ],
@@ -856,7 +946,7 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
+    { // Get accounts
       buttonType: Text.DIV_GENERAL_TOGGLE_ACCOUNTS,
       functionName: 'handleTableDataLoading',
       functionArguments: ['accounts'],
@@ -868,7 +958,7 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
+    { // Get documents
       buttonType: Text.DIV_GENERAL_TOGGLE_DOCS,
       functionName: 'handleTableDataLoading',
       functionArguments: ['documents'],
@@ -880,7 +970,7 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
+    { // Get customers
       buttonType: Text.DIV_GENERAL_TOGGLE_CUSTOMERS,
       functionName: 'handleTableDataLoading',
       functionArguments: ['customers'],
@@ -892,7 +982,7 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_OPENSANS,
       ],
     },
-    {
+    { // Get vendors
       buttonType: Text.DIV_GENERAL_TOGGLE_VENDORS,
       functionName: 'handleTableDataLoading',
       functionArguments: ['vendors'],
@@ -911,12 +1001,32 @@ const BookkeepingProjectModule = (function () {
    * form, though this particular array's contents are related to the pseudo-
    * links included in the user's topbar navigation section to the far right of
    * the screen. Each button has a handler and a set of class and id identifiers
-   * as well as the option of including a <code>div</code> wrapper.
+   * as well as the option of including a <code>div</code> wrapper. Like the
+   * above array and the similar enums of objects, the button config objects
+   * contained herein are assembled into usable buttons in the navbar by the
+   * function <code>inaccessible.assembleButtonElement</code>.
    * <br />
    * <br />
    * The idea for these links originated with the author's familiarity with the
-   * MediaWiki framework and its Monobook skin, the latter of which makes use of
-   * a similarly styled set of button elements.
+   * MediaWiki framework and its Monobook and Vector skins, both of which make
+   * use of a similarly-styled set of button elements in the form of a top-right
+   * navbar that are styled similarly to these.
+   * <br />
+   * <br />
+   * An example config object with explanations is as follows:
+   * <br />
+   * <pre>
+   * {
+   *   buttonType: 'Button name',     // Text to appear on the button
+   *   functionName: 'handler',       // Event listener/handler name
+   *   functionArguments: [],         // Any arguments listener func needs
+   *   requiresWrapper: false,        // Is button to be wrapped in a <div>?
+   *   elementId: 'element-id',       // Element id (unique identifier)
+   *   elementClasses: [
+   *     'element-class-1',           // Array of element classes
+   *   ],
+   * },
+   * </pre>
    */
   inaccessible.navlinksButtonData = [
     {
@@ -924,8 +1034,7 @@ const BookkeepingProjectModule = (function () {
       functionName: 'displayModal',
       functionArguments: [
         Text.BUTTON_DASHBOARD_TOPBAR_NAVLINKS_CHANGEP,
-        'buildPasswordChangeModal',
-        [],
+        {name: 'buildPasswordChangeModal'},
         [ModalButtons.CLEAR],
         'handlePasswordChange',
       ],
@@ -963,17 +1072,22 @@ const BookkeepingProjectModule = (function () {
   // Utility functions
 
   /**
-   * @description This one-size-fits-all handler is used in place of the former
-   * <code>api</code> object containing individual 'GET' and 'POST' handlers as
-   * properties due to the fact that those handlers ended up sharing 99% of the
-   * same code. Rather than indulge in copy/pasta, I just consolidated them and
-   * made use of an optional default parameter for the data to be passed in the
-   * 'POST' handler case. Depending on the other request types we end up needing
-   * I may revert to the previous method, but I don't really expect we'll need
-   * anything else other than 'GET' and 'POST'. I've tested this in both cases
-   * and so far it seems to be working, with post requests passing along the
-   * appropriate request headers and data as expected as seen in the browser
-   * "Network" tab.
+   * @description This request handler is used to make <code>GET</code> and
+   * <code>POST</code> requests in the request and passage of user data to and
+   * from the back-end. It accepts as parameters a request type, an endpoint
+   * name/address, and an optional object containing the request configuration
+   * data such as the JSON encoding toggle indicator and the endpoint-specific
+   * parameters containing user data in accordance with RESTful best practices
+   * as applied to standard HTTP requests.
+   * <br />
+   * <br />
+   * This particular one-size-fits-all handler replaced the previous approach to
+   * the request process, which made use of an object property of the
+   * <code>inaccessible</code> access scope object named <code>api</code>. This
+   * object contained a pair of near-identical handlers for <code>GET</code> and
+   * <code>POST</code> requests. Since the author wished to avoid the
+   * overabundance of copy/pasta in the codebase, this object property was
+   * removed and its function properties consolidated into this single function.
    * <br />
    * <br />
    * As per the Google styleguide, the use of default parameters in function
@@ -983,7 +1097,7 @@ const BookkeepingProjectModule = (function () {
    *
    * @param {string} paramType 'GET' or 'POST'
    * @param {string} paramUrl The name of the PHP endpoint i.e. "server.php"
-   * @param {!object=} paramData The data in object form to be stringified
+   * @param {!object=} paramData Data in obj form to be stringified (optional)
    * @returns {Promise}
    */
   inaccessible.sendRequest = function (paramType, paramUrl, paramData = null) {
@@ -991,28 +1105,33 @@ const BookkeepingProjectModule = (function () {
     // Declarations
     let that, request, params;
 
-    // Preserve scope context
+    // Preserve scope
     that = this;
 
     return new Promise(function (resolve, reject) {
 
-      // Definitions
+      // Definition of new request
       request = new XMLHttpRequest();
+
+      // Intialize request
       request.open(paramType, paramUrl);
 
       if (paramType === 'POST' && paramData != null) {
         if (paramData.encode === true) {
-          // If data is passed as JSON string, we can use JSON REST method
           request.setRequestHeader('Content-Type', 'application/json');
           params = JSON.stringify(paramData.params);
         } else {
-          // Query string implementation
           request.setRequestHeader('Content-Type',
             'application/x-www-form-urlencoded');
           params = that.serialize(paramData.params);
         }
+
+        if (DEBUG) {
+          console.log(params);
+        }
       }
 
+      // Resolve or reject Promise depending on request status
       request.onload = function () {
         if (request.status == 200) {
           resolve(request.response);
@@ -1032,12 +1151,16 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description This utility function is used by
+   * @description This utility function was used by
    * <code>inaccessible.sendRequest</code> to determine whether or not the
-   * passed <code>paramData</code> optional parameter has been
-   * <code>JSON.stringify</code>'ed prior to passage. If it is, the requester
-   * uses a JSON-based RESTful approach; otherwise, it uses a query string
-   * approach.
+   * passed <code>paramData</code> optional parameter had been
+   * <code>JSON.stringify</code>'ed prior to passage. If so, the requester
+   * used a JSON-based RESTful approach; otherwise, it used a query string
+   * approach. However, this function was replaced by a simple
+   * <code>encode</code> toggle attached with every invocation of the request
+   * function which worked much more efficiently and made more sense from a
+   * human point of view. This function was retained simply for archiving
+   * purposes.
    *
    * @param {string} paramTarget String (could be JSONified)
    * @returns {boolean}
@@ -1059,8 +1182,11 @@ const BookkeepingProjectModule = (function () {
   /**
    * @description This function handles the translation of an inputted JS/JSON
    * object into a query string like that present in vanilla jQuery builders,
-   * namely <code>$.params</code>. This is primarily for use with sending POST
-   * requests in passing argument parameters as the data.
+   * namely <code>$.params</code>. This is primarily for use in sending
+   * <code>POST</code> requests in passing argument parameters as the data. It
+   * is used in most cases of data transmission to the back-end, with the other
+   * REST-compliant approach&mdash;namely the use of JSON-encoded data&mdash;
+   * used only in certain cases as required by the PHP endpoints.
    *
    * @param {object} paramObject The JS/JSON object to be serialized
    * @returns {string} String formatted as <code>username=foo&password=X</code>
@@ -1073,7 +1199,10 @@ const BookkeepingProjectModule = (function () {
    * @description Like <code>inaccessible.prepend</code>, this function is based
    * on jQuery's <code>$.append()</code> function used to add a DOM element
    * to another based on a <code>String</code> representation of the container's
-   * id or class name.
+   * id or class name. The author had originally intended for this function and
+   * its twin to see wider use in the file, but ended up using very little
+   * despite it being one of the first functions added to the codebase at the
+   * start of the class assignment.
    *
    * @param {string} paramTarget Element to which child is to be appended
    * @param {string} paramSubject Child node to be added
@@ -1087,7 +1216,10 @@ const BookkeepingProjectModule = (function () {
    * @description Like <code>inaccessible.append</code>, this function is based
    * on jQuery's <code>$.prepend()</code> function used to add a DOM element
    * to another based on a <code>String</code> representation of the container's
-   * id or class name.
+   * id or class name. The author had originally intended for this function and
+   * its twin to see wider use in the file, but ended up using very little
+   * despite it being one of the first functions added to the codebase at the
+   * start of the class assignment.
    *
    * @param {string} paramTarget Element to which child is to be prepended
    * @param {string} paramSubject Child node to be added
@@ -1102,10 +1234,11 @@ const BookkeepingProjectModule = (function () {
    * @description This utility function is used to consolidate the contents of
    * an inputted array of numbers through the performing of an inputted common
    * algebraic operation. The associated value is then returned from the
-   * function. This function is only used with the
+   * function. Within this file, this function is only used with the
    * <code>Operations.ADDITION</code> and <code>Operations.SUBTRACTION</code>
    * operations; the comparison operations in the enum require a different
-   * invocation method.
+   * invocation method. It is used to adjust the opacity of a container element
+   * to simulate a fade-in/fade-out function.
    *
    * @param {!Array<number>} paramList Array of number values
    * @param {string} paramOperation The <code>Operations</code> enum operation
@@ -1117,11 +1250,16 @@ const BookkeepingProjectModule = (function () {
 
   /**
    * @description This function returns a <code>boolean</code> value based on
-   * whether or not the inputted object is an array. It will be used by
-   * <code>inaccessible.assembleElement</code> to determine if inputted
-   * parameters need to be formatted as arrays.
+   * whether or not the inputted JS object is an array. It will be used by
+   * <code>inaccessible.assembleElement</code> to determine if the inputted
+   * parameters need to be formatted as arrays or whether the user has correctly
+   * passed well-formed input arguments to the function as expected. Originally,
+   * the author was considering including in that function as inner function,
+   * but eventually decided to keep things organized by locating all utility
+   * functions in a specific section of the <code>inaccessible</code> scope
+   * object.
    *
-   * @param {object} paramTarget Object to be checked
+   * @param {object} paramTarget JS object to be checked
    * @returns {boolean} Returns <code>true</code> if object is an Array
    */
   inaccessible.isArray = function (paramTarget) {
@@ -1129,10 +1267,13 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description This helper utility function is used to check login or account
-   * creation data to ensure it is wellformed and alphanumeric. Returns an
+   * @description This helper utility function is used to check assorted user
+   * input data to ensure it is wellformed and alphanumeric. It returns an
    * associated <code>boolean</code> depending on the result of a check with the
-   * approved regex.
+   * approved regex. It is primarily used by submission button event listeners
+   * in the modal and the login/account creation modules to check input
+   * textfield content prior to passage to the back-end, throwing an error and
+   * displaying a status notice if the value returned is <code>false</code>.
    *
    * @param {string} paramInput <code>String</code> to be checked
    * @returns {boolean} Returns <code>true</code> if input is alphanumeric
@@ -1146,9 +1287,12 @@ const BookkeepingProjectModule = (function () {
    * <code>inaccessible.isLegalInput</code>, is used to compare a parameter
    * string against a set of regex to determine whether or not the included
    * monetary amount is properly formatted with decimals in the right places and
-   * so forth.
+   * so forth. It is used in the document addition modal's ledger entry rows to
+   * ensure that user amounts are formatted as <code>1000.00</code> or somesuch,
+   * as per the associated endpoint's data input requirements as denoted in the
+   * PHP documentation.
    *
-   * @param {string} paramInput String representing amount of money
+   * @param {string} paramInput String representing amount of money (xxxx.xx)
    * @returns {boolean} Returns <code>true</code> if input is wellformed
    */
   inaccessible.isValidAmount = function (paramInput) {
@@ -1159,7 +1303,9 @@ const BookkeepingProjectModule = (function () {
    * @description This helper function returns a <code>boolean</code> denoting
    * whether or not the parameter <code>string</code> possesses any characters
    * other than whitespace. It is used primarily to determine whether or not the
-   * user has left any pseudo-cells blank when seeking to create a new document.
+   * user has left any pseudo-cells blank when seeking to create a new document
+   * in the document addition modal's ledger entries rows. It could probably be
+   * improved upon but it gets the job done as it is.
    *
    * @param {string} paramInput String of text to be evaluated for nonwhitespace
    * @returns {boolean} Returns <code>true</code> if input has no other chars
@@ -1172,11 +1318,15 @@ const BookkeepingProjectModule = (function () {
    * @description This function is used to add new key/value pairs to an
    * existing object en masse without having to add each individually as per
    * standard practices. This function was intentionally constructed to work
-   * like jQuery's <code>$.extend</code>.
+   * like jQuery's <code>$.extend</code>. Originally, the author wrote this in a
+   * much more verbose fashion to be ES5-compliant and somewhat-supportive of
+   * legacy browsers; however, given the decision to go the ES6-route and not
+   * bother with older browsers, this was simplified to a single line version
+   * making use of the author's beloved spread operator.
    *
    * @param {object} paramTarget The object to be extended
    * @param {object} paramObject The new object to be joined
-   * @returns {object}
+   * @returns {object} The extended object
    */
   inaccessible.extend = function (paramTarget, paramObject) {
     return {...paramTarget, ...paramObject};
@@ -1187,9 +1337,12 @@ const BookkeepingProjectModule = (function () {
    * replace spaces with underscores and convert all extant capital letters in
    * the string to lowercase letters. This function may see an expansion that
    * incorporates more advanced encoding via more regex, but the present
-   * implementation is sufficient for now.
+   * implementation is sufficient for now. It was originally used to create
+   * encoded values for use as dropdown option values in the document addition
+   * modal as related to customer or vendor party entries, but was eventually
+   * removed and retained simply for legacy archiving purposes.
    *
-   * @param {string} paramString
+   * @param {string} paramString String to be encoded
    * @returns {string} Pseudo-encoded string
    */
   inaccessible.encode = function (paramString) {
@@ -1201,21 +1354,27 @@ const BookkeepingProjectModule = (function () {
    * <code>inaccessible.handleDocumentAddition</code> to determine whether or
    * not the user-inputted date for a ledger transaction is wellformed or not.
    * A <code>boolean</code> response is returned depending on the nature of the
-   * input date.
+   * input date. In accordance with the document addition modal's endpoint
+   * documentation, the date must be formatted as YYYY-MM-DD and be an actual
+   * correct date; dates with wild day counts that make no sense given the year
+   * and month in question will be rejected.
    *
    * @param {string} paramDateString String input representing date (YYYY-MM-DD)
-   * @returns {boolean}
+   * @returns {boolean} Whether the date is well-formed
    */
   inaccessible.isValidDate = function (paramDateString) {
 
+    // Declarations
     let fragments, daysInMonth, year, month, day;
 
+    // Break down the array into the component parts
     fragments = paramDateString.split('-');
     year = fragments[0];
     month = fragments[1];
     day = fragments[2];
     daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
+    // Handle leap years
     if ((!(year % 4) && year % 100) || !(year % 400)) {
       daysInMonth[1] = 29;
     }
@@ -1230,7 +1389,9 @@ const BookkeepingProjectModule = (function () {
    * on the username input textfield. The function makes use of
    * <code>setTimeout</code> to recursively call itself in its efforts to check
    * if the element exists yet (such as in the middle of a fading transition
-   * event).
+   * event). It is part of the default post-load behavior of the
+   * <code>LOGIN</code> scene as notated in the
+   * <code>inaccessible.handlePostLoadAdjustments</code> handler function.
    *
    * @param {string} paramSelector String representation of element identifier
    * @returns {void}
@@ -1260,9 +1421,13 @@ const BookkeepingProjectModule = (function () {
    * depending on the result. It is primarily used by
    * <code>inaccessible.assembleElement</code> to handle cases wherein certain
    * array elements constituting parts of the element to contruct may be
-   * preassembled DOM elements nested within.
+   * preassembled DOM elements nested within. Like its related helper function
+   * <code>inaccessible.isArray</code>, it was originally planned to be
+   * included as an inner function of <code>assembleElement</code>, but was left
+   * in the <code>inaccessible</code> scope to keep things organized and
+   * readable.
    *
-   * @param {object} paramTarget Object to be checked
+   * @param {object} paramTarget Object to be checked for element status
    * @returns {boolean} Returns <code>true</code> if object is a DOM element
    */
   inaccessible.isElement = function (paramObject) {
@@ -1284,7 +1449,10 @@ const BookkeepingProjectModule = (function () {
    * element content stored within a certain inputted DOM element. <s>It may see
    * use in the clearing of a previous viewed ledger table in preparation for
    * displaying a new ledger document.</s> It sees use in the clearing of the
-   * page on scene transition immediately after fading out of the scene.
+   * page on scene transition immediately after fading out of the scene,
+   * appearing solely in the body of <code>inaccessible.tinderize</code>. It
+   * could perhaps be integrated within that function given that it sees use
+   * nowhere else in the module.
    *
    * @see {@link https://stackoverflow.com/a/3450726|Relevant SO Thread}
    * @param {string} paramElementId The identifier of the element to be cleared
@@ -1308,7 +1476,11 @@ const BookkeepingProjectModule = (function () {
    * a number of instances in a parameter string at once without the need for
    * compound <code>replace()</code> invocations. The map of extracts to be
    * replaced and their desired replacements is notated by the object parameter
-   * <code>paramMap</code>.
+   * <code>paramMap</code>. It is used within the body of the builder function
+   * <code>inaccessible.buildDefaultAccountsModal</code> to construct new list
+   * elements in the unordered list present in the default accounts modal,
+   * replacing default placeholder characters in a text template with the
+   * specific account entries' codes, names, and types.
    *
    * @param {string} paramString String to be manipulated
    * @param {object} paramMap Map of strings to be replaced & their replacements
@@ -1325,22 +1497,28 @@ const BookkeepingProjectModule = (function () {
 
   /**
    * @description This function is based on the similarly-named fading function
-   * available by default in jQuery. As the page will be set to an opacity style
-   * value of 0 from the start (namely in the proposed bulk assembly function
-   * <code>inaccessible.assembleBodyFramework</code>), this function simply
-   * increases the element's opacity until it reaches a value of 1, thus giving
-   * the impression of the scene fading in from the start. This helps hide the
-   * often jerky page and interface assembly sequence from view for a few
-   * milliseconds.
+   * available by default in jQuery. As parameter-specified container elements
+   * will have dynamically-set opacity values defined herein, this function just
+   * increases or decreases the element's opacity until it reaches a value of 1
+   * or 0, thus giving the impression of the scene fading in or out from the
+   * start. This helps hide the often jerky page and interface assembly sequence
+   * from view for a few milliseconds, also buying time for the request and
+   * retrieval of user data from the database in the case of partial fades of
+   * on-page container elements.
    * <br />
    * <br />
    * Additionally, as of the beginning of November, this function has been
    * refactored and slightly expanded to allow for fading in or out depending on
    * the value of an included <code>String</code> parameter, allowing for
-   * seemless transitions between interface scenes as needed.
+   * seemless transitions between interface scenes as needed. Originally, there
+   * were a pair of functions for fading in and out, both of which shared much
+   * of the same code. In an effort to reduce copy/pasta, these were combined
+   * into a single utility function that makes use of a computational enum for
+   * the handling of simply algebraic operations related to the increase or
+   * decrease of element opacity.
    *
    * @param {string} paramFadeType <code>String</code> indicating type of fade
-   * @param {string} paramElementId Container/wrapper id
+   * @param {string} paramElementId Container/wrapper identifier
    * @return {void}
    */
   inaccessible.fade = function (paramFadeType, paramElementId) {
@@ -1348,13 +1526,13 @@ const BookkeepingProjectModule = (function () {
     // Declarations
     let that, container, interval, fadeTypeObject, fadeTypeParameters;
 
-    // Preserve scope context
+    // Preserve scope
     that = this;
 
     // Grab DOM element from id
     container = document.getElementById(paramElementId);
 
-    // Set default opacity here rather than in config objects
+    // Set default opacity here rather than in config objects (as before)
     container.style.opacity = (paramFadeType === 'out') ? 1.005 : 0;
 
     // Removes need for separate functions
@@ -1404,15 +1582,22 @@ const BookkeepingProjectModule = (function () {
    * <code>String</code> identifier parameter to the right. It is to be used in
    * conjunction with <code>inaccessible.fade</code> to allow for a seamless
    * transition between scenes (i.e. login screen and the dashboard, etc.).
+   * Depending on the parameters inputted to <code>inaccessible.tinderize</code>
+   * as related to the swiping animation, this function may not be called in all
+   * instances of scene or module loading, only when the macro-scene is being
+   * changed (such as the shift between login module and main dashboard, etc.)
    * <br />
    * <br />
    * Originally, the initial implementation of this function involved some janky
    * coding that resulted in the container flickering to the left before
    * starting the animation. The current rewritten implementation should handle
-   * such cases and require no CSS-based fixing.
+   * such cases and require no CSS-based fixing to work as expected. It could
+   * still use some perfecting, but it does work as expected and adds a nice
+   * little aesthetic touch to what would otherwise be flat fading in and out
+   * via the <code>inaccessible.fade</code> fading function.
    *
    * @see {@link https://stackoverflow.com/a/29490865|SO Thread}
-   * @param {string} paramElementId
+   * @param {string} paramElementId Element identifier
    * @return {void}
    */
   inaccessible.swipeRight = function (paramElementId) {
@@ -1423,7 +1608,7 @@ const BookkeepingProjectModule = (function () {
     // Cache start time
     startTime = Date.now();
 
-    // Set container placement to relative
+    // Set retrieved container's placement to relative
     container = document.getElementById(paramElementId);
     container.style.position= 'relative';
 
@@ -1439,34 +1624,44 @@ const BookkeepingProjectModule = (function () {
       }
 
       // Draw animation at the moment of timePassed
-      container.style.left = timePassed / 5 + 'px';
+      container.style.left = `${timePassed / 5}px`;
 
     }, Utility.FADE_IN_INTERVAL);
   };
 
   /**
-   * @description This function is used to handle the change of scenes
+   * @description This function was designed to oversee the change of scenes
    * dynamically without having to default to the use of hardcoded HTML.
    * Depending on the input parameters, it generally fades out of the present
    * scene while shifting it right, removes the former content and builds the
-   * required interface scene, then fades back in. It's still a bit buggy but it
-   * is workable.
+   * required interface scene, then fades back in. Alternatively, based on its
+   * specific use-cases, the function may only fade out of a certain in-scene
+   * portion of the page, such as a <code>div</code> or <code>span</code>,
+   * before replacing that content with new content (as seen in the shift from
+   * the login module's login <code>form</code> to the related account creation
+   * <code>form</code>). Also, the <code>inaccessible.swipeRight</code> function
+   * may be toggled herein as well, with certain use-cases requiring only the
+   * fading function rather than both the fading and swiping functions.
    * <br />
    * <br />
-   * One optimization I've considered would be a caching function that would
-   * preserve the formerly assembled pages in <code>localStorage</code> or in a
-   * session cookie, though since the interfaces are not overly complex, it
-   * may be fine has it is. We'll have to see how things work out.
+   * One optimization the author had considered was a caching function that
+   * preserved the formerly assembled pages in <code>localStorage</code> or in a
+   * session cookie, though since the interfaces are not overly complex, this
+   * idea was eventually scrapped due to time constraints. Under present
+   * circumstances, this implementation is fine as it is, adding a bit of color
+   * to the dynamic construction of scene HTML and making the use of the app
+   * easy and its design clean.
    *
-   * @param {boolean} paramCanSwipeRight Use <code>swipeRight()</code>
+   * @param {boolean} paramCanSwipeRight Use <code>swipeRight()</code>?
    * @param {string} paramElementId Present container id
    * @param {object} paramBuilder Obj containing function name & optional args
+   * @param {!boolean=} paramCanAdjustPostLoad Is content adjusted post-load?
    * @returns {void}
    */
   inaccessible.tinderize = function (paramCanSwipeRight, paramElementId,
       paramBuilder, paramCanAdjustPostLoad = false) {
 
-    // Declaration
+    // Declarations
     let that, interval, container, parent;
 
     // Definitions
@@ -1492,12 +1687,12 @@ const BookkeepingProjectModule = (function () {
         parent.appendChild(that[paramBuilder.name](
           ...(paramBuilder.args != null) ? paramBuilder.args : []));
 
-        // Make any scene-specific adjustments post-addition to page
+        // Make any scene-specific adjustments post-addition to page (optional)
         if (paramCanAdjustPostLoad) {
           that.handlePostLoadAdjustments();
         }
 
-        // Fade in on the scene
+        // Fade in on the newly reconfigured scene
         that.fade('in', parent.id);
         return;
       }
@@ -1512,7 +1707,13 @@ const BookkeepingProjectModule = (function () {
    * single HTML element that will be returned from the function and appended to
    * the DOM dynamically. It accepts an array of strings denoting the type of
    * element to create and also handles potentially nested element arrays for
-   * elements that are to exist inside the outer element tags as inner HTML.
+   * elements that are to exist inside the outer element tags as inner HTML. In
+   * many respects, this function is the most critical building block of the
+   * module, as it use facilitates the generation of dynamic JS-mediated scenes
+   * that can be built and added to the page without the need to fetch static
+   * HTML files. The builder functions contained in this JS module are really
+   * nothing more than heavy extended invocations of this function that pass
+   * large frameworks of HTML for assembly herein.
    * <br />
    * <br />
    * An example of wellformed input is shown below:
@@ -1521,7 +1722,7 @@ const BookkeepingProjectModule = (function () {
    * this.assembleElement(
    *   ['div', {id: 'foo-id', class: 'foo-class'},
    *     ['button', {id: 'bar-id', class: 'bar-class'},
-   *       'Text'
+   *       'Text',
    *     ],
    *   ],
    * );
@@ -1590,27 +1791,31 @@ const BookkeepingProjectModule = (function () {
    * button elements in the interface and their associated handler functions
    * that can be used for all manner of purposes, from opening new user modals
    * to transitioning between page scenes. The use of config options opens a lot
-   * of customization doors and is pretty responsive to most button needs.
+   * of customization doors and is pretty responsive to most button needs. The
+   * specific button collections that use this function are the enums
+   * <code>ModalButtons</code> and <code>ModuleButtons</code> and the arrays
+   * <code>inaccessible.navlinksButtonData</code> and
+   * <code>inaccessible.sidebarButtonData</code>, as discussed in their own
+   * relevant inline documentation.
    * <br />
    * <br />
    * Button objects are styled as seen below:
    * <br />
    * <pre>
    * {
-   *   buttonType: 'Title here',
-   *   functionName: 'handleFoo',
-   *   functionArguments: [paramFoo, paramBar],
-   *   requiresWrapper: true,
-   *   elementId: Identifiers.ID_FOO,
+   *   buttonType: 'Button name',     // Text to appear on the button
+   *   functionName: 'handler',       // Event listener/handler name
+   *   functionArguments: [],         // Any arguments listener func needs
+   *   requiresWrapper: false,        // Is button to be wrapped in a <div>?
+   *   elementId: 'element-id',       // Element id (unique identifier)
    *   elementClasses: [
-   *     Identifiers.CLASS_FOO_1,
-   *     Identifiers.CLASS_FOO_2,
+   *     'element-class-1',           // Array of element classes
    *   ],
    * },
    * </pre>
    *
-   * @param {object} paramObject Config as seen above
-   * @returns {HTMLElement} buttonElement Assembled element for addition to DOM
+   * @param {object} paramObject Config button object as seen above
+   * @returns {HTMLElement} buttonElement Assembled button for addition to DOM
    */
   inaccessible.assembleButtonElement = function (paramObject) {
 
@@ -1634,8 +1839,11 @@ const BookkeepingProjectModule = (function () {
         class: Identifiers.CLASS_GENERAL_BUTTONS_HOLDER,
       };
 
-      buttonElement = this.assembleElement(['div', buttonHolderConfig,
-          ['button', buttonConfig, tempName]]);
+      buttonElement = this.assembleElement(
+        ['div', buttonHolderConfig,
+          ['button', buttonConfig, tempName],
+        ],
+      );
     } else {
       buttonElement = this.assembleElement(['button', buttonConfig, tempName]);
     }
@@ -1651,26 +1859,33 @@ const BookkeepingProjectModule = (function () {
 
   /**
    * @description This builder is used to build the main part of the interface
-   * dashboard scene, the ledger table itself. Additionally, it makes use of a
-   * preformed array of <code>String</code>s in the construction of the table
-   * headers. Ideally, these headers in an object array should be tossed and
-   * replaced with a better method; this is a bit janked at the moment, but it's
-   * good enough for a v.1 build.
+   * dashboard scene, the HTML tables themselves. Additionally, it makes use of
+   * a preformed array of <code>String</code>s in the construction of the table
+   * headers. Originally, this function was named <code>assembleLedger</code> or
+   * something to that effect, though this was change to the present upon the
+   * team's choice to have multiple tables for multiple types of data. As such,
+   * it is used in a variety of circumstances to create new HTML tables with
+   * column counts determined by the number of headers included in the parameter
+   * string array argument. It basically just creates the <code>table</code>
+   * element and included <code>thead</code> and <code>tbody</code> child nodes
+   * before determining the number of columns via the assembly of table headers.
    *
-   * @param {!Array<string>} paramHeaders
-   * @returns {HTMLElement} ledger The formed ledger DOM element
+   * @param {!Array<string>} paramHeaders String array of table header nodes
+   * @returns {HTMLElement} ledger The well-formed HTML table DOM element
    */
   inaccessible.assembleDashboardTable = function (paramHeaders) {
 
-    // Declaration
+    // Declarations
     let ledger, thead, tbody, newRow, newCell, configRowHeader, configTable;
 
+    // <table> config object
     configTable = {
       id: Identifiers.ID_DASHBOARD_WRAPPER,
       class: Identifiers.CLASS_GENERAL_ARIAL,
       style: 'table-layout: fixed;',
     };
 
+    // <th> config object
     configRowHeader = {
       class: Identifiers.CLASS_DASHBOARD_LEDGER_TABLE_HEADER,
     };
@@ -1685,6 +1900,7 @@ const BookkeepingProjectModule = (function () {
     // New first row
     newRow = thead.insertRow(0);
 
+    // Create a new column cell for each header
     for (let i = 0; i < paramHeaders.length; i++) {
       newCell = newRow.insertCell(i);
       newCell.appendChild(
@@ -1696,17 +1912,24 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description This assembly function is used to create and return a new
+   * @description The final assembly function is used to create and return a new
    * dropdown option element for selection in an interaction modal. At the time
    * of writing, this function is used primarily in the addition of document
-   * type options to the type selection menu and in the appending of extant
-   * customers or vendors to the party selection menu in the same modal.
+   * type options to the type selection menu, in the appending of extant
+   * customers or vendors to the party selection menu in the same modal, and in
+   * the addition of extant user-created accounts to the same modal's pseudo-row
+   * <code>code</code> table cell. It accept as a sole argument a config object
+   * with a <code>name</code> and <code>value</code> property denoting the text
+   * to display in the <code>option</code> and the associated value to be passed
+   * to the endpoint upon the user's selection of this option in the menu.
+   * <br />
+   * <br />
+   * Dropdown option config objects are styled as seen below:
    * <br />
    * <pre>
-   * // Wellformed input object example:
    * paramObject = {
    *   name: 'Accounts payable invoice',
-   *   value: 'api',
+   *   value: 'API',
    * };
    * </pre>
    *
@@ -1723,7 +1946,7 @@ const BookkeepingProjectModule = (function () {
   // Builder functions
 
   /**
-   * @description Replacing the previous
+   * @description Replacing the previous JS module's
    * <code>inaccessible.buildLoginInterface</code> implementation, this function
    * and its pair of related inner content builders are responsible for the
    * construction of the login module interface, used to both login to an extant
@@ -1734,8 +1957,8 @@ const BookkeepingProjectModule = (function () {
    * and the create account module. This ensures that the module header does not
    * have to be removed and recreated every time.
    *
-   * @param {HTMLElement} paramContent
-   * @returns {HTMLElement}
+   * @param {HTMLElement} paramContent Mini-module HTML for addition to body
+   * @returns {HTMLElement} Assembled login module
    */
   inaccessible.buildLoginModule = function (paramContent) {
 
@@ -1743,38 +1966,46 @@ const BookkeepingProjectModule = (function () {
     let configContainer, configTopbar, configTopbarHolder, configTopbarTitle,
       configTopbarSubtitle, configMain;
 
+    // Wrapper element
     configContainer = {
       id: Identifiers.ID_LOGIN_CONTAINER,
       class: Identifiers.CLASS_GENERAL_MAJOR_SECTION + ' ' +
         Identifiers.CLASS_GENERAL_CONTAINER,
     };
 
+    // <header> element
     configTopbar = {
       id: Identifiers.ID_LOGIN_TOPBAR,
       class: Identifiers.CLASS_GENERAL_MAJOR_SECTION,
     };
 
+    // Container for title and subtitle
     configTopbarHolder = {
       id: Identifiers.ID_GENERAL_TOPBAR_META_HOLDER,
       class: Identifiers.CLASS_LOGIN_GENERAL_EXTRA_PADDING,
     };
 
+    // "Keep Dem Books, Y'all"
     configTopbarTitle = {
       id: Identifiers.ID_GENERAL_TOPBAR_META_TITLE,
       class: Identifiers.CLASS_GENERAL_MONTSERRAT,
     };
 
+    // "A bookkeeping application..."
     configTopbarSubtitle = {
       id: Identifiers.ID_GENERAL_TOPBAR_META_SUBTITLE,
       class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
+    // Scene body
     configMain = {
       id: Identifiers.ID_LOGIN_MAIN,
     };
 
+    // Set the scene flag
     this.scene = Scenes.LOGIN;
 
+    // Return assembled framework
     return this.assembleElement(
       ['div', configContainer,
         ['header', configTopbar,
@@ -1799,35 +2030,47 @@ const BookkeepingProjectModule = (function () {
    * the login module body. This framework is related to the logging into an
    * existing account, and thus contains fields for username and password as
    * well as buttons for submission of data and an "account creation" button for
-   * new users.
+   * new users to move to the account creation mini-module. As discussed in the
+   * <code>inaccessible.buildLoginModule</code> function, this builder function
+   * assembled the HTML that is then passed to the greater login module builder
+   * to serve as its inner body content, making use of the transition function
+   * <code>inaccessible.tinderize</code> to make the shift seemless. It accepts
+   * as arguments an array of button object config from the enum
+   * <code>ModuleButtons</code> that are assembled herein.
    *
    * @param {!Array<object>} paramButtons Array of <code>ModuleButtons</code>
-   * @returns {HTMLElement}
+   * @returns {HTMLElement} Assembled login module body content
    */
   inaccessible.buildLoginContent = function (paramButtons) {
 
+    // Declarations
     let configContent, configBody, configBodyHeader, configBodyLoginHolder,
       configBodyLoginUsername, configBodyLoginPassword, configFooter,
       configButtonsHolder;
 
+    // Wrapper for body content (<article>)
     configContent = {
       id: Identifiers.ID_LOGIN_CONTENT,
     };
 
+    // <section> body
     configBody = {
       id: Identifiers.ID_LOGIN_BODY,
     };
 
+    // Contains text summarizing the user's action
     configBodyHeader = {
       id: Identifiers.ID_LOGIN_BODY_HEADER,
       class: Identifiers.CLASS_LOGIN_GENERAL_EXTRA_PADDING + ' ' +
         Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
+    // <form> element for input fields
     configBodyLoginHolder = {
       id: Identifiers.ID_LOGIN_BODY_INPUT_HOLDER,
     };
 
+    // Input field for usernames
     configBodyLoginUsername = {
       id: Identifiers.ID_LOGIN_BODY_INPUT_USERNAME,
       class: Identifiers.CLASS_LOGIN_BODY_INPUT_TEXTBOX,
@@ -1835,6 +2078,7 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
+    // Input field for passwords
     configBodyLoginPassword = {
       id: Identifiers.ID_LOGIN_BODY_INPUT_PASSWORD,
       class: Identifiers.CLASS_LOGIN_BODY_INPUT_TEXTBOX,
@@ -1842,15 +2086,18 @@ const BookkeepingProjectModule = (function () {
       type: 'password',
     };
 
+    // <section> holder for buttons
     configFooter = {
       id: Identifiers.ID_LOGIN_FOOTER,
     };
 
+    // Holder config
     configButtonsHolder = {
       id: Identifiers.ID_LOGIN_FOOTER_BUTTONS_HOLDER,
       class: Identifiers.CLASS_GENERAL_FLEX_JUSTIFY,
     };
 
+    // Return assembled HTML
     return this.assembleElement(
       ['article', configContent,
         ['section', configBody,
@@ -1875,35 +2122,48 @@ const BookkeepingProjectModule = (function () {
    * the creation of a new account and is added to the module on presses of the
    * "Create account" button. As such, its content contains fields for the input
    * of new usernames and passwords as well as <code>ModuleButtons</code> for
-   * returning to the login module and submitting new account data.
+   * returning to the login module and submitting new account data. As discussed
+   * in the <code>inaccessible.buildLoginModule</code> documentation, this
+   * builder returns an HTML mini-module that will serve as the body content of
+   * the main login module without the need to recreate the entire scene on
+   * each button press. It makes use of the transition utility function
+   * <code>inaccessible.tinderize</code> to make the shift seemless. It accepts
+   * as arguments an array of button object config from the enum
+   * <code>ModuleButtons</code> that are assembled herein.
    *
    * @param {!Array<object>} paramButtons Array of <code>ModuleButtons</code>
-   * @returns {HTMLElement}
+   * @returns {HTMLElement} Assembled accoutn creation body mini-module
    */
   inaccessible.buildAccountCreationContent = function (paramButtons) {
 
+    // Declarations
     let configContent, configBody, configBodyHeader, configBodyLoginHolder,
       configBodyLoginUsername, configBodyLoginPassword, configBodyLoginReenter,
       configFooter, configButtonsHolder;
 
+    // <article> wrapper
     configContent = {
       id: Identifiers.ID_LOGIN_CONTENT,
     };
 
+    // <section> content container
     configBody = {
       id: Identifiers.ID_LOGIN_BODY,
     };
 
+    // <div> holder for operation text
     configBodyHeader = {
       id: Identifiers.ID_LOGIN_BODY_HEADER,
       class: Identifiers.CLASS_LOGIN_GENERAL_EXTRA_PADDING + ' ' +
         Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
+    // <form> for the input textfields
     configBodyLoginHolder = {
       id: Identifiers.ID_LOGIN_BODY_INPUT_HOLDER,
     };
 
+    // Username input textfield
     configBodyLoginUsername = {
       id: Identifiers.ID_LOGIN_BODY_INPUT_USERNAME,
       class: Identifiers.CLASS_LOGIN_BODY_INPUT_TEXTBOX,
@@ -1911,6 +2171,7 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
+    // Password input textfield
     configBodyLoginPassword = {
       id: Identifiers.ID_LOGIN_BODY_INPUT_PASSWORD,
       class: Identifiers.CLASS_LOGIN_BODY_INPUT_TEXTBOX,
@@ -1918,6 +2179,7 @@ const BookkeepingProjectModule = (function () {
       type: 'password',
     };
 
+    // Password reenter input textfield
     configBodyLoginReenter = {
       id: Identifiers.ID_LOGIN_BODY_INPUT_REENTER,
       class: Identifiers.CLASS_LOGIN_BODY_INPUT_TEXTBOX,
@@ -1925,15 +2187,18 @@ const BookkeepingProjectModule = (function () {
       type: 'password',
     };
 
+    // <section> for buttons
     configFooter = {
       id: Identifiers.ID_LOGIN_FOOTER,
     };
 
+    // Holder for assembled buttons
     configButtonsHolder = {
       id: Identifiers.ID_LOGIN_FOOTER_BUTTONS_HOLDER,
       class: Identifiers.CLASS_GENERAL_FLEX_JUSTIFY,
     };
 
+    // Return assembled accoutn creation mini-module
     return this.assembleElement(
       ['article', configContent,
         ['section', configBody,
@@ -1954,20 +2219,26 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description This function makes significant use of the DOM element builder
-   * <code>inaccessible.assembleElement</code>'s recursive functionality to
-   * construct many levels of nested elements. This function mainly just fills
-   * the otherwise empty <code>body</code> tag with a container wrapper
-   * <code>div</code>, a set of sidebar containers for checkboxes and buttons,
-   * and a <code>div</code> wrapper for the central ledger element itself. It is
-   * to these DOM nodes that the rest of the elements are assembled dynamically
-   * and added to the wrapper.
+   * @description This builder function was the first of the builder functions
+   * to be constructed upon the finalization of the application design, and was
+   * primarily added as a test of the <code>inaccessible.assembleElement</code>
+   * assembly function's reaction to heavily-nested HTML generation input. As
+   * such, it retains its legacy name of <code>buildUserInterface</code> despite
+   * the design paradigm's evolution since its inception. More properly, it
+   * should perhaps be called <code>buildDashboardScene</code> or something more
+   * to that effect.
    * <br />
    * <br />
-   * This particular builder is responsible for constructing the main interface
-   * dashboard page scene, viewable on account login.
+   * Regardless, the function oversees the building of the dashboard scene, the
+   * scene of the application used to display the data tables, sidebar buttons
+   * collection, and navlinks topbar to the user. This scene represents the most
+   * important scene of the program, as it is in this location that most of the
+   * user's interactions with the program functionality occur. This function
+   * builds the sidebar, topbar, all buttons, and the main table section,
+   * creating the masthead text section in the table location informing the user
+   * of the program's purpose and the identities of its authors.
    *
-   * @returns {HTMLElement} The constructed page scene
+   * @returns {HTMLElement} The constructed dashboard page scene
    */
   inaccessible.buildUserInterface = function () {
 
@@ -1977,60 +2248,72 @@ const BookkeepingProjectModule = (function () {
       configTopbarNavLinksHolder, configSection, configSidebar,
       configSidebarButtonContainer, configLedger, configLedgerTable;
 
+    // Scene wrapper
     configContainer = {
       id: Identifiers.ID_DASHBOARD_CONTAINER,
       class: Identifiers.CLASS_GENERAL_MAJOR_SECTION + ' ' +
         Identifiers.CLASS_GENERAL_CONTAINER,
     };
 
+    // <header> element
     configTopbar = {
       id: Identifiers.ID_DASHBOARD_TOPBAR,
       class: Identifiers.CLASS_GENERAL_MAJOR_SECTION,
     };
 
+    // Container for text titles
     configTopbarMeta = {
       id: Identifiers.ID_DASHBOARD_TOPBAR_META,
       class: Identifiers.CLASS_GENERAL_TOPBAR_DIV,
     };
 
+    // "Keep Dem Books, Y'all"
     configTopbarMetaTitle = {
       id: Identifiers.ID_GENERAL_TOPBAR_META_TITLE,
       class: Identifiers.CLASS_GENERAL_MONTSERRAT,
     };
 
+    // "A bookkeeping application..."
     configTopbarMetaSubtitle = {
       id: Identifiers.ID_GENERAL_TOPBAR_META_SUBTITLE,
       class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
+    // <div> for topbar holder and topbar navlink elements
     configTopbarNavLinks = {
       id: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS,
       class: Identifiers.CLASS_GENERAL_TOPBAR_DIV,
     };
 
+    // Holder/wrapper for navlink element collection
     configTopbarNavLinksHolder = {
       id: Identifiers.ID_DASHBOARD_TOPBAR_NAVLINKS_HOLDER,
     };
 
+    // <section> for main table section and sidebar (everything south of topbar)
     configSection = {
       id: Identifiers.ID_DASHBOARD_SECTION,
       class: Identifiers.CLASS_GENERAL_FLEX_JUSTIFY,
     };
 
+    // Sidebar <aside> semantic tag
     configSidebar = {
       id: Identifiers.ID_DASHBOARD_SIDEBAR,
       class: Identifiers.CLASS_GENERAL_MAJOR_SECTION,
     };
 
+    // Wrapper config for sidebar buttons holder
     configSidebarButtonContainer = {
       id: Identifiers.ID_DASHBOARD_SIDEBAR_BUTTONS,
     };
 
+    // Legacy name for the table/masthead <main> section
     configLedger = {
       id: Identifiers.ID_DASHBOARD_LEDGER,
       class: Identifiers.CLASS_GENERAL_MAJOR_SECTION,
     };
 
+    // Define scene flag
     this.scene = Scenes.DASHBOARD;
 
     // Return assembled interface
@@ -2069,9 +2352,14 @@ const BookkeepingProjectModule = (function () {
    * displays information related to the application's essential functions and
    * a brief summary of the authors and their associated teams. It is replaced
    * upon the loading of a new table via the sidebar buttons and does not appear
-   * again until the user logs out and logs back in.
+   * again until the user logs out and logs back in. This builder represents the
+   * last scene/mini-scene developed by the front-end JavaScript engineer, and
+   * was added at the last minute to fill the void that exists on the log into
+   * the application as a new user without any created documents, accounts,
+   * vendors, or customers. In order to fill this out, the empty documents table
+   * that previously greeted new users was replaced with this masthead.
    *
-   * @returns {HTMLElement}
+   * @returns {HTMLElement} The assembled masthead mini-scene
    */
   inaccessible.buildMasthead = function () {
 
@@ -2080,57 +2368,70 @@ const BookkeepingProjectModule = (function () {
       configMainAbout, configMainAboutTitle, configMainAboutText,
       configMainAuthors, configMainAuthorsTitle, configMainAuthorsText;
 
+    // Mini-scene wrapper
     configContainer = {
       id: Identifiers.ID_DASHBOARD_WRAPPER,
     };
 
+    // <header> for <h2> element
     configHeader = {
       id: Identifiers.ID_MASTHEAD_HEADER,
     };
 
+    // <h2> element for overview title
     configHeaderTitle = {
       id: Identifiers.ID_MASTHEAD_HEADER_TITLE,
       class: Identifiers.CLASS_MASTHEAD_H2 + ' ' +
         Identifiers.CLASS_GENERAL_MONTSERRAT,
     };
 
+    // <main> tag containing the bulk of the text content
     configMain = {
       id: Identifiers.ID_MASTHEAD_MAIN,
     };
 
+    // About the application section
     configMainAbout = {
       id: Identifiers.ID_MASTHEAD_MAIN_ABOUT,
       class: Identifiers.CLASS_MASTHEAD_SECTION,
     };
 
+    // <h3> title for About section
     configMainAboutTitle = {
       id: Identifiers.ID_MASTHEAD_MAIN_ABOUT_TITLE,
       class: Identifiers.CLASS_MASTHEAD_H3 + ' ' +
         Identifiers.CLASS_GENERAL_MONTSERRAT,
     };
 
+    // Text content of the About section
     configMainAboutText = {
       id: Identifiers.ID_MASTHEAD_MAIN_ABOUT_TEXT,
       class: Identifiers.CLASS_MASTHEAD_TEXT_CONTAINER,
     };
 
+    // Authors of the application section
     configMainAuthors = {
       id: Identifiers.ID_MASTHEAD_MAIN_AUTHORS,
       class: Identifiers.CLASS_MASTHEAD_SECTION,
     };
 
+    // <h3> title for Authors section
     configMainAuthorsTitle = {
       id: Identifiers.ID_MASTHEAD_MAIN_AUTHORS_TITLE,
       class: Identifiers.CLASS_MASTHEAD_H3 + ' ' +
         Identifiers.CLASS_GENERAL_MONTSERRAT,
     };
 
+    // Text content of the Authors section
     configMainAuthorsText = {
       id: Identifiers.ID_MASTHEAD_MAIN_AUTHORS_TEXT,
       class: Identifiers.CLASS_MASTHEAD_TEXT_CONTAINER,
     };
 
-    // Return assembled interface
+    // Define scene flag (just in case)
+    this.scene = Scenes.DASHBOARD;
+
+    // Return assembled mini-scene
     return this.assembleElement(
       ['div', configContainer,
         ['header', configHeader,
@@ -2168,12 +2469,22 @@ const BookkeepingProjectModule = (function () {
    * screen that directs focus to the modal. The modal has a specific title and
    * a set of interaction buttons at the bottom that will allow the user to
    * close the modal, submit data, or attempt several other different tasks as
-   * required.
+   * required by the specific modal being viewed.
+   * <br />
+   * <br />
+   * The design of this modal is intentionally similar to that employed by
+   * <code>inaccessible.buildLoginModule</code>, namely accepting mini-scene
+   * input as body content to be appended to the greater scene framework. This
+   * framework builder is responsible for building the overall skeleton of the
+   * modal, with specific inner content being determined by the modal requested
+   * by the user by way of the sidebar/navlink interface button pressed. This
+   * ensures all modals share a similar aesthetic while allowing for differences
+   * in body content and the types of buttons present in the modal footer.
    *
-   * @param {string} paramTitle Modal title
-   * @param {HTMLElement} paramContent Inner HTML content
+   * @param {string} paramTitle Modal title for the modal header
+   * @param {HTMLElement} paramContent Inner HTML body content
    * @param {!Array<object>} paramButtons Array of button config objects
-   * @returns {HTMLElement}
+   * @returns {HTMLElement} The assembled modal framework
    */
   inaccessible.buildModal = function (paramTitle, paramContent, paramButtons) {
 
@@ -2189,7 +2500,7 @@ const BookkeepingProjectModule = (function () {
       id: Identifiers.ID_MODAL_BLACKOUT,
     };
 
-    // Module div
+    // Module <div>
     configModal = {
       id: Identifiers.ID_MODAL_MAIN,
     };
@@ -2206,13 +2517,13 @@ const BookkeepingProjectModule = (function () {
       class: Identifiers.CLASS_GENERAL_MONTSERRAT,
     };
 
-    // Empty main section to which other builds will be appended
+    // Empty main section to which mini-scenes will be appended
     configSection = {
       id: Identifiers.ID_MODAL_SECTION,
       class: Identifiers.CLASS_MODAL_MAJOR_SECTION,
     };
 
-    // Section for buttons
+    // <footer> for buttons
     configFooter = {
       id: Identifiers.ID_MODAL_FOOTER,
       class: Identifiers.CLASS_MODAL_MAJOR_SECTION,
@@ -2223,6 +2534,7 @@ const BookkeepingProjectModule = (function () {
       id: Identifiers.ID_MODAL_FOOTER_BUTTONS,
     };
 
+    // Define scene flag
     this.scene = Scenes.MODAL;
 
     // Return assembled interface
@@ -2250,28 +2562,37 @@ const BookkeepingProjectModule = (function () {
    * mini-scene related to the password changing process. It assembles a bit of
    * HTML including a pair of password entry input textfields and a set of
    * wrapper container divs and some text instructing the user to enter matched
-   * passwords.
+   * passwords. This modal mini-scene in particular is constructed when the
+   * user presses the "Change password" navlinks button of the topbar dashboard
+   * section, the only navlinks button that opens a modal. Its associated
+   * submission event handler is <code>inaccessible.handlePasswordChange</code>,
+   * used to pass new password information to the database.
    *
-   * @returns {HTMLElement}
+   * @returns {HTMLElement} The assembled password change mini-scene
    */
   inaccessible.buildPasswordChangeModal = function () {
 
+    // Declarations
     let configContainer, configInformation, configInputForm,
       configInputPassword, configInputPasswordReentered;
 
+    // <div> wrapper
     configContainer = {
       id: Identifiers.ID_CHANGEP_CONTAINER,
     };
 
+    // Information text wrapper <div>
     configInformation = {
       id: Identifiers.ID_CHANGEP_INFORMATION,
       class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
+    // <form> element for input fields
     configInputForm = {
       id: Identifiers.ID_CHANGEP_FORM,
     };
 
+    // Password input field
     configInputPassword = {
       id: Identifiers.ID_CHANGEP_INPUT_PASSWORD,
       class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
@@ -2279,12 +2600,16 @@ const BookkeepingProjectModule = (function () {
       type: 'password',
     };
 
+    // Password reenter input field
     configInputPasswordReentered = {
       id: Identifiers.ID_CHANGEP_INPUT_REENTER,
       class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
       placeholder: Text.INPUT_CHANGEP_REENTER_PLACEHOLDER,
       type: 'password',
     };
+
+    // Define scene flag
+    this.scene = Scenes.MODAL;
 
     // Return assembled interface
     return this.assembleElement(
@@ -2307,9 +2632,12 @@ const BookkeepingProjectModule = (function () {
    * customer name and address. This mini-scene creation function is used by
    * both the "Add new customer" and "Add new vendor" sidebar buttons to build a
    * modal body as both those operations are nearly identical, thus reducing the
-   * need for a duplicate copy/pasted builder for each.
+   * need for a duplicate copy/pasted builder for each. The related submission
+   * handler is <code>inaccessible.handleCustomerOrVendorAddition</code>, which
+   * takes the input from the textfields, validates it, and passes it to the
+   * database as a new party entry.
    *
-   * @returns {HTMLElement}
+   * @returns {HTMLElement} The assembled party input modal content
    */
   inaccessible.buildCustomerOrVendorAdditionModal = function () {
 
@@ -2317,19 +2645,23 @@ const BookkeepingProjectModule = (function () {
     let configContainer, configInformation, configInputForm,
       configInputName, configInputAddress;
 
+    // <div> wrapper for modal body content
     configContainer = {
       id: Identifiers.ID_CORV_CONTAINER,
     };
 
+    // Text holder <div>
     configInformation = {
       id: Identifiers.ID_CORV_INFORMATION,
       class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
+    // <form> element for textfields
     configInputForm = {
       id: Identifiers.ID_CORV_FORM,
     };
 
+    // Input textfield for name
     configInputName = {
       id: Identifiers.ID_CORV_INPUT_NAME,
       class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
@@ -2337,6 +2669,7 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
+    // Input textfield for address
     configInputAddress = {
       id: Identifiers.ID_CORV_INPUT_ADDRESS,
       class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
@@ -2344,6 +2677,7 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
+    // Define scene flag
     this.scene = Scenes.MODAL;
 
     // Return assembled interface
@@ -2367,9 +2701,19 @@ const BookkeepingProjectModule = (function () {
    * vendor or customer to which this new document is to be associated. Much of
    * the second dropdown's contents are built by another handler that assembles
    * a listing of extant parties depending on the option selected for the doc
-   * type dropdown.
+   * type dropdown. Below these dropdowns is the document general ledger entries
+   * pseudo-HTML table, containing rows of mini-dropdowns and input textfields
+   * related to the specific document transaction entries that will be displayed
+   * upon selection of the document in the interface. Users can add and remove
+   * specific rows through the use of the footer buttons included for these
+   * purposes.
+   * <br />
+   * <br />
+   * All this user-input data is then collected and collated by the handler
+   * <code>inaccessible.handleDocumentAddition</code> before being sent to the
+   * database and registered as a new document.
    *
-   * @returns {HTMLElement}
+   * @returns {HTMLElement} The assembled document addition modal body content
    */
   inaccessible.buildDocumentAdditionModal = function () {
 
@@ -2377,25 +2721,28 @@ const BookkeepingProjectModule = (function () {
     let that, configContainer, configInformation, configTypeDropdown,
       configTypeDropdownOption, configPartyDropdown, configPartyDropdownOption,
       typeDropdown, typeDropdownOption, configDropdownHolder, configDocName,
-      configDocNameHolder, configEntriesHolder, configEntriesForm,
-      documentName;
+      configDocNameHolder, configEntriesHolder, configEntriesForm;
 
     // Preserve scope
     that = this;
 
+    // <div> container for the modal content
     configContainer = {
       id: Identifiers.ID_DOCUMENT_CONTAINER,
     };
 
+    // Holder for the informative text
     configInformation = {
       id: Identifiers.ID_DOCUMENT_INFORMATION,
       class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
+    // Holder for the document name input
     configDocNameHolder = {
       id: Identifiers.ID_DOCUMENT_INPUT_NAME_HOLDER,
     };
 
+    // Input textfield for the name element
     configDocName = {
       id: Identifiers.ID_DOCUMENT_INPUT_NAME,
       class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
@@ -2403,63 +2750,83 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
+    // <div> holder for the dropdown menus
     configDropdownHolder ={
       id: Identifiers.ID_DOCUMENT_DROPDOWN_HOLDER,
     };
 
+    // Dropdown for document type
     configTypeDropdown = {
       id: Identifiers.ID_DOCUMENT_DROPDOWN_TYPE,
       class: Identifiers.CLASS_MODAL_DROPDOWN,
     };
 
+    // Dropdown for customer/vendor, depending on type
     configPartyDropdown = {
       id: Identifiers.ID_DOCUMENT_DROPDOWN_PARTY,
       class: Identifiers.CLASS_MODAL_DROPDOWN,
     };
 
+    // Default option for this dropdown
     configPartyDropdownOption = {
       id: Identifiers.ID_DOCUMENT_DROPDOWN_OPTION + '-default',
       class: Identifiers.CLASS_MODAL_DROPDOWN_OPTION,
     };
 
+    // Holder for <form> pseudo-table
     configEntriesHolder = {
       id: Identifiers.ID_DOCUMENT_TABLE_HOLDER,
     };
 
+    // <form> table for the pseudo-rows
     configEntriesForm = {
       id: Identifiers.ID_DOCUMENT_TABLE,
     };
 
+    // Define scene flag
     this.scene = Scenes.MODAL;
 
+    /**
+     * This <code>if</code> statement block is used to determine whether or not
+     * to clear the <code>inaccessible</code> scope object property
+     * <code>userAccounts</code>, used to store data related to the user's
+     * extant accounts (1000 - Cash, etc.). If it exists and it is populated,
+     * this is an indication that the user A) created a set of accounts and B)
+     * opened the add document module before. Since we can't know for certain if
+     * the user added a new account in the interim since last opening the doc
+     * modal, we have to clear the array and thus in so doing inform
+     * <code>inaccessible.buildDocumentAdditionTableRow</code> that it should
+     * query the database for an updated listing of the user's accounts prior to
+     * populating the relevant accounts row dropdown with entries.
+     */
     if (this.userAccounts != null && this.userAccounts.length) {
       this.userAccounts = [];
     }
 
-    // Document type dropdown menu
-    documentName = this.assembleElement(['input', configDocName]);
+    // Document type dropdown menu element
     typeDropdown = this.assembleElement(['select', configTypeDropdown]);
 
-    // Listener for changes to document type dropdown menu
+    /**
+     * This listener attached to changes of the document type dropdown menu is
+     * used to invoke <code>inaccessible.handleDocumentDropdownChange</code>,
+     * which serves to ensure that the parties populating the relevant dropdown
+     * are related to the type of document to be created by the user.
+     */
     typeDropdown.addEventListener('change', function () {
       that.handleDocumentDropdownChange.call(that, typeDropdown);
     }, false);
 
-    for (let type in Types.DOCUMENT) {
-      typeDropdown.appendChild(that.assembleDropdownElement({
-        name: Types.DOCUMENT[type],
-        value: type
-      }));
-    }
+    // Create dropdown options for each of the five supported document types
+    this.displayTypesDropdownElements('DOCUMENT', typeDropdown);
 
-    // Return assembled interface
+    // Return assembled modal body
     return this.assembleElement(
       ['div', configContainer,
         ['div', configInformation,
           Text.DIV_DOCUMENT_INFORMATION,
         ],
         ['div', configDocNameHolder,
-          documentName,
+          ['input', configDocName],
         ],
         ['div', configDropdownHolder,
           typeDropdown,
@@ -2483,10 +2850,25 @@ const BookkeepingProjectModule = (function () {
    * new pseudo-table row for the ledger transactions entry table included in
    * the documents addition modal. Originally, the author tried an HTML table-
    * based approach, but eventually replaced this with a simple
-   * <code>form</code> approach, wherein rows are simply groups of input
-   * elements bound within a <code>div</code>.
+   * <code>form</code>-powered version, wherein rows are simply groups of input
+   * elements like dropdown menus and input textfields bound within a containing
+   * <code>div</code>. The author still thinks a proper HTML table would have
+   * been a bit easier to style, but thanks to his related CSS styling and the
+   * efforts of the CSS team, the <code>div</code> and its contents were made
+   * to appear similar to a proper table row.
+   * <br />
+   * <br />
+   * As discussed in more detail in the relevant block comment in the body of
+   * the function itself, this function makes use of a bit of janky caching
+   * functionality to store the queried account data returned from the back-end
+   * once for subsequent use in addition table pseudo-rows as needed. By calling
+   * for accounts only once, the values can be stored in an object property
+   * variable of the <code>inaccessible</code> scope object and reused, thus
+   * limiting the number of required calls and speeding up the process of
+   * building rows. The author acknowledges that this could have also beend done
+   * via the use of <code>localStorage</code> or a session cookie.
    *
-   * @returns {HTMLElement}
+   * @returns {HTMLElement} The assembled pseudo-row for addition to the modal
    */
   inaccessible.buildDocumentAdditionTableRow = function () {
 
@@ -2499,24 +2881,29 @@ const BookkeepingProjectModule = (function () {
     // Preserve scope
     that = this;
 
+    // <div> wrapper for the row
     configWrapper = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_WRAPPER,
     };
 
+    // Mini-row deletion checkbox
     configDelete = {
       type: 'checkbox',
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL,
     };
 
+    // Dropdown menu for account codes (originally a textfield)
     configCodeDropdown = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
         Identifiers.CLASS_DOCUMENT_TABLE_ROW_DROPDOWN,
     };
 
+    // Dropdown menu default entry
     configCodeDropdownOption = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL,
     };
 
+    // Input textfield for the date string
     configDate = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
         Identifiers.CLASS_DOCUMENT_TABLE_ROW_INPUT,
@@ -2524,19 +2911,23 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
+    // Dropdown menu for credit or debit options
     configCredebitDropdown = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
         Identifiers.CLASS_DOCUMENT_TABLE_ROW_DROPDOWN,
     };
 
+    // Dropdown menu option for credit
     configCredebitDropdownOptionCredit = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL,
     };
 
+    // Dropdown menu option for debit
     configCredebitDropdownOptionDebit = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL,
     };
 
+    // Amount of money for this entry (xxxx.xx)
     configAmount = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
         Identifiers.CLASS_DOCUMENT_TABLE_ROW_INPUT,
@@ -2544,6 +2935,7 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
+    // Brief memo description of entry
     configDescription = {
       class: Identifiers.CLASS_DOCUMENT_TABLE_ROW_CELL + ' ' +
         Identifiers.CLASS_DOCUMENT_TABLE_ROW_INPUT,
@@ -2551,7 +2943,14 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
-    // Create new code dropdown and default entry and add entry to menu
+    /**
+     * This code creates a new code dropdown and default entry and adds the
+     * entry to menu. It replaces the original implementation, which displayed
+     * the code as simply an input textfield that would require the user to
+     * include a proper account code. Rather than trust the user to know the
+     * codes by heart, the use of a dropdown was chosen as it remove the
+     * possibility of malformed input being passed server-side.
+     */
     codeDropdown = this.assembleElement('select', configCodeDropdown);
     codeDropdownDefault = this.assembleElement('option',
       configCodeDropdownOption, Text.INPUT_DOCUMENT_OPTION_CODE);
@@ -2598,6 +2997,7 @@ const BookkeepingProjectModule = (function () {
       this.displayAccountDropdownElements(codeDropdown);
     }
 
+    // Return new pseudo-row
     return this.assembleElement(
       ['div', configWrapper,
         ['input', configDelete],
@@ -2621,7 +3021,14 @@ const BookkeepingProjectModule = (function () {
    * @description This builder is built according to the framework provided by
    * the builder <code>inaccessible.buildCustomerOrVendorAdditionModal</code>.
    * It handles the construction of the modal body of the popup window
-   * associated with the "Add account" sidebar button.
+   * associated with the "Add account" sidebar button. In addition to a pair of
+   * input textfields in a <code>form</code> used to pass the new account's
+   * numerical code and associated text name, the modal also contains a dropdown
+   * menu allowing the user to choose the type of account with which this new
+   * account instance will be associated (Asset, liability, etc.). This dropdown
+   * menu is dynamically populated through the use of the display function
+   * <code>inaccessible.displayTypesDropdownElements</code> to build options
+   * representing the five possible account types.
    *
    * @returns {void}
    */
@@ -2632,25 +3039,31 @@ const BookkeepingProjectModule = (function () {
       configInputForm, configInputCode, configInputName, configDropdownHolder,
       configTypeDropdown, typeDropdown;
 
+    // Preserve scope
     that = this;
 
+    // Modal body wrapper
     configContainer = {
       id: Identifiers.ID_ADDACC_CONTAINER,
     };
 
+    // Wrapper <div> for account addition info text
     configInformation = {
       id: Identifiers.ID_ADDACC_INFORMATION,
       class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
+    // Holder for <form> and input fields
     configInputHolder= {
       id: Identifiers.ID_ADDACC_INPUT_HOLDER,
     };
 
+    // <form> holder for input textfields
     configInputForm = {
       id: Identifiers.ID_ADDACC_FORM,
     };
 
+    // Input textfield for account code (1000, etc.)
     configInputCode = {
       id: Identifiers.ID_ADDACC_INPUT_CODE,
       class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
@@ -2658,6 +3071,7 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
+    // Input textfield for account name
     configInputName = {
       id: Identifiers.ID_ADDACC_INPUT_NAME,
       class: Identifiers.CLASS_MODAL_SECTION_TEXTBOX,
@@ -2665,25 +3079,24 @@ const BookkeepingProjectModule = (function () {
       type: 'text',
     };
 
+    // <div> wrapper for the account type dropdown
     configDropdownHolder ={
       id: Identifiers.ID_ADDACC_DROPDOWN_HOLDER,
     };
 
+    // Config for the account type dropdown
     configTypeDropdown = {
       id: Identifiers.ID_ADDACC_DROPDOWN_TYPE,
       class: Identifiers.CLASS_MODAL_DROPDOWN,
     };
 
+    // Build new account type dropdown element
     typeDropdown = this.assembleElement(['select', configTypeDropdown])
 
-    // Build all five account type options
-    for (let type in Types.ACCOUNT) {
-      typeDropdown.appendChild(that.assembleDropdownElement({
-        name: Types.ACCOUNT[type],
-        value: type
-      }));
-    }
+    // Build all five account type options for dropdown
+    this.displayTypesDropdownElements('ACCOUNT', typeDropdown);
 
+    // Define scene flag
     this.scene = Scenes.MODAL;
 
     // Return assembled interface
@@ -2709,10 +3122,16 @@ const BookkeepingProjectModule = (function () {
    * @description This parameter-accepting builder function is simply used to
    * indicate to the user whether or not the default account creation process
    * undertaken by means of presses to the "Add default accounts" button was
-   * successful or unsuccessful.
+   * successful or unsuccessful. The manner in which the author saw fit to
+   * implement this functionality is admittedly a little bit suspect, especially
+   * given the fact that the modal framework was never developed to serve as a
+   * status notice popup like <code>window.alert</code> or others styled like
+   * it. This builder assembles a modal window body whose content depends on
+   * whether or not the user has created new accounts successfully or if these
+   * default accounts have already been created in the past.
    *
-   * @param {!Array<object>} paramAccountsAdded
-   * @returns {HTMLElement}
+   * @param {!Array<object>} paramAccountsAdded Listing of added user accounts
+   * @returns {HTMLElement} The modal body framework
    */
   inaccessible.buildDefaultAccountsModal = function (paramAccountsAdded) {
 
@@ -2724,44 +3143,59 @@ const BookkeepingProjectModule = (function () {
     // Preserve scope
     that = this;
 
+    // Boolean flag to determine what content to show
     success = false;
 
+    // Modal body container
     configContainer = {
       id: Identifiers.ID_DEFAULT_CONTAINER,
       class: Identifiers.CLASS_GENERAL_OPENSANS,
     };
 
+    // Modal text wrapper
     configInformation = {
       id: Identifiers.ID_DEFAULT_INFORMATION,
     };
 
+    // <ul> list wrapper element
     configListHolder = {
       id: Identifiers.ID_DEFAULT_LIST_HOLDER,
     };
 
+    // The <ul> itself, used to display new account entries
     configList = {
       id: Identifiers.ID_DEFAULT_LIST,
     };
 
+    // Individual <li> list elements
     configListElement = {
       class: Identifiers.CLASS_DEFAULT_LIST_ELEMENT,
     };
 
+    // If defaults were added successfully, this array will be populated
     if (paramAccountsAdded != null && paramAccountsAdded.length) {
+
+      // Set boolea to true
       success = true;
 
-      // Build unorder list and holder
+      // Build unordered list and its holder
       accountsListHolder = this.assembleElement(['div', configListHolder]);
       accountsList = this.assembleElement(['ul', configList]);
 
-      // Create a new list element for each account added
+      /**
+       * Here, we create a new list element for each account added, taking a
+       * template string from the <code>Text</code> enum containing replaceable
+       * fragments like <code>#1</code> and <code>#2</code> and replacing these
+       * fragments with account properies from the JSON response.
+       */
       paramAccountsAdded.forEach(function (account) {
         singleAccountSummary = that.replaceAll(Text.DIV_DEFAULT_SUMMARY, {
-          '#1': account.code,
-          '#2': account.name,
-          '#3': account.type.toLowerCase(),
+          '#1': account.code,                 // 1000
+          '#2': account.name,                 // Cash
+          '#3': account.type.toLowerCase(),   // ASSET
         });
 
+        // Add a new <li> element containing the modified template text string
         accountsList.appendChild(
           that.assembleElement(['li', configListElement, singleAccountSummary])
         );
@@ -2771,6 +3205,7 @@ const BookkeepingProjectModule = (function () {
       accountsListHolder.appendChild(accountsList);
     }
 
+    // Return completed modal body (Only display list if success flag is true)
     return this.assembleElement(
       ['div', configContainer,
         ['div', configInformation,
@@ -2787,21 +3222,35 @@ const BookkeepingProjectModule = (function () {
    * customer tables, the accounts table, or the general ledger table. It works
    * by assembling a new table, adding rows listed in <code>paramRows</code>,
    * and finally returning the table to be appended by the fading utility
-   * function <code>inaccessible.tinderize</code>.
+   * function <code>inaccessible.tinderize</code>. If the table required is the
+   * documents overview table, a few further adjustments are made to the
+   * <code>type</code> thereof, translating its initials into a human-friendly,
+   * readable format (i.e. "JE" into "Journal entry"). This is done to ensure
+   * that the table is as understandable at a glance as possible.
    *
-   * @param {object} paramTableConfig
-   * @param {!Array<object>} paramRows
-   * @returns {HTMLElement} newTable
+   * @param {object} paramTableConfig Config options for the <code>table</code>
+   * @param {!Array<object>} paramRows Array of table rows
+   * @returns {HTMLElement} newTable The completed HTML table element framework
    */
   inaccessible.buildTable = function (paramTableConfig, paramRows) {
 
     // Declarations
     let that, newTable;
 
-    // Definitions
+    // Preserve scope
     that = this;
+
+    // Create new table using inputted table headers
     newTable = this.assembleDashboardTable(paramTableConfig.headers);
 
+    /**
+     * This <code>if</code> statement block and associated <code>for/in</code>
+     * loop serve to translate the various document code abbreviations into
+     * their full names. For instance, the back-end lists various documents by
+     * initials, i.e. <code>JE</code> for "Journal entry." This block translates
+     * those initials back to a human-friendly type description for future
+     * display in the table row.
+     */
     if (paramTableConfig.name === 'documents') {
       for (let row in paramRows) {
         paramRows[row].documentType =
@@ -2809,21 +3258,30 @@ const BookkeepingProjectModule = (function () {
       }
     }
 
+    // Add a new table row for each of the included rows in paramRows
     paramRows.forEach(function (row) {
       that.displayTableRow(row, newTable, paramTableConfig);
     });
 
+    // Define scene flag
     this.scene = Scenes.DASHBOARD;
 
     return newTable;
   };
 
   /**
-   * @description This simple builder function is used specifically as a fast,
-   * convenient way of assembling a wrapper <code>div</code> and the buttons
-   * denoted in one of the script-global namespace arrays, either
-   * <code>inaccessible.sidebarButtonData</code> or
-   * <code>inaccessible.navlinksButtonData</code>.
+   * @description This simple builder function was designed specifically as a
+   * fast, convenient way of assembling a wrapper <code>div</code> and the
+   * buttons denoted in one of the script-global namespace arrays, either
+   * <code>inaccessible.sidebarButtonData</code> or the related
+   * <code>inaccessible.navlinksButtonData</code>. However, its use was further
+   * expanded to the modal scene department as well, and is used within the main
+   * modal framework function <code>inaccessible.buildModal</code> to assemble
+   * the <code>footer</code>-bound buttons related to closing the modal,
+   * clearing input fields, or submitting data, among other such operations as
+   * required. The function itself simply builds a <code>div</code> and a set
+   * of buttons from config object stored in the <code>paramButtons</code> array
+   * and returns their conjoined contents.
    *
    * @param {object} paramConfig This object contains attributes for wrapper
    * @param {!Array<object>} paramButtons The script-global array
@@ -2831,11 +3289,13 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.buildButtonsListing = function (paramConfig, paramButtons) {
 
-    // Declaration
+    // Declarations
     let that, buttonHolder;
 
-    // Definitions
+    // Preserve scope
     that = this;
+
+    // Assemble <div> holder element
     buttonHolder = this.assembleElement(['div', paramConfig]);
 
     // Create new button instance and add to wrapper
@@ -2843,7 +3303,7 @@ const BookkeepingProjectModule = (function () {
       buttonHolder.appendChild(that.assembleButtonElement(button));
     });
 
-    // Return wrapper and buttons
+    // Return wrapper and buttons combo
     return buttonHolder;
   };
 
@@ -2851,13 +3311,28 @@ const BookkeepingProjectModule = (function () {
 
   /**
    * @description As per the standard usage of display functions, this function
-   * is responsible for building a mini-scene and adding it to the DOM rather
+   * is responsible for building a modal scene and adding it to the DOM rather
    * than returning it from the function. It also determines what buttons are
    * shown in the footer of the modal, the number and type of which are
    * determined by the inclusion of an optional <code>paramHandlerName</code>
    * string denoting the custom submission button press event handler used to
-   * collate and transmit user data to the back end. If no such parameter is
-   * included, only the close modal button is included in the footer.
+   * collate and transmit user data to the back-end. If no such parameter is
+   * included, only the close modal button is included in the footer as the
+   * primary means by which the modal is closed (though clicking outside the
+   * window works as well as per the event listener below).
+   * <br />
+   * <br />
+   * The display function works by first building the modal's desired inner body
+   * content, be that content related to document addition, vendor addition, or
+   * whatever the case may be. Secondly, the footer buttons required for
+   * inclusion are determined, drawn from the parameter button array in addition
+   * to default buttons like a submission button in certain cases and a close
+   * modal button in all cases. Finally, once the buttons are collected and the
+   * body content returned, these (in addition to the desired modal title) are
+   * passed to the builder <code>inaccessible.buildModal</code>, with the
+   * returned modal content then appended to the DOM. An event listener is then
+   * added to ensure clicks outside the window are interpreted as the user's
+   * attempts to close the modal.
    * <br />
    * <br />
    * As per the Google styleguide, the use of default parameters in function
@@ -2865,16 +3340,14 @@ const BookkeepingProjectModule = (function () {
    * optional parameters that may not actually be defined in certain invocation
    * cases in which the function might be called.
    *
-   * @param {string} paramModalTitle
-   * @param {string} paramMiniSceneBuilder
-   * @param {!Array<>} paramMiniSceneBuilderArgs
+   * @param {string} paramModalTitle Modal title to be displayed in the header
+   * @param {object} paramBuilder Contains builder function & optional args
    * @param {!Array<object>=} paramButtonsArray Optional buttons array
    * @param {!string=} paramHandlerName The optional submission handler string
    * @returns {void}
    */
-  inaccessible.displayModal = function (paramModalTitle, paramMiniSceneBuilder,
-      paramMiniSceneBuilderArgs = [], paramButtonsArray = [],
-      paramHandlerName = null) {
+  inaccessible.displayModal = function (paramModalTitle, paramBuilder,
+      paramButtonsArray = [], paramHandlerName = null) {
 
     // Declarations
     let that, innerContent, submitButtonCopy, buttons, modal, modalMain;
@@ -2882,13 +3355,14 @@ const BookkeepingProjectModule = (function () {
     // Preserve scope
     that = this;
 
-    // Inner modal mini-scene
-    innerContent = this[paramMiniSceneBuilder](...paramMiniSceneBuilderArgs);
+    // Inner modal mini-scene content
+    innerContent = this[paramBuilder.name](
+          ...(paramBuilder.args != null) ? paramBuilder.args : []);
 
-    // Define array for button configs
+    // Define array for button config objects
     buttons = [];
 
-    // If an input handler exists, we will need submit button and clear button
+    // If an input handler exists, we will need to add a submit button
     if (paramHandlerName != null) {
 
       // Make shallow copy of default submit button config
@@ -2897,25 +3371,27 @@ const BookkeepingProjectModule = (function () {
       // Adjust handler function String representation in submit button config
       submitButtonCopy.functionName = paramHandlerName;
 
-      // Need submission handler button and input clearing button
+      // Add this button to the required buttons array
       buttons.push(submitButtonCopy);
     }
 
-    // Add buttons if param buttons array is not empty
+    // Add extra buttons b/w submit & close buttons if param array is not empty
     if (paramButtonsArray.length > 0) {
       paramButtonsArray.forEach(function (button) {
         buttons.push(button);
       });
     }
 
-    // Modal close button must always be present
+    // Modal close button must always be present in all modals at the footer end
     buttons.push(ModalButtons.CLOSE);
 
-    // Build modal using config
+    // Build modal using title, inner modal body content, and buttons array
     modal = this.buildModal(paramModalTitle, innerContent, buttons);
 
     // Add event listener for clicks outside main modal window
     modal.addEventListener('click', function handleOutsideClicks (event) {
+
+      // Modal window itself (not blackout window)
       modalMain = document.getElementById(Identifiers.ID_MODAL_MAIN);
 
       if (modalMain == null || !modalMain.contains(event.target)) {
@@ -2923,6 +3399,7 @@ const BookkeepingProjectModule = (function () {
           that.handleModalClose();
         }
 
+        // No need for extraneous listener post-close
         modal.removeEventListener('click', handleOutsideClicks);
       }
     }, false);
@@ -2932,12 +3409,18 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description This display function is deals with the insertion of rows to
-   * the main ledger table. It could use some work, but when provided an object
-   * with the required properties (presumably originating from a related
-   * <code>JSON</code> file), it will produce a new line and append it to the
-   * present table listing. Required: Addition of relevant back-end code to
-   * handle addition of user data in some form.
+   * @description This display function is used exclusively by the builder
+   * <code>inaccessible.buildTable</code> to add a new row to an extant table as
+   * required. Depending on the type of table needing updating via the addition
+   * of a new row, the contents thereof may differ and require specific handling
+   * to ensure all required data is displayed properly and logically in
+   * accordance with user expectations. For instance, for the documents overview
+   * table, the cells in the second column related to document name must be
+   * clickable links permitting the user to see the general ledger entries
+   * associated with that document. However, this behavior should not appear in
+   * any other table, requiring special handling to ensure all tables appear
+   * properly. A series of <code>switch</code> and <code>case</code> blocks
+   * and <code>if</code> statement blocks serve to accomplish this.
    *
    * @param {object} paramRowObject Object of element row cell data
    * @param {HTMLElement} paramTable HTML table element
@@ -2969,6 +3452,17 @@ const BookkeepingProjectModule = (function () {
     // Insert a new row
     newRow = tbody.insertRow(rowCount);
 
+    /**
+     * The pair of matching <code>if</code> statement blocks inside this
+     * <code>for/in</code> loop are related to the reality of general ledger
+     * data returned from the back-end. For each ledger entry, if the entry is
+     * a credit, only the credit property will be included in the JSON object,
+     * rather than both a credit property and an empty/null debit property.
+     * Without handling, the missing parameter will result in the data shifted
+     * one cell in the table and out-of-place. Thus, the extra entry (debit if
+     * credit or credit if debit) must be inserted either before or after to
+     * keep data in the right columns.
+     */
     for (let key in paramRowObject) {
 
       // If the table is the general ledger and the key is credit...
@@ -3049,11 +3543,24 @@ const BookkeepingProjectModule = (function () {
    * failed, be that operation a modal-based information submission or a login
    * or account creation operation. The placement of the notice will depend on
    * the scene presently existing on the page, indicated via the enum value
-   * of <code>inaccessible.scene</code>.
+   * of <code>inaccessible.scene</code>. If the boolean parameter named
+   * <code>paramIsSuccess</code> is true, the CSS class that adds green text
+   * will be added, whereas the class with a red text property will be applied
+   * otherwise to indicate visually to the user the status of the operation.
+   * <br />
+   * <br />
+   * The inspiration for this function and its appearance in the interface was
+   * derived from the UMUC login screen's status notices on malformed login info
+   * or some other error. In such cases, a little message in red text appears
+   * below the textfields to alert the user that their credentials were refused.
+   * These status notices were built similarly to serve the same purposes.
+   * Additional inspiration came from a similar set of methods the author
+   * created in his previous Java programs that displayed a type of
+   * <code>JOptionPane</code> depending on a boolean parameter and a message.
    *
-   * @param {boolean} paramIsSuccess
-   * @param {string} paramMessage
-   * @return {void}
+   * @param {boolean} paramIsSuccess Whether or not to attach success class
+   * @param {string} paramMessage Message to display in the notice
+   * @returns {void}
    */
   inaccessible.displayStatusNotice = function (paramIsSuccess, paramMessage) {
 
@@ -3063,13 +3570,14 @@ const BookkeepingProjectModule = (function () {
     // Choose class name fragment based on success of action
     status = (paramIsSuccess) ? 'SUCCESS' : 'FAILURE';
 
+    // Config for the notice itself
     configStatusDiv = {
       id: Identifiers.ID_GENERAL_STATUS_DIV,
       class: Identifiers.CLASS_GENERAL_OPENSANS + ' ' +
         Identifiers[`CLASS_GENERAL_STATUS_${status}`]
     };
 
-    // Duild the <biv>
+    // Duild the <biv> (too good of a typo to correct)
     statusDiv = this.assembleElement(['div', configStatusDiv, paramMessage]);
 
     // Determine whether or not there is already a status message in the modal
@@ -3090,8 +3598,7 @@ const BookkeepingProjectModule = (function () {
         break;
       case 2: // DASHBOARD
       default:
-        location = Identifiers.ID_MODAL_SECTION;
-        break;
+        return;
     }
 
     // Add the bottom of body and above buttons
@@ -3103,7 +3610,10 @@ const BookkeepingProjectModule = (function () {
    * <code>inaccessible.buildDocumentAdditionTableRow</code> to construct and
    * add a set of dropdown menu options related to the user's accounts. It
    * simply calls <code>inaccessible.assembleDropdownElement</code> for as many
-   * times as there user accounts and appends the option to the container.
+   * times as there are user accounts and appends the option to the container.
+   * It is not unlike <code>inaccessible.displayTypesDropdownElements</code> in
+   * that respect, as it serves the same sort of dropdown population purposes,
+   * though this more focused version handles arrays rather than objects.
    *
    * @param {HTMLElement} paramContainer The target dropdown menu element itself
    * @returns {void}
@@ -3116,6 +3626,7 @@ const BookkeepingProjectModule = (function () {
     // Preserve scope
     that = this;
 
+    // Add a new account dropdown for each of the user's accounts
     this.userAccounts.forEach(function (account) {
 
       // 1000-Cash
@@ -3129,6 +3640,36 @@ const BookkeepingProjectModule = (function () {
     });
   };
 
+  /**
+   * @description This display function is a glorified utility/helper function
+   * that exists simply to reduce copy/pasta present in several of the builder
+   * functions that require the dynamic assembly of dropdown options using the
+   * properties of the <code>Types</code> enum. This function builds a new
+   * dropdown option using entries present in one of the two <code>Types</code>
+   * arrays (<code>DOCUMENT</code> or <code>ACCOUNT</code>) before adding that
+   * new element to the argument parameter dropdown menu.
+   *
+   * @param {string} paramType String denoting the <code>Types</code> array
+   * @param {HTMLElement} paramMenu Dropdown menu to which entries are added
+   * @returns {void}
+   */
+  inaccessible.displayTypesDropdownElements = function (paramType, paramMenu) {
+
+    // Declaration
+    let typeArray;
+
+    // Can alias enum property in this definition
+    typeArray = Types[paramType];
+
+    // Add new dropdown option to parameter menu
+    for (let type in typeArray) {
+      paramMenu.appendChild(this.assembleDropdownElement({
+        name: typeArray[type],
+        value: type,
+      }));
+    }
+  };
+
   // Handler functions
 
   /**
@@ -3137,7 +3678,16 @@ const BookkeepingProjectModule = (function () {
    * and password, ensuring that only alphanumeric characters are permitted in
    * either entry. Once validated, the data is passed to the relevant endpoint,
    * namely <code>create_user</code>, and the result of the creation operation
-   * is displayed as a status notice.
+   * is displayed as a status notice in the module below the input fields.
+   * <br />
+   * <br />
+   * This handler follows the same basic progression as all the other related
+   * functions specifically used to handle the validation and submission of user
+   * input to the back-end database. This handler checks that input is
+   * wellformed and alphanumeric before checking that the inputted new passwords
+   * actually match in terms of characters used. If an issue is encountered, the
+   * handler throws an error and displays the resultant status notice in the
+   * module as expected.
    *
    * @returns {void}
    */
@@ -3157,7 +3707,7 @@ const BookkeepingProjectModule = (function () {
     passwordReenter =
       document.getElementById(Identifiers.ID_LOGIN_BODY_INPUT_REENTER).value;
 
-    // Alphanumeric data only
+    // Alphanumeric data only for username and password
     if (!this.isLegalInput(username) || !this.isLegalInput(password) ||
         !this.isLegalInput(passwordReenter)) {
 
@@ -3171,7 +3721,7 @@ const BookkeepingProjectModule = (function () {
       return;
     }
 
-    // Send POST request
+    // Send POST request with no encoding
     this.sendRequest('POST', 'php/create_user.php', {
       encode: false,
       params: {
@@ -3187,6 +3737,7 @@ const BookkeepingProjectModule = (function () {
         console.log(data);
       }
 
+      // Notices for successful creations, duplicate accounts, or other errors
       if (data.success) {
         that.displayStatusNotice(true, Text.SUCCESS_ACCOUNT_CREATED);
       } else {
@@ -3205,32 +3756,48 @@ const BookkeepingProjectModule = (function () {
   /**
    * @description This handler is for presses of the "Create account" and "Back"
    * buttons in the login module. The handler works by accepting a builder
-   * function name and an array of strings representing
+   * function name and an array of strings representing the names of
    * <code>ModuleButtons</code> to include in the module footer. Using these, a
    * new body content framework is constructed, disguised by way of fade-ins and
-   * fade-outs.
+   * fade-outs which replace the body of the login module with either the
+   * account creation or login mini-module scenes.
+   * <br />
+   * <br />
+   * It was this particular function and associated process, the move between
+   * the login and account creation modules, that brought about the eventual
+   * refactor of <code>inaccessible.tinderize</code> that allows for partial
+   * fading in on a specific in-scene element without having to remove the
+   * entire scene and rebuild most of its contents with some adjustments. The
+   * author had originally planned to have separate scenes for the account
+   * creation and login modules, but discovered that very few differences
+   * existed between them, leading him to develop a means of swapping out only
+   * certain parts of the scene without having to recreate the entire thing each
+   * time just to alter a few elements.
    *
-   * @param {string} paramBuilder
-   * @param {!Array<string>} paramButtons
+   * @param {string} paramBuilder Name of the builder function to invoke
+   * @param {!Array<string>} paramButtons Array of <code>ModuleButtons</code>
    * @returns {void}
    */
   inaccessible.handleLoginSceneChanges = function (paramBuilder, paramButtons) {
 
-    // Declaration
+    // Declarations
     let buttonsArray, builderConfig;
 
     // Definition
     buttonsArray = [];
 
+    // Add ModuleButtons instance to the buttons array
     paramButtons.forEach(function (buttonString) {
       buttonsArray.push(ModuleButtons[buttonString]);
     });
 
+    // Tinderize's builder function config
     builderConfig = {
       name: paramBuilder,
       args: [buttonsArray],
     };
 
+    // Do not swipe right, fade in/out on main module body element
     this.tinderize(false, Identifiers.ID_LOGIN_CONTENT, builderConfig, true);
   };
 
@@ -3242,7 +3809,10 @@ const BookkeepingProjectModule = (function () {
    * ensure that input is alphanumeric in nature. If it is wellformed input, the
    * handler <code>inaccessible.tinderize</code> is called to shift the scene to
    * the right while fading out before clearing the DOM and building the next
-   * scene.
+   * scene. It is built more or less according to the same basic template as the
+   * other input handlers like <code>inaccessible.handleAccountCreation</code>,
+   * calling the various utility functions to validate input so as to not
+   * accidentally pass incorrect input off to the appropriate endpoints.
    *
    * @returns {void}
    */
@@ -3266,16 +3836,19 @@ const BookkeepingProjectModule = (function () {
       return;
     }
 
+    // Tinderize config for builder function
     builderConfig = {
       name: 'buildUserInterface',
     };
 
+    // No need for a POST request in test mode
     if (TESTING) {
       this.tinderize(true, Identifiers.ID_LOGIN_CONTAINER, builderConfig,
         false);
       return;
     }
 
+    // Send request without encoding; use query strings
     this.sendRequest('POST', 'php/login.php', {
       encode: false,
       params: {
@@ -3291,6 +3864,7 @@ const BookkeepingProjectModule = (function () {
         console.log(data);
       }
 
+      // If successful, build the dashboard, otherwise display error message
       if (data.isLogonSuccessful) {
         that.tinderize(true, Identifiers.ID_LOGIN_CONTAINER, builderConfig,
           false);
@@ -3306,8 +3880,13 @@ const BookkeepingProjectModule = (function () {
   /**
    * @description Handler for presses of the "Logout" button option in the
    * upper-right toolbar. This function simply calls the scene shifting function
-   * <code>inaccessible.tinderize</code> to return to the login modal at the
-   * moment.
+   * <code>inaccessible.tinderize</code> to return to the login modal. Assuming
+   * the user is not running the bookkeeping application in test mode via the
+   * <code>TESTING</code> constant set to a boolean value of <code>true</code>,
+   * the user's logged-in PHP session is killed by the appropriate API endpoint,
+   * ensuring that the user is properly logged out and that his/her personal
+   * data is inaccessible to any other users of the application or the browser
+   * window.
    *
    * @returns {void}
    */
@@ -3316,6 +3895,7 @@ const BookkeepingProjectModule = (function () {
     // Declaration
     let builderConfig;
 
+    // Tinderize builder config object
     builderConfig = {
       name: 'buildLoginModule',
       args: [
@@ -3339,7 +3919,13 @@ const BookkeepingProjectModule = (function () {
    * @description As the name implies, this handler is used to close the modal
    * window on the press of the appropriate in-modal button. It basically just
    * removes the entire window from the view model without any transitions or
-   * anything.
+   * anything. In most cases, this function is invoked upon presses of the modal
+   * "Close" button that appears in all modal windows by default; however, the
+   * function also sees use whenever the user clicks outside of the modal window
+   * on the blackout element. This behavior is construed by the application as
+   * the user wanting to exit the modal and return to the dashboard tables, and
+   * the event listener in question calls this function before deleting itself
+   * from the document event listeners listing as a result.
    *
    * @returns {void}
    */
@@ -3351,18 +3937,24 @@ const BookkeepingProjectModule = (function () {
     // Grab element
     modal = document.getElementById(Identifiers.ID_MODAL_BLACKOUT);
 
-    // Remove
+    // Remove modal from the DOM
     modal.parentNode.removeChild(modal);
 
-    // Reset scene to dashboard
+    // Reset scene flag to dashboard
     this.scene = Scenes.DASHBOARD;
   };
 
   /**
    * @description This function is used to clear the input textboxes present on
-   * certain modal bodies (the mini-scenes) on the press of the "clear" button.
+   * certain modal bodies (the mini-scenes) on the press of the "Clear" button.
    * It works by collecting in an <code>HTMLCollection</code> all the textbox
-   * elements with a certain class that are contained in the body of the modal.
+   * elements of a certain class that are contained in the body of the modal.
+   * In the early days of the modal design, this handler's button was added by
+   * default along with the "Submit" button if the invoking function passed as
+   * a parameter a string representing a submission handler to be used to
+   * validate user input. However, the button and this associated handler were
+   * made optional eventually, as in some cases the user might not need the
+   * option to clear all input fields in every case.
    *
    * @returns {void}
    */
@@ -3371,7 +3963,7 @@ const BookkeepingProjectModule = (function () {
     // Declaration
     let textboxes, statusNotice;
 
-    // Grab the input textboxes in the main modal section body
+    // Grab the input textboxes in the main modal section body (HTMLCollection)
     textboxes = document
       .getElementById(Identifiers.ID_MODAL_SECTION)
       .getElementsByClassName(Identifiers.CLASS_MODAL_SECTION_TEXTBOX);
@@ -3379,7 +3971,7 @@ const BookkeepingProjectModule = (function () {
     // Grab any extant success/failure action notice
     statusNotice = document.getElementById(Identifiers.ID_GENERAL_STATUS_DIV);
 
-    // Remove if present
+    // Remove any status notices if present
     if (statusNotice) {
       statusNotice.remove();
     }
@@ -3391,11 +3983,17 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
-   * @description This handler is used to handle the submission of user data on
-   * the press of the "Submit" button. This is the default handler present in
-   * the <code>ModalButtons</code> enum and may be overridden by any
-   * implementing functions that shallow copy the appropriate button config
-   * object and adjust the <code>functionName</code> handler string.
+   * @description This noop'd handler is the formlesss function used to handle
+   * submission of user data on the press of the "Submit" button. This is the
+   * default handler present in the <code>ModalButtons</code> enum and will
+   * always be overridden by any implementing functions that shallow copy the
+   * appropriate button config object and adjust the <code>functionName</code>
+   * handler string. Originally, the author had intended for this function to
+   * do some default submission handling, but given the vast differences in
+   * input validation and passage parameters required for the transmission of
+   * data to certain endpoints, this function soon proved useless. Along with
+   * the related legacy code in <code>inaccessible.displayModal</code>, this
+   * function is only kept around for archiving purposes.
    *
    * @returns {void}
    */
@@ -3403,7 +4001,13 @@ const BookkeepingProjectModule = (function () {
 
   /**
    * @description This function handler is used to add a new pseudo-table row to
-   * the document addition modal's form table.
+   * the document addition modal's <code>form</code> pseudo-table. It is a
+   * glorified utility function in that respect, notable only for being one of
+   * the few functions to make use of the jQuery-esque utility function
+   * <code>inaccessible.append</code>, which was one of the first functions
+   * added by the author to this JS file. It basically just creates a new row
+   * via <code>inaccessible.buildDocumentAdditionTableRow</code> and appends
+   * that pseudo-row <code>div</code> to the <code>form</code> table.
    *
    * @returns {void}
    */
@@ -3421,7 +4025,14 @@ const BookkeepingProjectModule = (function () {
 
   /**
    * @description This handler is simply responsible for printing the contents
-   * of the currently viewed ledger on presses of the "Print ledger" button.
+   * of the currently viewed ledger on presses of the "Print ledger" topbar
+   * navlink. Originally, the author had planned on focusing this function a bit
+   * to have it target only a certain section of the page to print (namely, the
+   * dashboard table section in one of its varied forms), but the alacrity at
+   * which the CSS engineering team got to work developing the associated CSS
+   * styling negated the need for this specificity, as they made use of
+   * <code>display:none;</code> to remove the elements they did not need to have
+   * appear in the print view.
    *
    * @returns {void}
    */
@@ -3434,7 +4045,8 @@ const BookkeepingProjectModule = (function () {
    * after the completion of the builder assembly and addition operations to
    * complete any remaining post-load operations necessary to the proper display
    * of the page content. Post-load adjustments are scene specific and are
-   * optional.
+   * optional, and are only called in certain context to make any last minute
+   * adjustments before the user sees the scene on the page.
    * <br />
    * <br />
    * For the dashboard table scenes, this function is used to manually adjust
@@ -3449,22 +4061,46 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.handlePostLoadAdjustments = function () {
 
+    // Declarations
     let table, rows, index;
 
     switch (this.scene) {
+
+      /**
+       * <code>case</code> one relates to the need for mobile viewers to focus
+       * on the username input textfield on the initialization of the login
+       * module interface. The use of this case in particular allows for the
+       * reduction of similar copy/pasted instances scattered throughout the
+       * module.
+       */
       case 1: // Login
         this.focusOnLoad(`#${Identifiers.ID_LOGIN_BODY_INPUT_USERNAME}`,
-          Utility.CHECK_OPACITY_RATE);
+          Utility.ELEMENT_CHECK_INTERVAL);
         break;
+
+      /**
+       * <code>case</code> two relates to the need to dynamically adjust the
+       * sizes of HTML table columns depending on the number of headers present
+       * in each table. Additionally, to ensure that cells containing the
+       * deletion checkbox do not take up an inordinate amount of space, the
+       * cell width of this cell is set to a static value defined in the enum
+       * <code>Utility</code>.
+       */
       case 2: // Dashboard
+
+        // Definitions
         table = document.getElementById(Identifiers.ID_DASHBOARD_WRAPPER);
         rows = table.rows;
 
         for (let row of rows) {
           index = 0;
           for (let cell of row.cells) {
+
+            // Deletion cell
             if (index++ === 0) {
               cell.style.width = `${Utility.DELETE_CHECKBOX_CELL_WIDTH}px`;
+
+            // Other cells
             } else {
               cell.style.width =
                 `${(table.offsetWidth - Utility.DELETE_CHECKBOX_CELL_WIDTH) /
@@ -3473,26 +4109,45 @@ const BookkeepingProjectModule = (function () {
           }
         }
         break;
+
+      // Modal has no post-load needs, so return otherwise
       default:
         return;
     }
   };
 
   /**
-   * @description This presently noop'ed function will be used to toggle between
-   * the documents overview table and the general ledger table on the press of
-   * the appropriate sidebar button.
+   * @description This handler function is used to create one of the five HTML
+   * table types, either the document overview table, the customers table, the
+   * vendors table, the accounts types, and the general ledger table with
+   * entries related to each of the documents. The function makes use of an
+   * internal object of objects containing config related to the various
+   * elements required to handle the request and display of table data from the
+   * back-end, ranging from an endpoint name and types of parameters required by
+   * that endpoint to an array of headers in text form. The selected object as
+   * denoted via the <code>paramTable</code string is then used to query the
+   * right endpoint, build the right table, and construct all the table rows
+   * using the back-end data.
    *
-   * @param {string} paramTable Either "documents," "ledger," or "accounts"
+   * @param {string} paramTable String denoting the table type
    * @param {!string=} paramDoc Document whose ledger rows are requested
    * @returns {void}
    */
   inaccessible.handleTableDataLoading = function (paramTable, paramDoc = null) {
 
+    // Declarations
     let that, requestDataOptions, selectedTable, data, builderConfig;
 
+    // Preserve scope
     that = this;
 
+    /**
+     * Depending on the type of table required for construction, the config
+     * option included here will be selected, providing an object with
+     * properties related to the endpoint for each table type, the header text,
+     * and various booleans indicating how the table rows are to be designed and
+     * constructed.
+     */
     requestDataOptions = {
       documents: {
         name: 'documents',
@@ -3533,10 +4188,13 @@ const BookkeepingProjectModule = (function () {
       }
     };
 
+    // Choose table type object from the object above
     selectedTable = requestDataOptions[paramTable];
 
+    // Define scene flag
     this.scene = Scenes.DASHBOARD;
 
+    // Get relevant info from proper endpoint
     this.sendRequest(
       'GET',
       (TESTING)
@@ -3555,6 +4213,7 @@ const BookkeepingProjectModule = (function () {
         console.log(data);
       }
 
+      // Tinderize builder function config
       builderConfig = {
         name: 'buildTable',
         args: [
@@ -3563,11 +4222,12 @@ const BookkeepingProjectModule = (function () {
         ],
       };
 
+      // Fade in on dashboard table element and build new table
       if (data.success) {
         that.tinderize(false, Identifiers.ID_DASHBOARD_WRAPPER,
           builderConfig, true);
       } else {
-        console.warn('DISPLAY ERROR MESSAGE VIA window.alert');
+        that.displayModal(Text.DIV_GENERAL_TABLE_BUILD_FAILURE, builderConfig);
         return;
       }
     }, function (error) {
@@ -3579,13 +4239,21 @@ const BookkeepingProjectModule = (function () {
    * @description This function is used to handle cases wherein the user elects
    * to change his/her password. In such cases, the user must enter the new
    * password twice and ensure they match before the POST request can be made to
-   * the server. Assuming the password are alphanumeric in nature, any password
-   * combinations are permitted.
+   * the server. Assuming the passwords are alphanumeric in nature, any password
+   * combinations are permitted for these fields.
    * <br />
    * <br />
    * The handler is a custom substitute for the default "Submit" button in the
    * modal interface, and is thus used specifically in the "Change password"
-   * modal window.
+   * modal window. It is built to be similar to the other input submission
+   * handlers like <code>inaccessible.handleAccountCreation</code> and
+   * <code>inaccessible.handleLogin</code>, and was for a time one of several
+   * handlers the author had considered consolidating together into a super
+   * input validation handler. However, this idea was eventually nixed in case
+   * significant changes needed to be made to one of these handlers and also to
+   * ensure program progression could be more easily traced. In the author's
+   * experience, consolidating functions, while performance-friendly, can
+   * sometimes make things more confusing to read.
    *
    * @returns {void}
    */
@@ -3644,13 +4312,26 @@ const BookkeepingProjectModule = (function () {
 
   /**
    * @description This function is the handler for submission of user input data
-   * related to new documents. It individually evaluated and validates all of
+   * related to new documents. It individually evaluates and validates all of
    * the fields for the document name, the type, the party involved in the
    * entry, and the input fields for each of the new ledger entries to be
    * included in the ledger. It does by making use of a number of utility
    * functions used to validate input and ensure that only proper wellformed
    * data is provided to the server by means of the <code>add_document</code>
    * endpoint.
+   * <br />
+   * <br />
+   * Of all the back-end data input endpoints for POST requests, the document
+   * addition endpoint <code>add_document</code> is certainly the most involved
+   * and complex of the lot. Due to high level of specificity required to
+   * properly pass input and add a new document and the pseudo-HTML table design
+   * paradigm the author saw fit to employ, this function is very complex in
+   * itself. In particular, in order to handle the pseudo-table row structure of
+   * the modal table, this handler makes use of a pair of nested named
+   * <code>for/of</code> loop constructs to iterate over the
+   * <code>HTMLCollection</code>s of rows and cells, checking their contents and
+   * adding them to the endpoint params object as required. Of all the handlers
+   * in this section of the module, this is probably the most involved.
    *
    * @returns {void}
    */
@@ -3660,12 +4341,16 @@ const BookkeepingProjectModule = (function () {
     let that, data, input, entryRows, index, documentName, type, party,
       generalLedgerRows, ledgerRowObject, credebit, wasProblemDetected;
 
-    // Initial definitions
+    // Preserve scope
     that = this;
+
+    // Define the object to be passed as params to endpoint
     input = {};
+
+    // Flag to halt function progression in case of error
     wasProblemDetected = false;
 
-    // Grab values and HTMLCollection
+    // Grab values and rows HTMLCollection
     documentName =
       document.getElementById(Identifiers.ID_DOCUMENT_INPUT_NAME).value;
     type =
@@ -3676,7 +4361,7 @@ const BookkeepingProjectModule = (function () {
       .getElementById(Identifiers.ID_DOCUMENT_TABLE)
       .getElementsByClassName(Identifiers.CLASS_DOCUMENT_TABLE_ROW_WRAPPER);
 
-    // Check document name
+    // Check document name. If proper, add to params object as documentName
     if (!this.isLegalInput(documentName)) {
       this.displayStatusNotice(false, Identifiers.ERROR_DOCU_NAME_ANUMER);
     } else {
@@ -3774,11 +4459,11 @@ const BookkeepingProjectModule = (function () {
       input.generalLedgerRows.push(ledgerRowObject);
     }
 
+    // Only generalLedgerRows is encoded as JSON
+    input.generalLedgerRows = JSON.stringify(input.generalLedgerRows);
+
     // If we break'd (lulz) from the outer loop, we don't want to proceed
     if (wasProblemDetected) {
-      if (DEBUG) {
-        console.warn('Problem was detected - [handleDocumentAddition]');
-      }
       return;
     }
 
@@ -3786,14 +4471,16 @@ const BookkeepingProjectModule = (function () {
       console.log(input);
     }
 
+    // No need for POST request if in test mode
     if (TESTING) {
       this.displayStatusNotice(true, Text.SUCCESS_DOCU_CREATED);
       this.handleTableDataLoading('documents');
       return;
     }
 
+    // This is the only POST request requiring JSON-encoded input passed
     this.sendRequest('POST', 'php/add_document.php', {
-      encode: true,
+      encode: false,
       params: input,
     }).then(function (response) {
 
@@ -3804,6 +4491,7 @@ const BookkeepingProjectModule = (function () {
         console.log(data);
       }
 
+      // Display success status notice and load updated doc overview table
       if (data.success) {
         that.displayStatusNotice(true, Text.SUCCESS_DOCU_CREATED);
         that.handleTableDataLoading('documents');
@@ -3822,15 +4510,19 @@ const BookkeepingProjectModule = (function () {
    * listing of the five major document types. This handler is called by the
    * event listener invoked on change to the dropdown selected option and is
    * tasked with populating the second dropdown menu with extant customers or
-   * vendors previously entered by the user at some point.
+   * vendors previously entered by the user at some point. Ideally, the author
+   * should have probably done what he did for the user accounts; cache them in
+   * an <code>inaccessible</code> scope object property so that only two such
+   * GET requests max would be needed, one for vendors and one for customers.
    * <br />
    * <br />
    * For example, if the user had entered a vendor named "Baltimore Gas and
    * Electric" and decided to create a new accounts payable invoice document,
    * this handler would query the database via a GET request for a listing of
-   * vendors, displaying BGE as a possible option for selection by the user.
+   * vendors, displaying BGE as a possible option for selection by the user in
+   * the dropdown menu.
    *
-   * @param {HTMLElement} paramMenu
+   * @param {HTMLElement} paramMenu Dropdown menu in question
    * @returns {void}
    */
   inaccessible.handleDocumentDropdownChange = function (paramMenu) {
@@ -3839,10 +4531,20 @@ const BookkeepingProjectModule = (function () {
     let that, selectedOption, endpoint, partyType, data, partyDropdown,
       extantParties, dropdownElementConfig;
 
-    // Definitions
+    // Preserve scope
     that = this;
+
+    // Selected value of the inputted parameter dropdown menu
     selectedOption = paramMenu.value;
 
+    /**
+     * This <code>switch</code> block is used to determine which endpoint to
+     * query for parties (vendors or customers) to populate as party dropdown
+     * menu option entries. API and APD documents are related to vendors, so
+     * vendors are loaded in the dropdown. ARI and ARR documents are related to
+     * customers and thus the dropdown is populated by customer entries. Journal
+     * entries have no related parties.
+     */
     switch (selectedOption) {
       case 'API': // Accounts payable invoice
       case 'APD': // Accounts payable disbursement
@@ -3858,17 +4560,18 @@ const BookkeepingProjectModule = (function () {
         break;
     }
 
-    // Journal entry selected
+    // Journal entry selected (party optional)
     if (partyType == null) {
       return;
     }
 
     // Either get_vendors or get_customers
-    endpoint = (TESTING)
-      ? `json/get_${partyType}.json`
-      : `php/get_${partyType}.php`;
-
-    this.sendRequest('GET', endpoint).then(function (response) {
+    this.sendRequest(
+      'GET',
+      (TESTING)
+        ? `json/get_${partyType}.json`
+        : `php/get_${partyType}.php`
+    ).then(function (response) {
 
       // Parse JSON for use in loop
       data = JSON.parse(response);
@@ -3884,21 +4587,25 @@ const BookkeepingProjectModule = (function () {
         console.log(data);
       }
 
+      // Add entries if sucessful
       if (data.success) {
+
+        // Doesn't matter if successful if there are no entries
         if (extantParties.length > 0) {
 
-          // Remove all but the first
+          // Remove all but the first default option
           partyDropdown.options.length = 1;
 
           // This approach will need some refactoring in future
           extantParties.forEach(function (party) {
 
-            // Build new element config (value: "Joe Blow" -> joe_blow)
+            // Build new element config
             dropdownElementConfig = {
               name: party.name,
-              value: that.encode(party.name),
+              value: party.name, // originally encoded
             };
 
+            // Add the customer/vendor dropdown option to menu
             partyDropdown.appendChild(
               that.assembleDropdownElement(dropdownElementConfig));
           });
@@ -3920,7 +4627,13 @@ const BookkeepingProjectModule = (function () {
    * address are extracted from the textfields and the specific endpoint to
    * query is determined by the text of the modal title. The modal title name is
    * itself determined by the button pressed. This system, while complex and
-   * involved, removes the need for a second duplicate copy/pasta handler.
+   * involved, removes the need for a second duplicate copy/pasta handler, which
+   * was originally the case prior to the customer and vendor input handlers
+   * being consolidated into this single handler. Unlike the author's plan to
+   * consolidate a number of the input handlers together into a super handler,
+   * these two handlers were the most alike. Thus, the combination thereof was
+   * not overly difficult to undertake, preserving readability while still
+   * allowing for copy/pasta reduction.
    *
    * @returns {void}
    */
@@ -3932,6 +4645,7 @@ const BookkeepingProjectModule = (function () {
     // Preserve scope
     that = this;
 
+    // Grab values from input elements
     name =
       document.getElementById(Identifiers.ID_CORV_INPUT_NAME).value;
     address =
@@ -3951,6 +4665,7 @@ const BookkeepingProjectModule = (function () {
       return;
     }
 
+    // No need for a POST request if in test code
     if (TESTING) {
       this.displayStatusNotice(true, Text.SUCCESS_CORV_SUBMIT);
       this.handleTableDataLoading(`${partyType}s`);
@@ -3978,7 +4693,7 @@ const BookkeepingProjectModule = (function () {
         that.handleTableDataLoading(`${partyType}s`);
       } else {
 
-        // Entry already exists
+        // Entry already exists, let the user know via status notice
         if (data.duplicate) {
           that.displayStatusNotice(false, Text.ERROR_CORV_DUPLICATE);
         } else {
@@ -3996,14 +4711,20 @@ const BookkeepingProjectModule = (function () {
    * collect and collate user input. In particular, it handles attempts by the
    * user to pass new account data off to the back-end, ensuring that account
    * code is numeric and name input is alphanumeric before passing code, name,
-   * and type off to the <code>add_account</code> PHP endpoint.
+   * and type off to the <code>add_account</code> PHP endpoint. Like all the
+   * other input handlers included in this section of the module, this function
+   * shares some design similarities with the other handlers such as
+   * <code>inaccessible.handleAccountCreation</code>, <code>handleLogin</code>,
+   * and <code>inaccessible.handlePasswordChange</code>, and was one of those
+   * the author considered consolidating into a single master input handler, an
+   * idea that was eventually abandoned as discussed above.
    *
    * @returns {void}
    */
   inaccessible.handleAccountAddition = function () {
 
     // Declarations
-    let that, code, name, type;
+    let that, code, name, type, data;
 
     // Preserve scope
     that = this;
@@ -4013,6 +4734,7 @@ const BookkeepingProjectModule = (function () {
     name = document.getElementById(Identifiers.ID_ADDACC_INPUT_NAME).value;
     type = document.getElementById(Identifiers.ID_ADDACC_DROPDOWN_TYPE).value;
 
+    // Code must be numeric (i.e. 1000)
     if (isNaN(code)) {
       this.displayStatusNotice(false, Text.ERROR_DOCU_CODE_NUMER);
       return;
@@ -4024,6 +4746,7 @@ const BookkeepingProjectModule = (function () {
       return;
     }
 
+    // Send POST request using query strings REST approach
     this.sendRequest('POST', 'php/add_account.php', {
       encode: false,
       params: {
@@ -4045,8 +4768,8 @@ const BookkeepingProjectModule = (function () {
         that.displayStatusNotice(true, Text.SUCCESS_ADDACC_SUBMIT);
       } else {
 
-        // Entry already exists
-        if (data.duplicate) {
+        // Entry already exists, let the user know via status notice
+        if (data.accountAlreadyExists) {
           that.displayStatusNotice(false, Text.ERROR_ADDACC_DUPLICATE);
         } else {
           that.displayStatusNotice(false, Text.ERROR_ADDACC_OTHERERROR);
@@ -4063,18 +4786,38 @@ const BookkeepingProjectModule = (function () {
    * sidebar button, used to automatically create some default accounts for the
    * user. Depending on whether or not the user has already created a set of
    * default accounts before, the handler will build and display a different
-   * status modal informing the user of the success of the operation.
+   * status modal informing the user of the success of the operation, showing
+   * either an unordered list of newly created default accounts or a simple
+   * text-based modal indicating that the accounts have already been created
+   * prior to the button press.
+   * <br />
+   * <br />
+   * As discussed in some detail in this handler's related builder function
+   * <code>inaccessible.buildDefaultAccountsModal</code>, the means by which
+   * this functionality was to be displayed was somewhat difficult for the
+   * author, given that the modal framework was never designed to simply provide
+   * status notices in popup form to the user. However, given a lack of better
+   * options, the user just went with it, displaying a list of new accounts if
+   * successful and a simple text response if not. There are certainly better
+   * ways of undertaking this task, but the team was pressed for time by the
+   * time this functionality went live on the back-end.
    *
    * @returns {void}
    */
   inaccessible.handleDefaultAccountsAddition = function () {
 
     // Declarations
-    let that, data;
+    let that, data, builderConfig;
 
     // Preserve scope
     that = this;
 
+    // Tinderize config object
+    builderConfig = {
+      name: 'buildDefaultAccountsModal',
+    };
+
+    // Get the created accounts
     this.sendRequest(
       'GET',
       (TESTING)
@@ -4089,21 +4832,24 @@ const BookkeepingProjectModule = (function () {
         console.log(data);
       }
 
+      // Test mode as no data.success property, so we just pass the whole JSON
       if (TESTING) {
-        that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
-          'buildDefaultAccountsModal', [data]);
+        builderConfig.args = [data];
+        that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS, builderConfig);
         that.handleTableDataLoading('accounts');
         return;
       }
 
+      // If successful, we display status modal & load table in the background
       if (data.success) {
-        that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
-          'buildDefaultAccountsModal', [data.accountsAdded]);
+        builderConfig.args = [data.accountsAdded];
+        that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS, builderConfig);
         that.handleTableDataLoading('accounts');
       } else {
+
+        // Otherwise, a failure status modal with simple text is shown
         if (data.userLoggedIn) {
-          that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS,
-            'buildDefaultAccountsModal', []);
+          that.displayModal(Text.DIV_GENERAL_DEFAULT_ACCOUNTS, builderConfig);
         }
       }
     }, function (error) {
@@ -4115,9 +4861,19 @@ const BookkeepingProjectModule = (function () {
    * @description This function handles the removal of ledger table entry rows
    * that have been marked for deletion via the associated checkbox elements
    * constituting the first cell of each row. Pressing the appropriate sidebar
-   * button automatically removes these highlighted entries from the table. Will
-   * need to add back-end support that mirrors the removal of data from the
-   * table, as with the above addition function.
+   * button automatically removes these highlighted entries from the table. On
+   * the back-end, this is mirrored through the concurrent <code>POST<code>
+   * request indicating what element has been removed by the user. This was one
+   * of the last pieces of functionality to be added to the program codebase,
+   * despite the fact that the deletion checkboxes have existed as part of the
+   * dashboard tables since the start of the front-end development period.
+   * <br />
+   * <br />
+   * This handler works both for conventional HTML tables as they appear in the
+   * dashboard scene and for the <code>form</code>-based pseudo-tables that
+   * exist in the document addition modal. In both cases, on the selection of
+   * the desired rows and press of the deletion button in its varied forms, the
+   * row is removed from view.
    *
    * @returns {void}
    */
@@ -4126,21 +4882,25 @@ const BookkeepingProjectModule = (function () {
     // Declarations
     let checkedInputs, table, tableBody;
 
+    // Implementation differs depending on the scene in question
     switch (this.scene) {
       case 2: // DASHBOARD
         table = document.getElementById(Identifiers.ID_DASHBOARD_WRAPPER);
         tableBody = table.querySelector("tbody");
         break;
       case 0: // MODAL
-      case 1: // LOGIN
-      default:
         table = document.getElementById(Identifiers.ID_DOCUMENT_TABLE);
         tableBody = table;
         break;
+      case 1: // LOGIN
+      default:
+        return;
     }
 
+    // Grab all checked checkboxes
     checkedInputs = document.querySelectorAll("input[type='checkbox']:checked");
 
+    // For each checked box, we remove the entire row from the table's tbody
     Array.prototype.slice.call(checkedInputs).forEach(input =>
       tableBody.removeChild(
         (this.scene === Scenes.DASHBOARD)
@@ -4155,9 +4915,14 @@ const BookkeepingProjectModule = (function () {
   /**
    * @description This function serves as the main initialization function,
    * called on the completion of the DOM load by the externally-facing function
-   * <code>accessible.init</code>. Ideally, it will dynamically generate HTML
-   * via some internal helper functions and fade in on the scene via the use of
-   * a <code>jQuery</code>-esque fade-in function.
+   * <code>accessible.init</code>. It basically just creates the main container
+   * element, adds it to the body, and begins the fade-in to the initial login
+   * module scene. In some respects, it can be thought of as a stripped down
+   * version of <code>inaccessible.tinderize</code>. Originally, the author had
+   * planned for <code>main</code> to have more of an active role in the program
+   * progression, but given the spaghetti code-nature of asynchronous JavaScript
+   * and XML (AJAX), program progression wound through multiple layers of API
+   * request callbacks and the like.
    *
    * @returns {void}
    */
@@ -4181,7 +4946,7 @@ const BookkeepingProjectModule = (function () {
 
     // Focus event on username textfield
     this.focusOnLoad(`#${Identifiers.ID_LOGIN_BODY_INPUT_USERNAME}`,
-      Utility.CHECK_OPACITY_RATE);
+      Utility.ELEMENT_CHECK_INTERVAL);
   };
 
   // Public functions
