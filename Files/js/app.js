@@ -443,6 +443,7 @@ const BookkeepingProjectModule = (function () {
     DIV_DEFAULT_SUMMARY: '"#2" (code #1) of type "#3"',
     DIV_DEFAULT_INFORMATION_SUCCESS: 'The following accounts have been added:',
     DIV_DEFAULT_INFORMATION_FAILURE: 'Default accounts already exist',
+    DIV_GENERAL_TABLE_BUILD_FAILURE: 'This table could not be built',
 
     // Error and success status text entries
     ERROR_NETWORK: 'A network error has been encountered',
@@ -4226,7 +4227,7 @@ const BookkeepingProjectModule = (function () {
         that.tinderize(false, Identifiers.ID_DASHBOARD_WRAPPER,
           builderConfig, true);
       } else {
-        console.warn('DISPLAY ERROR MESSAGE VIA window.alert');
+        that.displayModal(Text.DIV_GENERAL_TABLE_BUILD_FAILURE, builderConfig);
         return;
       }
     }, function (error) {
@@ -4458,6 +4459,9 @@ const BookkeepingProjectModule = (function () {
       input.generalLedgerRows.push(ledgerRowObject);
     }
 
+    // Only generalLedgerRows is encoded as JSON
+    input.generalLedgerRows = JSON.stringify(input.generalLedgerRows);
+
     // If we break'd (lulz) from the outer loop, we don't want to proceed
     if (wasProblemDetected) {
       return;
@@ -4476,7 +4480,7 @@ const BookkeepingProjectModule = (function () {
 
     // This is the only POST request requiring JSON-encoded input passed
     this.sendRequest('POST', 'php/add_document.php', {
-      encode: true,
+      encode: false,
       params: input,
     }).then(function (response) {
 
