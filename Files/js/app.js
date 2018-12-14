@@ -60,7 +60,6 @@
  *   - Operations               Line xxxx
  *   - ModalButtons             Line xxxx
  *   - ModuleButtons            Line xxxx
- *   - TableHeaders             Line xxxx
  *   - Types                    Line xxxx
  * - Data arrays
  *   - sidebarButtonData        Line xxxx
@@ -426,6 +425,7 @@ const BookkeepingProjectModule = (function () {
     // Paragraphs, div content, etc.
     DIV_LOGIN_BODY_HEADER: 'Login or create account',
     DIV_GENERAL_DASH: '—',
+    DIV_GENERAL_TABLE_DELETE_CHECKBOX: 'delete',
     DIV_GENERAL_TOGGLE: 'Toggle views',
     DIV_GENERAL_ADD: 'Add $1',
     DIV_GENERAL_TOGGLE_DOCS: 'View documents',
@@ -443,7 +443,12 @@ const BookkeepingProjectModule = (function () {
     DIV_DEFAULT_SUMMARY: '"#2" (code #1) of type "#3"',
     DIV_DEFAULT_INFORMATION_SUCCESS: 'The following accounts have been added:',
     DIV_DEFAULT_INFORMATION_FAILURE: 'Default accounts already exist',
-    DIV_GENERAL_TABLE_BUILD_FAILURE: 'This table could not be built',
+    DIV_TABLE_BUILD_FAILURE: 'Table build error',
+    DIV_TABLE_BUILD_ERROR: 'An error was encountered in the course of ' +
+      'building the #1 table. Please try again.',
+    DIV_TABLE_BUILD_MISSING_ENTRIES: 'No entries exist in the #1 table. ' +
+      'Please use the included "Add #2" sidebar button to populate this ' +
+      'table with entries prior to viewing its contents.',
 
     // Error and success status text entries
     ERROR_NETWORK: 'A network error has been encountered',
@@ -739,49 +744,6 @@ const BookkeepingProjectModule = (function () {
         Identifiers.CLASS_GENERAL_BIG_BUTTON,
       ],
     },
-  });
-
-  /**
-   * @description This enum of string arrays is used to store the names of the
-   * HTML tables' headers. These headers are related to the general ledger (used
-   * to display all the individual transactions that make up a document), the
-   * document overview table showing the currently posted documents, the
-   * accounts overview table displaying the extant user accounts, and the
-   * matched customer and vendor tables which, due to their shared properties of
-   * "name" and "address,"" share the <code>PARTIES</code> array of headers.
-   *
-   * @readonly
-   * @enum {!Array<string>}
-   * @const
-   */
-  const TableHeaders = Object.freeze({
-    ACCOUNTS: [
-      'delete',          // Checkbox for deletion
-      'code',            // Int code number
-      'name',            // Account name
-      'type',            // Account type
-    ],
-    DOCUMENTS: [
-      'delete',          // Checkbox for deletion
-      'name',            // Document name
-      'type',            // Type of document
-      'vendor/customer', // If applicable
-    ],
-    LEDGER: [
-      'delete',          // Checkbox for deletion
-      'code',            // Account number
-      'name',            // Account name
-      'debit',           // Debit
-      'credit',          // Credit
-      'memo',            // Description of transaction
-      'name',            // Individual in question
-      'date',            // Recorded date
-    ],
-    PARTIES: [
-      'delete',          // Checkbox for deletion
-      'name',            // Vendor/customer name
-      'address',         // Vendor/customer address
-    ],
   });
 
   /**
@@ -1297,6 +1259,23 @@ const BookkeepingProjectModule = (function () {
    */
   inaccessible.isValidAmount = function (paramInput) {
     return /^\d+(?:\.\d{0,2})$/.test(paramInput);
+  };
+
+  /**
+   * @description This utility function is used to convert a JSON object key to
+   * a usable, properly formatted HTML table header for use in one of the five
+   * possible table types. The works by accepting the object property identifier
+   * of a return JSON data object (i.e. "vendorName") and looking ahead for
+   * capital letters as per lowerCamelCase naming conventions. On finding such
+   * capital letters, a space is inserted in front of that letter. Finally,
+   * prior to returning the string from the function, the entire string's
+   * capital letters are converted to their lowercase equivalents.
+   *
+   * @param {string} paramInput String representing Object.keys() entry
+   * @returns {boolean} Returns formatted table header
+   */
+  inaccessible.convertKeyToHeader = function (paramInput) {
+    return paramInput.split(/(?=[A-Z])/).join(' ').toLowerCase();
   };
 
   /**
@@ -2558,6 +2537,47 @@ const BookkeepingProjectModule = (function () {
   };
 
   /**
+   * @description This simple modal is used to render simply text-only modals on
+   * the screen as a dynamic way of alerting the user to success or failure
+   * operations in a manner similar to the module/modal-based status notice
+   * approach. This is primarily used to inform the user of an empty table of
+   * vendors, customers, documents, or accounts in the event that the user has
+   * pressed the related sidebar button prior to populating the appropriate
+   * table with extant entries. In such cases, this modal will be displayed with
+   * an appropriate message indicating that the user should create some entries
+   * prior to pressing the button.
+   *
+   * @param {string} paramMessage Plain text message to display as body
+   * @returns {HTMLElement} The completed text-only modal
+   */
+  inaccessible.buildPlainModal = function (paramMessage) {
+
+    let configContainer, configInformation;
+
+    // <div> container
+    configContainer = {
+      id: Identifiers.ID_DEFAULT_CONTAINER,
+    };
+
+    // <div> wrapper for text content
+    configInformation = {
+      id: Identifiers.ID_DEFAULT_INFORMATION,
+    };
+
+    // Define scene flag
+    this.scene = Scenes.MODAL;
+
+    // Return completed modal body
+    return this.assembleElement(
+      ['div', configContainer,
+        ['div', configInformation,
+          paramMessage,
+        ]
+      ],
+    );
+  };
+
+  /**
    * @description This builder function is responsible for building the modal
    * mini-scene related to the password changing process. It assembles a bit of
    * HTML including a pair of password entry input textfields and a set of
@@ -3227,6 +3247,15 @@ const BookkeepingProjectModule = (function () {
    * <code>type</code> thereof, translating its initials into a human-friendly,
    * readable format (i.e. "JE" into "Journal entry"). This is done to ensure
    * that the table is as understandable at a glance as possible.
+   * <br />
+   * <br />
+   * Originally, this function (and the greater application in general) made use
+   * of a dedicated headers enum called <code>TableHeaders</code> that contained
+   * string representations of the header titles to be shown in the HTML tables.
+   * However, this approach was eventually removed in favor of simply adjusting
+   * the returned JSON data object property keys via the new utility function
+   * <code>inaccessible.convertKeyToHeader</code> and using their values as the
+   * table headers, thus removing a largely redundant enum from use.
    *
    * @param {object} paramTableConfig Config options for the <code>table</code>
    * @param {!Array<object>} paramRows Array of table rows
@@ -3235,13 +3264,24 @@ const BookkeepingProjectModule = (function () {
   inaccessible.buildTable = function (paramTableConfig, paramRows) {
 
     // Declarations
-    let that, newTable;
+    let that, newTable, headers;
 
     // Preserve scope
     that = this;
 
-    // Create new table using inputted table headers
-    newTable = this.assembleDashboardTable(paramTableConfig.headers);
+    // New headers array from JSON object keys
+    headers = [];
+
+    // First element is always deletion checkbox
+    headers.push(Text.DIV_GENERAL_TABLE_DELETE_CHECKBOX);
+
+    // Construct headers by means of JSON object property key names
+    Object.keys(paramRows[0]).forEach(function (key) {
+      headers.push(that.convertKeyToHeader(key));
+    });
+
+    // Create new table using converted property table headers
+    newTable = this.assembleDashboardTable(headers);
 
     /**
      * This <code>if</code> statement block and associated <code>for/in</code>
@@ -3452,31 +3492,9 @@ const BookkeepingProjectModule = (function () {
     // Insert a new row
     newRow = tbody.insertRow(rowCount);
 
-    /**
-     * The pair of matching <code>if</code> statement blocks inside this
-     * <code>for/in</code> loop are related to the reality of general ledger
-     * data returned from the back-end. For each ledger entry, if the entry is
-     * a credit, only the credit property will be included in the JSON object,
-     * rather than both a credit property and an empty/null debit property.
-     * Without handling, the missing parameter will result in the data shifted
-     * one cell in the table and out-of-place. Thus, the extra entry (debit if
-     * credit or credit if debit) must be inserted either before or after to
-     * keep data in the right columns.
-     */
+    // Add new value to array
     for (let key in paramRowObject) {
-
-      // If the table is the general ledger and the key is credit...
-      if (paramTableConfig.name === 'ledger_rows' && key === 'credit') {
-        valuesArray.push(Text.DIV_GENERAL_DASH);
-      }
-
-      // A new row cell is added to the values array regardless
       valuesArray.push(paramRowObject[key]);
-
-      // If the table is the general ledger and the key is debit...
-      if (paramTableConfig.name === 'ledger_rows' && key === 'debit') {
-        valuesArray.push(Text.DIV_GENERAL_DASH);
-      }
     }
 
     // Individual config for this checkbox
@@ -3520,7 +3538,8 @@ const BookkeepingProjectModule = (function () {
 
             // Event listener -> load document's individual ledger entries
             newButton.addEventListener('click', function () {
-              that.handleTableDataLoading('ledger_rows', valuesArray[i - 1]);
+              that.handleTableDataLoading('generalLedgerRows',
+                valuesArray[i - 1]);
             }, false);
 
             newCell.appendChild(newButton);
@@ -4136,7 +4155,7 @@ const BookkeepingProjectModule = (function () {
   inaccessible.handleTableDataLoading = function (paramTable, paramDoc = null) {
 
     // Declarations
-    let that, requestDataOptions, selectedTable, data, builderConfig;
+    let that, requestDataOptions, selectedTable, data, builderConfig, tableData;
 
     // Preserve scope
     that = this;
@@ -4151,15 +4170,15 @@ const BookkeepingProjectModule = (function () {
     requestDataOptions = {
       documents: {
         name: 'documents',
+        request: 'GET',
         endpoint: 'get_documents',
-        headers: TableHeaders.DOCUMENTS,
         useTextNodesOnly: false,
         params: {},
       },
-      ledger_rows: {
-        name: 'ledger_rows',
+      generalLedgerRows: {
+        name: 'generalLedgerRows',
+        request: 'POST',
         endpoint: 'get_general_ledger_rows',
-        headers: TableHeaders.LEDGER,
         useTextNodesOnly: true,
         params: {
           documentName: paramDoc,
@@ -4167,22 +4186,22 @@ const BookkeepingProjectModule = (function () {
       },
       accounts: {
         name: 'accounts',
+        request: 'GET',
         endpoint: 'get_accounts',
-        headers: TableHeaders.ACCOUNTS,
         useTextNodesOnly: true,
         params: {},
       },
       vendors: {
         name: 'vendors',
+        request: 'GET',
         endpoint: 'get_vendors',
-        headers: TableHeaders.PARTIES,
         useTextNodesOnly: true,
         params: {},
       },
       customers: {
         name: 'customers',
+        request: 'GET',
         endpoint: 'get_customers',
-        headers: TableHeaders.PARTIES,
         useTextNodesOnly: true,
         params: {},
       }
@@ -4196,7 +4215,7 @@ const BookkeepingProjectModule = (function () {
 
     // Get relevant info from proper endpoint
     this.sendRequest(
-      'GET',
+      selectedTable.request,
       (TESTING)
         ? `json/${selectedTable.endpoint}.json`
         : `php/${selectedTable.endpoint}.php`,
@@ -4213,25 +4232,63 @@ const BookkeepingProjectModule = (function () {
         console.log(data);
       }
 
-      // Tinderize builder function config
-      builderConfig = {
-        name: 'buildTable',
-        args: [
-          selectedTable,
-          data[paramTable],
-        ],
-      };
+      // Test mode data is formatted a little differently for ledger entries
+      tableData = (TESTING && paramDoc != null)
+        ? data[paramTable][paramDoc]
+        : data[paramTable];
 
       // Fade in on dashboard table element and build new table
       if (data.success) {
-        that.tinderize(false, Identifiers.ID_DASHBOARD_WRAPPER,
-          builderConfig, true);
+        if (tableData.length) {
+
+          // Tinderize builder function config
+          builderConfig = {
+            name: 'buildTable',
+            args: [
+              selectedTable,
+              tableData,
+            ],
+          };
+
+          that.tinderize(false, Identifiers.ID_DASHBOARD_WRAPPER, builderConfig,
+            true);
+        } else {
+
+          // Successful request, but no entries in relevant table
+          builderConfig = {
+            name: 'buildPlainModal',
+            args: [
+              that.replaceAll(Text.DIV_TABLE_BUILD_MISSING_ENTRIES, {
+                '#1': selectedTable.name,
+                '#2': selectedTable.name.slice(0, -1), // Remove 's'
+              })
+            ],
+          };
+
+          that.displayModal(Text.DIV_TABLE_BUILD_FAILURE, builderConfig);
+        }
       } else {
-        that.displayModal(Text.DIV_GENERAL_TABLE_BUILD_FAILURE, builderConfig);
-        return;
+
+        // Unsuccessful request config
+        builderConfig = {
+          name: 'buildPlainModal',
+          args: [
+            Text.DIV_TABLE_BUILD_ERROR.replace('#1', selectedTable.name)
+          ],
+        };
+
+        that.displayModal(Text.DIV_TABLE_BUILD_FAILURE, builderConfig);
       }
     }, function (error) {
+
+      // Network error modal config
+      builderConfig = {
+        name: 'buildPlainModal',
+        args: [Text.ERROR_NETWORK],
+      };
+
       console.warn(error);
+      that.displayModal(Text.DIV_TABLE_BUILD_FAILURE, builderConfig);
     });
   };
 
@@ -5012,15 +5069,6 @@ const BookkeepingProjectModule = (function () {
    */
   accessible.getModuleButtons = function () {
     return inaccessible.extend({}, ModuleButtons);
-  };
-
-  /**
-   * @description External getter for immutable <code>TableHeaders</code>
-   *
-   * @returns {enum} TableHeaders
-   */
-  accessible.getTableHeaders = function () {
-    return inaccessible.extend({}, TableHeaders);
   };
 
   /**
