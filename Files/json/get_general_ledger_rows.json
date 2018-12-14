@@ -1,17 +1,69 @@
 {
     "success": true,
-    "ledger_rows": [
-        {
-            "code": 1500,
-            "date": "2018-12-08",
-            "debit": "10000.00",
-            "description": "Purchase of land"
-        },
-        {
-            "code": 1000,
-            "date": "2018-12-08",
-            "credit": "10000.00",
-            "description": "Purchase of land"
-        }
-    ]
+    "generalLedgerRows": {
+        "Electricity bill": [
+            {
+                "code": 6100,
+                "date": "2018-12-08",
+                "debit": "500.00",
+                "credit": null,
+                "description": "Electricity expense"
+            },
+            {
+                "code": 2000,
+                "date": "2018-12-08",
+                "debit": null,
+                "credit": "500.00",
+                "description": "Liability to electric company"
+            }
+        ],
+        "Electricity payment" : [
+            {
+                "code": 2000,
+                "date": "2018-12-08",
+                "debit": "500.00",
+                "credit": null,
+                "description": "Pay-off electric liability"
+            },
+            {
+                "code": 1000,
+                "date": "2018-12-08",
+                "debit": null,
+                "credit": "500.00",
+                "description": "Check #101 to the electric company"
+            }
+        ],
+        "Product payment due": [
+            {
+                "code": 1200,
+                "date": "2018-12-13",
+                "debit": "1000.00",
+                "credit": null,
+                "description": "Customer owes for product; recognize as asset"
+            },
+            {
+                "code": 4000,
+                "date": "2018-12-13",
+                "debit": null,
+                "credit": "1000.00",
+                "description": "Recognize revenue"
+            }
+        ],
+        "Deposit of customer check": [
+            {
+                "code": 1000,
+                "date": "2018-12-13",
+                "debit": "1000.00",
+                "credit": null,
+                "description": "Deposit of customer check"
+            },
+            {
+                "code": 1200,
+                "date": "2018-12-13",
+                "debit": null,
+                "credit": "1000.00",
+                "description": "Deposit of customer check"
+            }
+        ]
+    }
 }
