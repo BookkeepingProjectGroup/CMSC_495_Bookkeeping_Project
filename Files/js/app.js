@@ -51,27 +51,27 @@
  * <br />
  * <pre>
  * Table of contents
- * - Script-globals             Line xxxx
+ * - Script-globals             Line 0085
  * - Enums
- *   - Utility                  Line xxxx
- *   - Scenes                   Line xxxx
- *   - Identifiers              Line xxxx
- *   - Text                     Line xxxx
- *   - Operations               Line xxxx
- *   - ModalButtons             Line xxxx
- *   - ModuleButtons            Line xxxx
- *   - Types                    Line xxxx
+ *   - Utility                  Line 0142
+ *   - Scenes                   Line 0166
+ *   - Identifiers              Line 0199
+ *   - Text                     Line 0389
+ *   - Operations               Line 0523
+ *   - ModalButtons             Line 0603
+ *   - ModuleButtons            Line 0701
+ *   - Types                    Line 0763
  * - Data arrays
- *   - sidebarButtonData        Line xxxx
- *   - navlinksButtonData       Line xxxx
+ *   - sidebarButtonData        Line 0819
+ *   - navlinksButtonData       Line 0994
  * - Function groups
- *   - Utility functions        Line xxxx
- *   - Assembly functions       Line xxxx
- *   - Builder functions        Line xxxx
- *   - Display functions        Line xxxx
- *   - Handler functions        Line xxxx
- *   - Main function            Line xxxx
- *   - Public functions         Line xxxx
+ *   - Utility functions        Line 1035
+ *   - Assembly functions       Line 1685
+ *   - Builder functions        Line 1929
+ *   - Display functions        Line 3354
+ *   - Handler functions        Line 3696
+ *   - Main function            Line 5034
+ *   - Public functions         Line 5073
  * </pre>
  *
  * @see {@link //google.github.io/styleguide/jsguide.html|Styleguide #1}
@@ -106,7 +106,7 @@ const BookkeepingProjectModule = (function () {
    *
    * @const
    */
-  const DEBUG = true;
+  const DEBUG = false;
 
   /**
    * @description This constant is used to allow the program to run in a test
@@ -125,7 +125,7 @@ const BookkeepingProjectModule = (function () {
    *
    * @const
    */
-  const TESTING = true;
+  const TESTING = false;
 
   /**
    * @description Enum for assorted utility constants. Herein are set assorted
@@ -140,8 +140,8 @@ const BookkeepingProjectModule = (function () {
    * @const
    */
   const Utility = Object.freeze({
-    FADE_IN_INTERVAL: 5,              // Joint fade/swipe right rate (ms)
-    OPACITY_INCREASE_AMOUNT: 0.015,   // Amount to increase/decrease opacity
+    FADE_IN_INTERVAL: 8,              // Joint fade/swipe right rate (ms)
+    OPACITY_INCREASE_AMOUNT: 0.035,   // Amount to increase/decrease opacity
     ELEMENT_CHECK_INTERVAL: 500,      // Rate at which to check for element
     SWIPE_INTERVAL_TIME: 2000,        // Max time permitted for swipe right
     CHECK_OPACITY_RATE: 500,          // Rate at which we check for opacity == 0
@@ -411,7 +411,7 @@ const BookkeepingProjectModule = (function () {
     BUTTON_LOGIN_FOOTER_CREATE: 'Create',
     BUTTON_LOGIN_FOOTER_SUBMIT: 'Login',
     BUTTON_DASHBOARD_TOPBAR_NAVLINKS_CHANGEP: 'Change password',
-    BUTTON_DASHBOARD_TOPBAR_NAVLINKS_PRINT: 'Print ledger',
+    BUTTON_DASHBOARD_TOPBAR_NAVLINKS_PRINT: 'Print table',
     BUTTON_DASHBOARD_TOPBAR_NAVLINKS_LOGOUT: 'Logout',
     BUTTON_MODAL_FOOTER_SUBMIT: 'Submit',
     BUTTON_MODAL_FOOTER_CLEAR: 'Clear',
@@ -425,16 +425,16 @@ const BookkeepingProjectModule = (function () {
     // Paragraphs, div content, etc.
     DIV_LOGIN_BODY_HEADER: 'Login or create account',
     DIV_GENERAL_DASH: '—',
-    DIV_GENERAL_TABLE_DELETE_CHECKBOX: 'delete',
+    DIV_GENERAL_TABLE_HIDE_CHECKBOX: 'hide',
     DIV_GENERAL_TOGGLE: 'Toggle views',
     DIV_GENERAL_ADD: 'Add $1',
     DIV_GENERAL_TOGGLE_DOCS: 'View documents',
     DIV_GENERAL_TOGGLE_ACCOUNTS: 'View accounts',
     DIV_GENERAL_TOGGLE_CUSTOMERS: 'View customers',
     DIV_GENERAL_TOGGLE_VENDORS: 'View vendors',
-    DIV_GENERAL_DELETE_ROW: 'Delete entry',
+    DIV_GENERAL_HIDE_ROW: 'Hide entry',
     DIV_GENERAL_DEFAULT_ACCOUNTS: 'Add default accounts',
-    DIV_GENERAL_TOPBAR_TITLE: 'Keep Dem Books Y\'all', // Need some title
+    DIV_GENERAL_TOPBAR_TITLE: 'Keep Dem Books Y\'all',
     DIV_GENERAL_TOPBAR_SUBTITLE: 'A bookkeeping application for CMSC 495',
     DIV_CHANGEP_INFORMATION: 'Please note that password entries must match',
     DIV_CORV_INFORMATION: 'Please input an entry name and address',
@@ -443,21 +443,25 @@ const BookkeepingProjectModule = (function () {
     DIV_DEFAULT_SUMMARY: '"#2" (code #1) of type "#3"',
     DIV_DEFAULT_INFORMATION_SUCCESS: 'The following accounts have been added:',
     DIV_DEFAULT_INFORMATION_FAILURE: 'Default accounts already exist',
-    DIV_TABLE_BUILD_FAILURE: 'Table build error',
+    DIV_TABLE_BUILD_FAILURE: 'Build error',
     DIV_TABLE_BUILD_ERROR: 'An error was encountered in the course of ' +
-      'building the #1 table. Please try again.',
+      'building the #1 table, possibly due to a lack of entries. Please try ' +
+      'again or use the included "Add #2" sidebar button to populate the ' +
+      'table with entries.',
     DIV_TABLE_BUILD_MISSING_ENTRIES: 'No entries exist in the #1 table. ' +
       'Please use the included "Add #2" sidebar button to populate this ' +
       'table with entries prior to viewing its contents.',
 
     // Error and success status text entries
     ERROR_NETWORK: 'A network error has been encountered',
+    ERROR_OTHERERROR: 'A submission error was encountered. Please correct ' +
+      'any errors and try again',
     ERROR_ILLEGITIMATE_INPUT: 'Input content must be alphanumeric',
+    ERROR_ILLEGITIMATE_INPUT_BLANK: 'Input fields must not be blank',
     ERROR_MISMATCHING_PASSWORDS: 'Passwords do not match',
     ERROR_FAILED_PASSWORD_RESET: 'Password reset unsuccessful',
     ERROR_LOGIN_FAILED: 'Login failed. Please check login details',
     ERROR_CORV_DUPLICATE: 'An entry with that name or address already exists',
-    ERROR_CORV_OTHERERROR: 'An error was encountered. Please try again',
     ERROR_DOCU_PARTY_DISPLAY: 'Could not display extant $1',
     ERROR_DOCU_NAME_ANUMER: 'Document name must be alphanumeric',
     ERROR_DOCU_CODE_NUMER: 'Code must be numeric',
@@ -465,11 +469,8 @@ const BookkeepingProjectModule = (function () {
     ERROR_DOCU_AMOUNT: 'Amount must be formatted as XXXX.XX',
     ERROR_DOCU_DESC_ANUMER: 'Description must be alphanumeric',
     ERROR_DOCU_BLANK_INPUT: 'Entry input fields cannot be blank',
-    ERROR_DOCU_OTHERERROR: 'An error was encountered. Please try again',
     ERROR_ACCOUNT_EXISTS: 'An account with this name already exists',
-    ERROR_ACCOUNT_OTHERERROR: 'An error was encountered. Please try again',
     ERROR_ADDACC_DUPLICATE: 'An account with these details already exists',
-    ERROR_ADDACC_OTHERERROR: 'An error was encountered. Please try again',
     SUCCESS_ACCOUNT_CREATED: 'Account successfully created',
     SUCCESS_PASSWORD_RESET: 'Password successfully reset',
     SUCCESS_CORV_SUBMIT: 'New entry successfully added',
@@ -816,8 +817,8 @@ const BookkeepingProjectModule = (function () {
    * </pre>
    */
   inaccessible.sidebarButtonData = [
-    { // Delete row
-      buttonType: Text.DIV_GENERAL_DELETE_ROW,
+    { // Hide row
+      buttonType: Text.DIV_GENERAL_HIDE_ROW,
       functionName: 'handleRowRemoval',
       functionArguments: [],
       requiresWrapper: true,
@@ -1241,7 +1242,7 @@ const BookkeepingProjectModule = (function () {
    * @returns {boolean} Returns <code>true</code> if input is alphanumeric
    */
   inaccessible.isLegalInput = function (paramInput) {
-    return /^[a-z\d\-_\s]+$/i.test(paramInput);
+    return /^[a-z\d\-_,:;\s]+$/i.test(paramInput);
   };
 
   /**
@@ -1512,7 +1513,7 @@ const BookkeepingProjectModule = (function () {
     container = document.getElementById(paramElementId);
 
     // Set default opacity here rather than in config objects (as before)
-    container.style.opacity = (paramFadeType === 'out') ? 1.005 : 0;
+    container.style.opacity = (paramFadeType === 'out') ? 1 : 0;
 
     // Removes need for separate functions
     fadeTypeParameters = Object.freeze({
@@ -1656,8 +1657,11 @@ const BookkeepingProjectModule = (function () {
 
     // Maybe reconfigure using a promise as per the api method above?
     interval = setInterval(function () {
-      if (container.style.opacity == 0) {
+      if (container.style.opacity <= 0) {
         clearInterval(interval);
+
+        // Set to zero exactly
+        container.style.opacity = 0;
 
         // Remove outdated DOM elements
         that.emptyElementOfContent(parent.id);
@@ -3273,7 +3277,7 @@ const BookkeepingProjectModule = (function () {
     headers = [];
 
     // First element is always deletion checkbox
-    headers.push(Text.DIV_GENERAL_TABLE_DELETE_CHECKBOX);
+    headers.push(Text.DIV_GENERAL_TABLE_HIDE_CHECKBOX);
 
     // Construct headers by means of JSON object property key names
     Object.keys(paramRows[0]).forEach(function (key) {
@@ -3763,7 +3767,7 @@ const BookkeepingProjectModule = (function () {
         if (data.duplicate) {
           that.displayStatusNotice(false, Text.ERROR_ACCOUNT_EXISTS);
         } else {
-          that.displayStatusNotice(false, Text.ERROR_ACCOUNT_OTHERERROR);
+          that.displayStatusNotice(false, Text.ERROR_OTHERERROR);
         }
       }
     }, function (error) {
@@ -4254,30 +4258,15 @@ const BookkeepingProjectModule = (function () {
             true);
         } else {
 
-          // Successful request, but no entries in relevant table
-          builderConfig = {
-            name: 'buildPlainModal',
-            args: [
-              that.replaceAll(Text.DIV_TABLE_BUILD_MISSING_ENTRIES, {
-                '#1': selectedTable.name,
-                '#2': selectedTable.name.slice(0, -1), // Remove 's'
-              })
-            ],
-          };
-
-          that.displayModal(Text.DIV_TABLE_BUILD_FAILURE, builderConfig);
+          // Successful request, but no entries
+          that.handleTableDisplayError(selectedTable.name,
+            Text.DIV_TABLE_BUILD_MISSING_ENTRIES);
         }
       } else {
 
-        // Unsuccessful request config
-        builderConfig = {
-          name: 'buildPlainModal',
-          args: [
-            Text.DIV_TABLE_BUILD_ERROR.replace('#1', selectedTable.name)
-          ],
-        };
-
-        that.displayModal(Text.DIV_TABLE_BUILD_FAILURE, builderConfig);
+        // Unsuccessful request, possible empty table
+        that.handleTableDisplayError(selectedTable.name,
+          Text.DIV_TABLE_BUILD_ERROR);
       }
     }, function (error) {
 
@@ -4290,6 +4279,42 @@ const BookkeepingProjectModule = (function () {
       console.warn(error);
       that.displayModal(Text.DIV_TABLE_BUILD_FAILURE, builderConfig);
     });
+  };
+
+  /**
+   * @description This handler is used exclusively by the above handler function
+   * <code>inaccessible.handleTableDataLoading</code> to reduce some copy/pasta
+   * present in cases wherein the user has attempted to have a table assembled
+   * but run into an error possibly related to a table bereft of entries. In
+   * such cases, the relevant <code>Text</code> enum property value is displayed
+   * as a message indicating that the user may want to populate the table prior
+   * to use. Since in the two cases wherein such message modal are shown both
+   * make use of the <code>inaccessible.replaceAll</code> function to replace
+   * template string fragments with the name of the relevant table, this handler
+   * is invoked to reduce the need for duplicate code.
+   *
+   * @param {string} paramTable Name string of the selected table
+   * @param {string} paramMessage <code>Text</code> property value message
+   * @returns {void}
+   */
+  inaccessible.handleTableDisplayError = function (paramTable, paramMessage) {
+
+    // Declaration
+    let builderConfig;
+
+    // Definition of builder config
+    builderConfig = {
+      name: 'buildPlainModal',
+      args: [
+        this.replaceAll(paramMessage, {
+          '#1': paramTable,
+          '#2': paramTable.slice(0, -1), // Remove 's'
+        })
+      ],
+    };
+
+    // Plain modal displaying status text
+    this.displayModal(Text.DIV_TABLE_BUILD_FAILURE, builderConfig);
   };
 
   /**
@@ -4327,6 +4352,12 @@ const BookkeepingProjectModule = (function () {
       document.getElementById(Identifiers.ID_CHANGEP_INPUT_PASSWORD).value;
     passwordReenter =
       document.getElementById(Identifiers.ID_CHANGEP_INPUT_REENTER).value;
+
+    // Input fields must not be left blank
+    if (this.isBlank(password) || this.isBlank(passwordReenter)) {
+      this.displayStatusNotice(false, Text.ERROR_ILLEGITIMATE_INPUT_BLANK);
+      return;
+    }
 
     // Alphanumeric data only for passwords
     if (!this.isLegalInput(password) || !this.isLegalInput(passwordReenter)) {
@@ -4420,7 +4451,8 @@ const BookkeepingProjectModule = (function () {
 
     // Check document name. If proper, add to params object as documentName
     if (!this.isLegalInput(documentName)) {
-      this.displayStatusNotice(false, Identifiers.ERROR_DOCU_NAME_ANUMER);
+      this.displayStatusNotice(false, Text.ERROR_DOCU_NAME_ANUMER);
+      return;
     } else {
       input.documentName = documentName;
     }
@@ -4553,7 +4585,7 @@ const BookkeepingProjectModule = (function () {
         that.displayStatusNotice(true, Text.SUCCESS_DOCU_CREATED);
         that.handleTableDataLoading('documents');
       } else {
-        that.displayStatusNotice(false, Text.ERROR_DOCU_OTHERERROR);
+        that.displayStatusNotice(false, Text.ERROR_OTHERERROR);
       }
     }, function (error) {
       console.warn(error);
@@ -4586,10 +4618,18 @@ const BookkeepingProjectModule = (function () {
 
     // Declarations
     let that, selectedOption, endpoint, partyType, data, partyDropdown,
-      extantParties, dropdownElementConfig;
+      extantNotice, extantParties, dropdownElementConfig;
 
     // Preserve scope
     that = this;
+
+    // Determine whether or not there is already a status message in the modal
+    extantNotice = document.getElementById(Identifiers.ID_GENERAL_STATUS_DIV);
+
+    // Remove it if it does exist
+    if (extantNotice) {
+      extantNotice.remove();
+    }
 
     // Selected value of the inputted parameter dropdown menu
     selectedOption = paramMenu.value;
@@ -4622,6 +4662,13 @@ const BookkeepingProjectModule = (function () {
       return;
     }
 
+    // Dropdown menu for display of extant customers or vendors
+    partyDropdown =
+      document.getElementById(Identifiers.ID_DOCUMENT_DROPDOWN_PARTY);
+
+    // Remove all but the first default option
+    partyDropdown.options.length = 1;
+
     // Either get_vendors or get_customers
     this.sendRequest(
       'GET',
@@ -4636,10 +4683,6 @@ const BookkeepingProjectModule = (function () {
        // Array of customers or vendors
       extantParties = data[partyType];
 
-      // Dropdown menu for display of extant customers or vendors
-      partyDropdown =
-        document.getElementById(Identifiers.ID_DOCUMENT_DROPDOWN_PARTY);
-
       if (DEBUG) {
         console.log(data);
       }
@@ -4649,9 +4692,6 @@ const BookkeepingProjectModule = (function () {
 
         // Doesn't matter if successful if there are no entries
         if (extantParties.length > 0) {
-
-          // Remove all but the first default option
-          partyDropdown.options.length = 1;
 
           // This approach will need some refactoring in future
           extantParties.forEach(function (party) {
@@ -4666,6 +4706,9 @@ const BookkeepingProjectModule = (function () {
             partyDropdown.appendChild(
               that.assembleDropdownElement(dropdownElementConfig));
           });
+        } else {
+          that.displayStatusNotice(false, // "Could not display vendors"
+            Text.ERROR_DOCU_PARTY_DISPLAY.replace('$1', partyType));
         }
       } else {
         that.displayStatusNotice(false, // "Could not display vendors"
@@ -4716,6 +4759,12 @@ const BookkeepingProjectModule = (function () {
     // 'Add customer' -> 'add_customer'
     endpoint = this.encode(headerText);
 
+    // Input fields must not be left blank
+    if (this.isBlank(name) || this.isBlank(address)) {
+      this.displayStatusNotice(false, Text.ERROR_ILLEGITIMATE_INPUT_BLANK);
+      return;
+    }
+
     // Alphanumeric data only for username and password
     if (!this.isLegalInput(name) || !this.isLegalInput(address)) {
       this.displayStatusNotice(false, Text.ERROR_ILLEGITIMATE_INPUT);
@@ -4754,7 +4803,7 @@ const BookkeepingProjectModule = (function () {
         if (data.duplicate) {
           that.displayStatusNotice(false, Text.ERROR_CORV_DUPLICATE);
         } else {
-          that.displayStatusNotice(false, Text.ERROR_CORV_OTHERERROR);
+          that.displayStatusNotice(false, Text.ERROR_OTHERERROR);
         }
       }
     }, function (error) {
@@ -4797,6 +4846,12 @@ const BookkeepingProjectModule = (function () {
       return;
     }
 
+    // Input field must not be left blank
+    if (this.isBlank(name)) {
+      this.displayStatusNotice(false, Text.ERROR_ILLEGITIMATE_INPUT_BLANK);
+      return;
+    }
+
     // Alphanumeric data only for name
     if (!this.isLegalInput(name)) {
       this.displayStatusNotice(false, Text.ERROR_ILLEGITIMATE_INPUT);
@@ -4823,13 +4878,14 @@ const BookkeepingProjectModule = (function () {
       // If successful, no need to examine response further
       if (data.success) {
         that.displayStatusNotice(true, Text.SUCCESS_ADDACC_SUBMIT);
+        that.handleTableDataLoading('accounts');
       } else {
 
         // Entry already exists, let the user know via status notice
         if (data.accountAlreadyExists) {
           that.displayStatusNotice(false, Text.ERROR_ADDACC_DUPLICATE);
         } else {
-          that.displayStatusNotice(false, Text.ERROR_ADDACC_OTHERERROR);
+          that.displayStatusNotice(false, Text.ERROR_OTHERERROR);
         }
       }
     }, function (error) {
@@ -4869,11 +4925,6 @@ const BookkeepingProjectModule = (function () {
     // Preserve scope
     that = this;
 
-    // Tinderize config object
-    builderConfig = {
-      name: 'buildDefaultAccountsModal',
-    };
-
     // Get the created accounts
     this.sendRequest(
       'GET',
@@ -4888,6 +4939,11 @@ const BookkeepingProjectModule = (function () {
       if (DEBUG) {
         console.log(data);
       }
+
+      // Tinderize config object
+      builderConfig = {
+        name: 'buildDefaultAccountsModal',
+      };
 
       // Test mode as no data.success property, so we just pass the whole JSON
       if (TESTING) {
@@ -4910,7 +4966,15 @@ const BookkeepingProjectModule = (function () {
         }
       }
     }, function (error) {
+
+      // Network error modal config
+      builderConfig = {
+        name: 'buildPlainModal',
+        args: [Text.ERROR_NETWORK],
+      };
+
       console.warn(error);
+      that.displayModal(Text.DIV_TABLE_BUILD_FAILURE, builderConfig);
     });
   };
 
