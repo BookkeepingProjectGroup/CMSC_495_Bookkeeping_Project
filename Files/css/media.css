@@ -113,7 +113,8 @@
         border-bottom: 1px solid var(--bpg-lightgray, #eeeeee);
         position: relative;
         padding-left: 40%;
-        width: 60% !important;
+        width: 55% !important;
+        word-wrap:break-word;
     }
 
     td .general-link-button {
