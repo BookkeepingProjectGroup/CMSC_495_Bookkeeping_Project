@@ -3,7 +3,7 @@
 /*
  * File: get_vendors.php
  * Author(s): Matthew Dobson
- * Date modified: 11-28-2018
+ * Date modified: 2018-12-15
  * Description: An end-point for the front-end to fetch a list of a user's
  * vendors from the back-end. The list is returned as a JSON object containing a
  * "success" parameter and a list of JSON objects with parameters "name" and
@@ -18,7 +18,8 @@
  * }
  */
 
-include('PhpConnection.php');
+require_once(__DIR__ . '/include/ini.php');
+require_once(__DIR__ . '/include/PhpConnection.php');
 
 // JSON reply for failure.
 define('FAILURE_JSON', '{"success":false}');

@@ -3,13 +3,14 @@
 /*
  * File: login.php
  * Author(s): Matthew Dobson
- * Date modified: 11-23-2018
+ * Date modified: 2018-12-15
  * Description: Constitutes an endpoint for logging-in a user; receives POST
  * elements "username" and "password"; returns a JSON object with element
  * "isLogonSuccessful" set to true or false.
  */
 
-include('AuthenticationConnection.php');
+require_once(__DIR__ . '/include/ini.php');
+require_once(__DIR__ . '/include/AuthenticationConnection.php');
 
 // JSON replies for successful and unsuccessful logons.
 define('LOGON_SUCCESSFUL_JSON', '{"isLogonSuccessful":true}');

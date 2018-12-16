@@ -3,11 +3,12 @@
 /*
  * File: set_password.php
  * Author(s): Matthew Dobson
- * Date modified: 11-24-2018
+ * Date modified: 2018-12-15
  * Description: An end-point for changing a user's password.
  */
 
-include('PasswordsConnection.php');
+require_once(__DIR__ . '/include/ini.php');
+require_once(__DIR__ . '/include/PasswordsConnection.php');
 
 // JSON replies for successful and unsuccessful password sets.
 define('SET_PASSWORD_SUCCESSFUL_JSON', '{"isPasswordSetSuccessful":true}');

@@ -3,7 +3,7 @@
 /*
  * File: add_document.php
  * Author(s): Matthew Dobson
- * Date modified: 2018-12-04
+ * Date modified: 2018-12-15
  * Description: An end-point for adding a bookkeeping document with its
  * associated general ledger rows to the database.
  *
@@ -33,7 +33,8 @@
  * A JSON object is returned containing boolean value "success".
  */
 
-include('PhpConnection.php');
+require_once(__DIR__ . '/include/ini.php');
+require_once(__DIR__ . '/include/PhpConnection.php');
 
 // Define JSON responses for success and failure.
 define('SUCCESS_JSON', '{"success":true}');

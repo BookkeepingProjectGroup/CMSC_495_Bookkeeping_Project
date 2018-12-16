@@ -3,16 +3,17 @@
 /*
  * File: create_user.php
  * Author(s): Matthew Dobson
- * Last modified: 2018-12-04
+ * Last modified: 2018-12-15
  * Description: An end-point for adding a new user account to the database. It
  * expects POST parameters "username" and "password" and returns a JSON object
  * containing boolean parameter "success" and, if "success" is false, boolean
  * parameter "duplicate", which is true if the given username is already taken.
  */
 
-require_once('DuplicateException.php');
-require_once('PasswordsConnection.php');
-require_once('UsersConnection.php');
+require_once(__DIR__ . '/include/ini.php');
+require_once(__DIR__ . '/include/DuplicateException.php');
+require_once(__DIR__ . '/include/PasswordsConnection.php');
+require_once(__DIR__ . '/include/UsersConnection.php');
 
 // Define JSON objects for success, failure due to existence of username
 // already and other, unspecified failure.

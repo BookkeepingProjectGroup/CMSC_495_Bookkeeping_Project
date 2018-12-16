@@ -3,7 +3,7 @@
 /*
  * File: get_accounts.php
  * Author(s): Matthew Dobson
- * Date last modified: 2018-12-11
+ * Date last modified: 2018-12-15
  * Description: An end-point for getting all of the logged-in user's accounts. A
  * successful response appears as follows:
  *
@@ -27,7 +27,8 @@
  * }
  */
 
-require_once('PhpConnection.php');
+require_once(__DIR__ . '/include/ini.php');
+require_once(__DIR__ . '/include/PhpConnection.php');
 
 /**
  * A method which produces the output JSON object, outputs it to the browser and
