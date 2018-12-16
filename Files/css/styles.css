@@ -222,10 +222,6 @@
     text-align: left !important;
 }
 
-#dashboard-ledger-table tr:first-child {
-    width: 100px;
-}
-
 #dashboard-ledger-table tbody tr:nth-child(even) {
     background-color: var(--bpg-darkskyblue, #c5d6d4);
 }
