@@ -114,7 +114,7 @@
         position: relative;
         padding-left: 40%;
         width: 55% !important;
-        word-wrap:break-word;
+        word-wrap: break-word;
     }
 
     td .general-link-button {
@@ -126,7 +126,7 @@
     }
 
     #dashboard-ledger-table thead {
-        display:none;
+        display: none;
     }
 
     table {
