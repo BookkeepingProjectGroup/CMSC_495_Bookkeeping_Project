@@ -117,15 +117,14 @@
     }
 
     td .general-link-button {
-      padding: unset;
+        padding: unset;
     }
 
     td .dashboard-ledger-table-checkbox {
-      margin: unset;
+        margin: unset;
     }
 
-    /*remove 1st table row*/
-    tr:first-child {
+    #dashboard-ledger-table thead {
         display:none;
     }
 
