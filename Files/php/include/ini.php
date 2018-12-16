@@ -18,7 +18,8 @@ ini_set('session.use_cookies', '1');
 ini_set('session.use_only_cookies', '1');
 ini_set('session.use_strict_mode', '1');
 ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_secure', '1'); // Comment this line if not using HTTPS.
+// Uncomment this line if using HTTPS-enabled server.
+// ini_set('session.cookie_secure', '1');
 ini_set('session.gc_maxlifetime', '1440');
 ini_set('session.use_trans_sid', '0');
 ini_set('session.cache_limiter', 'nocache');
