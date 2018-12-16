@@ -3,14 +3,15 @@
 /*
  * File: add_vendor.php
  * Author(s): Matthew Dobson
- * Date modified: 11-28-2018
+ * Date modified: 2018-12-15
  * Description: An end-point for adding a vendor; received POST parameters
  * "name" and "address"; returns a JSON object with boolean elements
  * "success" and "duplicate", the latter of which is set to true when the
  * vendor already existed.
  */
 
-include('PhpConnection.php');
+require_once(__DIR__ . '/include/ini.php');
+require_once(__DIR__ . '/include/PhpConnection.php');
 
 // JSON replies for success, failure due to vendor already existing and other
 // failure.

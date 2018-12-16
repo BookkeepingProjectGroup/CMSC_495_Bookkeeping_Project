@@ -3,11 +3,13 @@
 /*
  * File: logout.php
  * Author(s): Matthew Dobson
- * Last modified: 2018-12-06
+ * Last modified: 2018-12-15
  * Description: An end-point for logging out. It destroys the PHP session.
  * Special thanks to PHP's manual for this logic (see
  * http://php.net/manual/en/function.session-destroy.php).
  */
+
+require_once(__DIR__ . '/include/ini.php');
 
 // Start the session.
 session_start();

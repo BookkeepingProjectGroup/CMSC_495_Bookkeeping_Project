@@ -3,7 +3,7 @@
 /*
  * File: create_default_accounts.php
  * Author(s): Matthew Dobson
- * Date modified: 2018-12-08
+ * Date modified: 2018-12-15
  * Description: An end-point for adding a group of default accounts to the
  * database for a user. It takes no parameters and returns a JSON object
  * containing a "success" parameter and a list of accounts added:
@@ -28,7 +28,8 @@
  * }
  */
 
-require_once('PhpConnection.php');
+require_once(__DIR__ . '/include/ini.php');
+require_once(__DIR__ . '/include/PhpConnection.php');
 
 // Start the session.
 session_start();

@@ -3,14 +3,14 @@
 /*
  * File: UsersConnection.php
  * Author(s): Matthew Dobson
- * Date modified: 2018-12-05
+ * Date modified: 2018-12-15
  *
  * Description: Defines a concrete PHP class extending abstract class
  * DatabaseConnection to represent, manipulate and transmit a connection to the
  * MariaDB SQL database through user users.
  */
 
-include_once 'DatabaseConnection.php';
+require_once(__DIR__ . '/DatabaseConnection.php');
 
 /** A class representing a connection MariaDB SQL database as user users. */
 class UsersConnection extends DatabaseConnection {

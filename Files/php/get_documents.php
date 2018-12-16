@@ -3,7 +3,7 @@
 /*
  * File: get_documents.php
  * Author(s): Matthew Dobson
- * Last modified: 2018-12-11
+ * Last modified: 2018-12-15
  * Description: An end-point to fetch a JSON list containing the "documentName",
  * "documentType", "customerName" (if the document type is "ARI" or "ARR") and
  * "vendorName" (if the document type is "API" or "APD") of each of the logged-
@@ -39,7 +39,8 @@
  * }
  */
 
-require_once('PhpConnection.php');
+require_once(__DIR__ . '/include/ini.php');
+require_once(__DIR__ . '/include/PhpConnection.php');
 
 /**
  * A method which produces the output JSON object, outputs it to the browser and

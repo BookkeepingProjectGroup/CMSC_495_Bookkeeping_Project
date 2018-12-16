@@ -3,7 +3,7 @@
 /*
  * File: add_account.php
  * Author(s): Matthew Dobson
- * Last modified: 2018-12-08
+ * Last modified: 2018-12-15
  * Description: An end-point for adding an account to the database for a user.
  * It expects three POST parameters: "code", "name" and "type". It returns a
  * JSON object containing parameter "success". If "success" is false, the object
@@ -12,7 +12,8 @@
  * "accountAlreadyExists".
  */
 
-require_once('PhpConnection.php');
+require_once(__DIR__ . '/include/ini.php');
+require_once(__DIR__ . '/include/PhpConnection.php');
 
 /**
  * A method for yielding this end-point's JSON response object and exiting the

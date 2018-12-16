@@ -3,7 +3,7 @@
 /*
  * File: get_general_ledger_rows.php
  * Author(s): Matthew Dobson
- * Date last modified: 2018-12-13
+ * Date last modified: 2018-12-15
  * Description: An end-point for fetching all of the general ledger rows
  * associated with a given document name.
  *
@@ -41,7 +41,8 @@
  * }
  */
 
-require_once('PhpConnection.php');
+require_once(__DIR__ . '/include/ini.php');
+require_once(__DIR__ . '/include/PhpConnection.php');
 
 /**
  * A method which produces the output JSON object, outputs it to the browser and
