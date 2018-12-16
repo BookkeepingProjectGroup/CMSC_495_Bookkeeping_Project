@@ -69,9 +69,9 @@
  *   - Assembly functions       Line 1685
  *   - Builder functions        Line 1929
  *   - Display functions        Line 3354
- *   - Handler functions        Line 3696
- *   - Main function            Line 5034
- *   - Public functions         Line 5073
+ *   - Handler functions        Line 3697
+ *   - Main function            Line 5035
+ *   - Public functions         Line 5074
  * </pre>
  *
  * @see {@link //google.github.io/styleguide/jsguide.html|Styleguide #1}
@@ -3516,6 +3516,7 @@ const BookkeepingProjectModule = (function () {
 
       // Create new cell
       newCell = newRow.insertCell(i);
+      newCell.setAttribute('class', paramTableConfig.name);
 
       /**
        * This <code>switch</code> statement is used to determine what element to
